@@ -8,7 +8,7 @@ named! {
 named! {
     simple_byte<(&[u8], usize), u8>,
     do_parse!(
-        tag_bits!(u8, 24, 5) >>
+        tag_bits!(u8, 5, 24) >>
         value: take_bits!(u8, 8) >>
         (value))
 }

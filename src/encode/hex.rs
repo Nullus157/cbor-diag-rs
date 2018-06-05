@@ -5,10 +5,8 @@ fn simple_to_hex(simple: Simple, s: &mut String) -> Result<()> {
 
     if value < 24 {
         s.push_str(&format!("{:02x} # ", 0b1110_0000 | value));
-    } else if value < 32 {
-        return Err(Error::Todos("simple out of range"));
     } else {
-        s.push_str(&format!("ff {:02x} # ", value));
+        s.push_str(&format!("f8 {:02x} # ", value));
     }
 
     match simple {
@@ -16,7 +14,8 @@ fn simple_to_hex(simple: Simple, s: &mut String) -> Result<()> {
         Simple::TRUE => s.push_str("true, "),
         Simple::NULL => s.push_str("null, "),
         Simple::UNDEFINED => s.push_str("undefined, "),
-        _ => (),
+        Simple(24...32) => s.push_str("reserved, "),
+        _ => s.push_str("unassigned, "),
     }
 
     s.push_str(&format!("simple({})", value));
