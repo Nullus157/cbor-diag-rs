@@ -104,3 +104,9 @@ impl Tag {
     pub const MIME: Tag = Tag(36);
     pub const SELF_DESCRIBE_CBOR: Tag = Tag(55799);
 }
+
+impl Value {
+    pub fn simple(value: u8) -> Value {
+        Value::Simple(Simple(value))
+    }
+}

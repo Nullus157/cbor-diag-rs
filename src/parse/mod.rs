@@ -1,5 +1,5 @@
 use hex;
-use {Error, Result, Value};
+use {Result, Value};
 
 mod binary;
 mod diag;

@@ -1,28 +1,49 @@
-use {Error, Result, Simple, Value};
+use {Error, IntegerWidth, Result, Value};
 
 named! {
-    simple_inline<(&[u8], usize), u8>,
-    verify!(take_bits!(u8, 5), |v| v < 24)
-}
-
-named! {
-    simple_byte<(&[u8], usize), u8>,
-    do_parse!(
-        tag_bits!(u8, 5, 24) >>
-        value: take_bits!(u8, 8) >>
-        (value))
+    integer<(&[u8], usize), Value>,
+    preceded!(
+        tag_bits!(u8, 3, 0),
+        alt_complete!(
+            map!(
+                verify!(take_bits!(u64, 5), |v| v < 24),
+                |value| Value::Integer { value, bitwidth: IntegerWidth::Zero })
+            | map!(
+                preceded!(tag_bits!(u8, 5, 24), take_bits!(u64, 8)),
+                |value| Value::Integer { value, bitwidth: IntegerWidth::Eight })
+            | map!(
+                preceded!(tag_bits!(u8, 5, 25), take_bits!(u64, 16)),
+                |value| Value::Integer { value, bitwidth: IntegerWidth::Sixteen })
+            | map!(
+                preceded!(tag_bits!(u8, 5, 26), take_bits!(u64, 32)),
+                |value| Value::Integer { value, bitwidth: IntegerWidth::ThirtyTwo })
+            | map!(
+                preceded!(tag_bits!(u8, 5, 27), take_bits!(u64, 64)),
+                |value| Value::Integer { value, bitwidth: IntegerWidth::SixtyFour })
+        ))
 }
 
 named! {
     simple<(&[u8], usize), Value>,
-    do_parse!(
-        tag_bits!(u8, 3, 7) >>
-        value: alt!(simple_inline | simple_byte) >>
-        (Value::Simple(Simple(value))))
+    preceded!(
+        tag_bits!(u8, 3, 7),
+        map!(
+            alt_complete!(
+                verify!(take_bits!(u8, 5), |v| v < 24)
+                | preceded!(tag_bits!(u8, 5, 24), take_bits!(u8, 8))
+            ),
+            Value::simple
+        )
+    )
+}
+
+named! {
+    value<&[u8], Value>,
+    bits!(alt_complete!(integer | simple))
 }
 
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<Value> {
-    let ((remaining, _), parsed) = simple((bytes.as_ref(), 0)).map_err(|e| {
+    let (remaining, parsed) = value(bytes.as_ref()).map_err(|e| {
         println!("{}: {:?}", e, e);
         Error::Todos("Parsing error")
     })?;

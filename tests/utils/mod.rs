@@ -35,5 +35,16 @@ macro_rules! testcases {
             }
         }
         )*
-    }
+    };
+
+    ($(mod $name:ident { $($tt:tt)* })*) => {
+        $(
+        mod $name {
+            #[allow(unused_imports)]
+            use super::*;
+
+            testcases! { $($tt)* }
+        }
+        )*
+    };
 }
