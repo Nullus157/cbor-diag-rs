@@ -1,4 +1,4 @@
-pub enum Bitwidth {
+pub enum IntegerWidth {
     /// When parsed from CBOR diagnostic notation without an encoding indicator.
     Unknown,
     /// For values <24 encoded in the additional data
@@ -23,45 +23,45 @@ pub struct Simple(u8);
 pub enum Value {
     Integer {
         value: u64,
-        bitwidth: Bitwidth,
+        bitwidth: IntegerWidth,
     },
 
     NegativeInteger {
         value: u64,
-        bitwidth: Bitwidth,
+        bitwidth: IntegerWidth,
     },
 
     ByteString {
         data: Vec<u8>,
         /// The bitwidth used for encoding the length, if none then indefinite
         /// length
-        bitwidth: Option<Bitwidth>,
+        bitwidth: Option<IntegerWidth>,
     },
 
     String {
         data: String,
         /// The bitwidth used for encoding the length, if none then indefinite
         /// length
-        bitwidth: Option<Bitwidth>,
+        bitwidth: Option<IntegerWidth>,
     },
 
     Array {
         data: Vec<Value>,
         /// The bitwidth used for encoding the length, if none then indefinite
         /// length
-        bitwidth: Option<Bitwidth>,
+        bitwidth: Option<IntegerWidth>,
     },
 
     Map {
         data: Vec<(Value, Value)>,
         /// The bitwidth used for encoding the length, if none then indefinite
         /// length
-        bitwidth: Option<Bitwidth>,
+        bitwidth: Option<IntegerWidth>,
     },
 
     Tag {
         tag: Tag,
-        bitwidth: Bitwidth,
+        bitwidth: IntegerWidth,
         value: Box<Value>,
     },
 

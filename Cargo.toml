@@ -4,4 +4,5 @@ name = "cbor-diag"
 version = "0.1.0"
 
 [dependencies]
+hex = "0.3.2"
 nom = "4.0.0"
