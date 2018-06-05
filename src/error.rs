@@ -3,6 +3,7 @@ use std::result::Result as StdResult;
 
 #[derive(Debug)]
 pub enum Error {
+    Todos(&'static str),
     Todo(Box<StdError>),
 }
 

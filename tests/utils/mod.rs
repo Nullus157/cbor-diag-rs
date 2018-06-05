@@ -24,13 +24,13 @@ macro_rules! testcases {
 
             #[test]
             fn value2diag() {
-                let diag = $value.to_diag();
+                let diag = $value.to_diag().unwrap();
                 assert_eq!(diag, $diag);
             }
 
             #[test]
             fn value2hex() {
-                let hex = $value.to_hex();
+                let hex = $value.to_hex().unwrap();
                 assert_eq!(hex, $hex);
             }
         }
