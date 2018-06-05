@@ -21,6 +21,18 @@ macro_rules! testcases {
                 let value = $crate::utils::parse_hex($hex).unwrap();
                 assert_eq!(value, $value);
             }
+
+            #[test]
+            fn value2diag() {
+                let diag = $value.to_diag();
+                assert_eq!(diag, $diag);
+            }
+
+            #[test]
+            fn value2hex() {
+                let hex = $value.to_hex();
+                assert_eq!(hex, $hex);
+            }
         }
         )*
     }

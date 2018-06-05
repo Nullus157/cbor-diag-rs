@@ -1,5 +1,6 @@
 extern crate hex;
 
+mod encode;
 mod error;
 mod parse;
 pub mod syntax;
