@@ -1,5 +1,5 @@
-use {Error, Result, Value};
+use {Error, Result, Simple, Value};
 
 pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {
-    unimplemented!()
+    Ok(Value::Simple(Simple::NULL))
 }

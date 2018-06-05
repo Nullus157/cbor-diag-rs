@@ -1,5 +1,5 @@
-use {Error, Result, Value};
+use {Error, Result, Simple, Value};
 
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<Value> {
-    unimplemented!()
+    Ok(Value::Simple(Simple::NULL))
 }

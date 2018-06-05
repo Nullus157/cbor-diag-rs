@@ -1,3 +1,4 @@
+#[derive(Debug, Eq, PartialEq)]
 pub enum IntegerWidth {
     /// When parsed from CBOR diagnostic notation without an encoding indicator.
     Unknown,
@@ -9,6 +10,7 @@ pub enum IntegerWidth {
     SixtyFour,
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum FloatWidth {
     /// When parsed from CBOR diagnostic notation without an encoding indicator.
     Unknown,
@@ -17,9 +19,13 @@ pub enum FloatWidth {
     SixtyFour,
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct Tag(u64);
+
+#[derive(Debug, Eq, PartialEq)]
 pub struct Simple(u8);
 
+#[derive(Debug, PartialEq)]
 pub enum Value {
     Integer {
         value: u64,
