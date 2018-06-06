@@ -71,7 +71,7 @@ testcases! {
                 bitwidth: IntegerWidth::Sixteen,
             },
             "0_1",
-            "19 00 00 # unsigned(0)",
+            "19 0000 # unsigned(0)",
         }
 
         one {
@@ -80,7 +80,7 @@ testcases! {
                 bitwidth: IntegerWidth::Sixteen,
             },
             "1_1",
-            "19 00 01 # unsigned(1)",
+            "19 0001 # unsigned(1)",
         }
 
         twenty_four {
@@ -89,7 +89,7 @@ testcases! {
                 bitwidth: IntegerWidth::Sixteen,
             },
             "24_1",
-            "19 00 18 # unsigned(24)",
+            "19 0018 # unsigned(24)",
         }
     }
 
@@ -100,7 +100,7 @@ testcases! {
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
             "0_2",
-            "1a 00 00 00 00 # unsigned(0)",
+            "1a 00000000 # unsigned(0)",
         }
 
         one {
@@ -109,7 +109,7 @@ testcases! {
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
             "1_2",
-            "1a 00 00 00 01 # unsigned(1)",
+            "1a 00000001 # unsigned(1)",
         }
 
         twenty_four {
@@ -118,7 +118,7 @@ testcases! {
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
             "24_2",
-            "1a 00 00 00 18 # unsigned(24)",
+            "1a 00000018 # unsigned(24)",
         }
     }
 
@@ -129,7 +129,7 @@ testcases! {
                 bitwidth: IntegerWidth::SixtyFour,
             },
             "0_3",
-            "1b 00 00 00 00 00 00 00 00 # unsigned(0)",
+            "1b 0000000000000000 # unsigned(0)",
         }
 
         one {
@@ -138,7 +138,7 @@ testcases! {
                 bitwidth: IntegerWidth::SixtyFour,
             },
             "1_3",
-            "1b 00 00 00 00 00 00 00 01 # unsigned(1)",
+            "1b 0000000000000001 # unsigned(1)",
         }
 
         twenty_four {
@@ -147,7 +147,7 @@ testcases! {
                 bitwidth: IntegerWidth::SixtyFour,
             },
             "24_3",
-            "1b 00 00 00 00 00 00 00 18 # unsigned(24)",
+            "1b 0000000000000018 # unsigned(24)",
         }
     }
 
@@ -198,7 +198,7 @@ testcases! {
                 bitwidth: IntegerWidth::Sixteen,
             },
             "-1_1",
-            "39 00 00 # negative(0)",
+            "39 0000 # negative(0)",
         }
 
         twenty_five {
@@ -207,7 +207,7 @@ testcases! {
                 bitwidth: IntegerWidth::Sixteen,
             },
             "-25_1",
-            "39 00 18 # negative(24)",
+            "39 0018 # negative(24)",
         }
     }
 
@@ -218,7 +218,7 @@ testcases! {
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
             "-1_2",
-            "3a 00 00 00 00 # negative(0)",
+            "3a 00000000 # negative(0)",
         }
 
         twenty_five {
@@ -227,7 +227,7 @@ testcases! {
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
             "-25_2",
-            "3a 00 00 00 18 # negative(24)",
+            "3a 00000018 # negative(24)",
         }
     }
 
@@ -238,7 +238,7 @@ testcases! {
                 bitwidth: IntegerWidth::SixtyFour,
             },
             "-1_3",
-            "3b 00 00 00 00 00 00 00 00 # negative(0)",
+            "3b 0000000000000000 # negative(0)",
         }
 
         twenty_five {
@@ -247,7 +247,7 @@ testcases! {
                 bitwidth: IntegerWidth::SixtyFour,
             },
             "-25_3",
-            "3b 00 00 00 00 00 00 00 18 # negative(24)",
+            "3b 0000000000000018 # negative(24)",
         }
     }
 }

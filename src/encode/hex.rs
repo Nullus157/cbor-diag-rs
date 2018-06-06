@@ -19,25 +19,9 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Res
         IntegerWidth::Unknown => unreachable!(),
         IntegerWidth::Zero => s.push_str(&format!("{:02x}", value)),
         IntegerWidth::Eight => s.push_str(&format!("18 {:02x}", value)),
-        IntegerWidth::Sixteen => s.push_str(&format!("19 {:02x} {:02x}", value >> 8, value)),
-        IntegerWidth::ThirtyTwo => s.push_str(&format!(
-            "1a {:02x} {:02x} {:02x} {:02x}",
-            value >> 24,
-            value >> 16,
-            value >> 8,
-            value
-        )),
-        IntegerWidth::SixtyFour => s.push_str(&format!(
-            "1b {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-            value >> 56,
-            value >> 48,
-            value >> 40,
-            value >> 32,
-            value >> 24,
-            value >> 16,
-            value >> 8,
-            value
-        )),
+        IntegerWidth::Sixteen => s.push_str(&format!("19 {:04x}", value)),
+        IntegerWidth::ThirtyTwo => s.push_str(&format!("1a {:08x}", value)),
+        IntegerWidth::SixtyFour => s.push_str(&format!("1b {:016x}", value)),
     }
 
     s.push_str(&format!(" # unsigned({})", value));
@@ -63,25 +47,9 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Re
         IntegerWidth::Unknown => unreachable!(),
         IntegerWidth::Zero => s.push_str(&format!("{:02x}", value + 0x20)),
         IntegerWidth::Eight => s.push_str(&format!("38 {:02x}", value)),
-        IntegerWidth::Sixteen => s.push_str(&format!("39 {:02x} {:02x}", value >> 8, value)),
-        IntegerWidth::ThirtyTwo => s.push_str(&format!(
-            "3a {:02x} {:02x} {:02x} {:02x}",
-            value >> 24,
-            value >> 16,
-            value >> 8,
-            value
-        )),
-        IntegerWidth::SixtyFour => s.push_str(&format!(
-            "3b {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x} {:02x}",
-            value >> 56,
-            value >> 48,
-            value >> 40,
-            value >> 32,
-            value >> 24,
-            value >> 16,
-            value >> 8,
-            value
-        )),
+        IntegerWidth::Sixteen => s.push_str(&format!("39 {:04x}", value)),
+        IntegerWidth::ThirtyTwo => s.push_str(&format!("3a {:08x}", value)),
+        IntegerWidth::SixtyFour => s.push_str(&format!("3b {:016x}", value)),
     }
 
     s.push_str(&format!(" # negative({})", value));
