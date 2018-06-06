@@ -113,7 +113,7 @@ fn simple_to_hex(simple: Simple, s: &mut String) -> Result<()> {
 fn to_hex(value: &Value, s: &mut String) -> Result<()> {
     match *value {
         Value::Integer { value, bitwidth } => integer_to_hex(value, bitwidth, s)?,
-        Value::NegativeInteger { value, bitwidth } => negative_to_hex(value, bitwidth, s)?,
+        Value::Negative { value, bitwidth } => negative_to_hex(value, bitwidth, s)?,
         Value::Simple(simple) => simple_to_hex(simple, s)?,
         _ => unimplemented!(),
     }

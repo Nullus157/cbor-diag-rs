@@ -153,7 +153,7 @@ testcases! {
 
     mod negative_utiny {
         one {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -162,7 +162,7 @@ testcases! {
         }
 
         twenty_four {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 23,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -173,7 +173,7 @@ testcases! {
 
     mod negative_u8 {
         one {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -182,7 +182,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -193,7 +193,7 @@ testcases! {
 
     mod negative_u16 {
         one {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -202,7 +202,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -213,7 +213,7 @@ testcases! {
 
     mod negative_u32 {
         one {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -222,7 +222,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -233,7 +233,7 @@ testcases! {
 
     mod negative_u64 {
         one {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::SixtyFour,
             },
@@ -242,7 +242,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::NegativeInteger {
+            Value::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::SixtyFour,
             },

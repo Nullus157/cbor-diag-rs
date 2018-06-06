@@ -32,7 +32,7 @@ pub enum Value {
         bitwidth: IntegerWidth,
     },
 
-    NegativeInteger {
+    Negative {
         value: u64,
         bitwidth: IntegerWidth,
     },

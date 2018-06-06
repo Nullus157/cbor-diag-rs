@@ -49,7 +49,7 @@ named! {
                 value: map_res!(digit, parse::<u64>) >>
                 tag!("_") >>
                 encoding: verify!(map_res!(digit, parse::<u64>), |e| e < 4) >>
-                (Value::NegativeInteger {
+                (Value::Negative {
                     value: value - 1,
                     bitwidth: match encoding {
                         0 => IntegerWidth::Eight,
@@ -62,7 +62,7 @@ named! {
             )
             | map!(
                 map_res!(digit, parse::<u64>),
-                |value| Value::NegativeInteger {
+                |value| Value::Negative {
                     value: value - 1,
                     bitwidth: match value {
                         0...24 => IntegerWidth::Zero,

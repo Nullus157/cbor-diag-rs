@@ -47,7 +47,7 @@ fn simple_to_diag(simple: Simple, s: &mut String) -> Result<()> {
 fn value_to_diag(value: &Value, s: &mut String) -> Result<()> {
     match *value {
         Value::Integer { value, bitwidth } => integer_to_diag(value, bitwidth, s)?,
-        Value::NegativeInteger { value, bitwidth } => negative_to_diag(value, bitwidth, s)?,
+        Value::Negative { value, bitwidth } => negative_to_diag(value, bitwidth, s)?,
         Value::Simple(simple) => simple_to_diag(simple, s)?,
         _ => unimplemented!(),
     }

@@ -30,19 +30,19 @@ named! {
         alt_complete!(
             map!(
                 verify!(take_bits!(u64, 5), |v| v < 24),
-                |value| Value::NegativeInteger { value, bitwidth: IntegerWidth::Zero })
+                |value| Value::Negative { value, bitwidth: IntegerWidth::Zero })
             | map!(
                 preceded!(tag_bits!(u8, 5, 24), take_bits!(u64, 8)),
-                |value| Value::NegativeInteger { value, bitwidth: IntegerWidth::Eight })
+                |value| Value::Negative { value, bitwidth: IntegerWidth::Eight })
             | map!(
                 preceded!(tag_bits!(u8, 5, 25), take_bits!(u64, 16)),
-                |value| Value::NegativeInteger { value, bitwidth: IntegerWidth::Sixteen })
+                |value| Value::Negative { value, bitwidth: IntegerWidth::Sixteen })
             | map!(
                 preceded!(tag_bits!(u8, 5, 26), take_bits!(u64, 32)),
-                |value| Value::NegativeInteger { value, bitwidth: IntegerWidth::ThirtyTwo })
+                |value| Value::Negative { value, bitwidth: IntegerWidth::ThirtyTwo })
             | map!(
                 preceded!(tag_bits!(u8, 5, 27), take_bits!(u64, 64)),
-                |value| Value::NegativeInteger { value, bitwidth: IntegerWidth::SixtyFour })
+                |value| Value::Negative { value, bitwidth: IntegerWidth::SixtyFour })
         ))
 }
 
