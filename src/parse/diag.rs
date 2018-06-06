@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
-use nom::{self, digit};
+use hex;
+use nom::{self, digit, hex_digit0};
 
 use {Error, IntegerWidth, Result, Simple, Value};
 
@@ -74,6 +75,15 @@ named! {
 }
 
 named! {
+    bytestring<NStr, Value>,
+    map!(
+        map_res!(
+            preceded!(tag!("h"), delimited!(tag!("'"), hex_digit0, tag!("'"))),
+            |s: NStr| hex::decode(s.as_ref())),
+        |data| Value::ByteString { data, bitwidth: Some(IntegerWidth::Unknown) })
+}
+
+named! {
     simple<NStr, Value>,
     map!(
         alt_complete!(
@@ -90,7 +100,7 @@ named! {
 
 named! {
     value<NStr, Value>,
-    alt_complete!(integer | negative | simple)
+    alt_complete!(integer | negative | bytestring | simple)
 }
 
 pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {
