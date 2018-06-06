@@ -16,6 +16,23 @@ fn integer_to_diag(value: u64, bitwidth: IntegerWidth, s: &mut String) -> Result
     Ok(())
 }
 
+fn negative_to_diag(value: u64, bitwidth: IntegerWidth, s: &mut String) -> Result<()> {
+    let value = -1i128 - i128::from(value);
+    if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
+        s.push_str(&value.to_string());
+    } else {
+        let encoding = match bitwidth {
+            IntegerWidth::Eight => 0,
+            IntegerWidth::Sixteen => 1,
+            IntegerWidth::ThirtyTwo => 2,
+            IntegerWidth::SixtyFour => 3,
+            _ => unreachable!(),
+        };
+        s.push_str(&format!("{}_{}", value, encoding));
+    }
+    Ok(())
+}
+
 fn simple_to_diag(simple: Simple, s: &mut String) -> Result<()> {
     match simple {
         Simple::FALSE => s.push_str("false"),
@@ -30,6 +47,7 @@ fn simple_to_diag(simple: Simple, s: &mut String) -> Result<()> {
 fn value_to_diag(value: &Value, s: &mut String) -> Result<()> {
     match *value {
         Value::Integer { value, bitwidth } => integer_to_diag(value, bitwidth, s)?,
+        Value::NegativeInteger { value, bitwidth } => negative_to_diag(value, bitwidth, s)?,
         Value::Simple(simple) => simple_to_diag(simple, s)?,
         _ => unimplemented!(),
     }

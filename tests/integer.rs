@@ -150,4 +150,104 @@ testcases! {
             "1b 00 00 00 00 00 00 00 18 # unsigned(24)",
         }
     }
+
+    mod negative_utiny {
+        one {
+            Value::NegativeInteger {
+                value: 0,
+                bitwidth: IntegerWidth::Zero,
+            },
+            "-1",
+            "20 # negative(0)",
+        }
+
+        twenty_four {
+            Value::NegativeInteger {
+                value: 23,
+                bitwidth: IntegerWidth::Zero,
+            },
+            "-24",
+            "37 # negative(23)",
+        }
+    }
+
+    mod negative_u8 {
+        one {
+            Value::NegativeInteger {
+                value: 0,
+                bitwidth: IntegerWidth::Eight,
+            },
+            "-1_0",
+            "38 00 # negative(0)",
+        }
+
+        twenty_five {
+            Value::NegativeInteger {
+                value: 24,
+                bitwidth: IntegerWidth::Eight,
+            },
+            "-25_0",
+            "38 18 # negative(24)",
+        }
+    }
+
+    mod negative_u16 {
+        one {
+            Value::NegativeInteger {
+                value: 0,
+                bitwidth: IntegerWidth::Sixteen,
+            },
+            "-1_1",
+            "39 00 00 # negative(0)",
+        }
+
+        twenty_five {
+            Value::NegativeInteger {
+                value: 24,
+                bitwidth: IntegerWidth::Sixteen,
+            },
+            "-25_1",
+            "39 00 18 # negative(24)",
+        }
+    }
+
+    mod negative_u32 {
+        one {
+            Value::NegativeInteger {
+                value: 0,
+                bitwidth: IntegerWidth::ThirtyTwo,
+            },
+            "-1_2",
+            "3a 00 00 00 00 # negative(0)",
+        }
+
+        twenty_five {
+            Value::NegativeInteger {
+                value: 24,
+                bitwidth: IntegerWidth::ThirtyTwo,
+            },
+            "-25_2",
+            "3a 00 00 00 18 # negative(24)",
+        }
+    }
+
+    mod negative_u64 {
+        one {
+            Value::NegativeInteger {
+                value: 0,
+                bitwidth: IntegerWidth::SixtyFour,
+            },
+            "-1_3",
+            "3b 00 00 00 00 00 00 00 00 # negative(0)",
+        }
+
+        twenty_five {
+            Value::NegativeInteger {
+                value: 24,
+                bitwidth: IntegerWidth::SixtyFour,
+            },
+            "-25_3",
+            "3b 00 00 00 00 00 00 00 18 # negative(24)",
+        }
+    }
 }

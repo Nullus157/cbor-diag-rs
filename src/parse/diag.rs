@@ -41,6 +41,39 @@ named! {
 }
 
 named! {
+    negative<NStr, Value>,
+    preceded!(
+        tag!("-"),
+        alt_complete!(
+            do_parse!(
+                value: map_res!(digit, parse::<u64>) >>
+                tag!("_") >>
+                encoding: verify!(map_res!(digit, parse::<u64>), |e| e < 4) >>
+                (Value::NegativeInteger {
+                    value: value - 1,
+                    bitwidth: match encoding {
+                        0 => IntegerWidth::Eight,
+                        1 => IntegerWidth::Sixteen,
+                        2 => IntegerWidth::ThirtyTwo,
+                        3 => IntegerWidth::SixtyFour,
+                        _ => unreachable!(),
+                    }
+                })
+            )
+            | map!(
+                map_res!(digit, parse::<u64>),
+                |value| Value::NegativeInteger {
+                    value: value - 1,
+                    bitwidth: match value {
+                        0...24 => IntegerWidth::Zero,
+                        _ => IntegerWidth::Unknown,
+                    }
+                })
+        )
+    )
+}
+
+named! {
     simple<NStr, Value>,
     map!(
         alt_complete!(
@@ -57,7 +90,7 @@ named! {
 
 named! {
     value<NStr, Value>,
-    alt_complete!(integer | simple)
+    alt_complete!(integer | negative | simple)
 }
 
 pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {
