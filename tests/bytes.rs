@@ -101,5 +101,124 @@ testcases! {
                    7172737475767778797a             # "qrstuvwxyz"
             "#)
         }
+
+        non_alpha(hex2value, value2hex) {
+            Value::ByteString {
+                data: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                bitwidth: Some(IntegerWidth::Eight),
+            },
+            indoc!(r#"
+                58 0b                     # bytes(11)
+                   000102030405060708090a # "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n"
+            "#)
+        }
+    }
+
+    mod u16 {
+        empty(hex2value, value2hex) {
+            Value::ByteString {
+                data: vec![],
+                bitwidth: Some(IntegerWidth::Sixteen),
+            },
+            indoc!(r#"
+                59 0000 # bytes(0)
+                        # ""
+            "#)
+        }
+
+        hello(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"hello"[..].into(),
+                bitwidth: Some(IntegerWidth::Sixteen),
+            },
+            indoc!(r#"
+                59 0005       # bytes(5)
+                   68656c6c6f # "hello"
+            "#)
+        }
+
+        alpha(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
+                bitwidth: Some(IntegerWidth::Sixteen),
+            },
+            indoc!(r#"
+                59 001a                             # bytes(26)
+                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
+                   7172737475767778797a             # "qrstuvwxyz"
+            "#)
+        }
+    }
+
+    mod u32 {
+        empty(hex2value, value2hex) {
+            Value::ByteString {
+                data: vec![],
+                bitwidth: Some(IntegerWidth::ThirtyTwo),
+            },
+            indoc!(r#"
+                5a 00000000 # bytes(0)
+                            # ""
+            "#)
+        }
+
+        hello(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"hello"[..].into(),
+                bitwidth: Some(IntegerWidth::ThirtyTwo),
+            },
+            indoc!(r#"
+                5a 00000005   # bytes(5)
+                   68656c6c6f # "hello"
+            "#)
+        }
+
+        alpha(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
+                bitwidth: Some(IntegerWidth::ThirtyTwo),
+            },
+            indoc!(r#"
+                5a 0000001a                         # bytes(26)
+                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
+                   7172737475767778797a             # "qrstuvwxyz"
+            "#)
+        }
+    }
+
+    mod u64 {
+        empty(hex2value, value2hex) {
+            Value::ByteString {
+                data: vec![],
+                bitwidth: Some(IntegerWidth::SixtyFour),
+            },
+            indoc!(r#"
+                5b 0000000000000000 # bytes(0)
+                                    # ""
+            "#)
+        }
+
+        hello(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"hello"[..].into(),
+                bitwidth: Some(IntegerWidth::SixtyFour),
+            },
+            indoc!(r#"
+                5b 0000000000000005 # bytes(5)
+                   68656c6c6f       # "hello"
+            "#)
+        }
+
+        alpha(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
+                bitwidth: Some(IntegerWidth::SixtyFour),
+            },
+            indoc!(r#"
+                5b 000000000000001a                 # bytes(26)
+                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
+                   7172737475767778797a             # "qrstuvwxyz"
+            "#)
+        }
     }
 }
