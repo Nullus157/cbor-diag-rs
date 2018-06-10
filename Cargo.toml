@@ -9,4 +9,8 @@ nom = "4.0.0"
 
 [dev-dependencies]
 indoc = "0.2.6"
-pretty_assertions = "0.5.1"
+
+[dev-dependencies.pretty_assertions]
+version = "0.5.1"
+git = "https://github.com/Nemo157/rust-pretty-assertions"
+branch = "prettier-multiline-strings"
