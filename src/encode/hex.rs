@@ -95,8 +95,12 @@ fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String
         .map(char::from)
         .collect();
 
-    s.push_str(&format!(" # bytes({})\n", length));
-    s.push_str(&format!("  {}", hex::encode(data)));
+    s.push_str(&format!(
+        "{blank:width$}  # bytes({length})\n",
+        blank="",
+        width=data.len() * 2,
+        length=length));
+    s.push_str(&format!("   {}", hex::encode(data)));
     s.push_str(&format!(r#" # "{}""#, text));
     s.push_str("\n");
     Ok(())
