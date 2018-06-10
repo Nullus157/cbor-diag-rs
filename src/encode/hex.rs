@@ -81,12 +81,21 @@ fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String
 
     match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => s.push_str(&format!("{:02x}", length + 0x40)),
+        IntegerWidth::Zero => s.push_str(&format!("{:02x} ", length + 0x40)),
         IntegerWidth::Eight => s.push_str(&format!("58 {:02x}", length)),
         IntegerWidth::Sixteen => s.push_str(&format!("59 {:04x}", length)),
         IntegerWidth::ThirtyTwo => s.push_str(&format!("5a {:08x}", length)),
         IntegerWidth::SixtyFour => s.push_str(&format!("5b {:016x}", length)),
     }
+
+    let length_width = match bitwidth {
+        IntegerWidth::Unknown => unreachable!(),
+        IntegerWidth::Zero => 0,
+        IntegerWidth::Eight => 2,
+        IntegerWidth::Sixteen => 4,
+        IntegerWidth::ThirtyTwo => 8,
+        IntegerWidth::SixtyFour => 16,
+    };
 
     let text: String = data
         .iter()
@@ -96,11 +105,15 @@ fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String
         .collect();
 
     s.push_str(&format!(
-        "{blank:width$}  # bytes({length})\n",
+        "{blank:width$} # bytes({length})\n",
         blank="",
-        width=data.len() * 2,
+        width=(data.len() * 2).saturating_sub(length_width),
         length=length));
-    s.push_str(&format!("   {}", hex::encode(data)));
+    s.push_str(&format!(
+        "   {blank:width$}{data}",
+        blank="",
+        width=length_width.saturating_sub(data.len() * 2),
+        data=hex::encode(data)));
     s.push_str(&format!(r#" # "{}""#, text));
     s.push_str("\n");
     Ok(())

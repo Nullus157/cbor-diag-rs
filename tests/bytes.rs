@@ -58,4 +58,28 @@ testcases! {
             "#)
         }
     }
+
+    mod u8 {
+        empty(hex2value, value2hex) {
+            Value::ByteString {
+                data: vec![],
+                bitwidth: Some(IntegerWidth::Eight),
+            },
+            indoc!(r#"
+                58 00 # bytes(0)
+                      # ""
+            "#)
+        }
+
+        hello(hex2value, value2hex) {
+            Value::ByteString {
+                data: b"hello"[..].into(),
+                bitwidth: Some(IntegerWidth::Eight),
+            },
+            indoc!(r#"
+                58 05         # bytes(5)
+                   68656c6c6f # "hello"
+            "#)
+        }
+    }
 }
