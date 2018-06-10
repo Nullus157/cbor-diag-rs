@@ -1,4 +1,4 @@
-use std::ascii;
+use std::{ascii, cmp};
 
 use hex;
 
@@ -97,25 +97,40 @@ fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String
         IntegerWidth::SixtyFour => 16,
     };
 
-    let text: String = data
-        .iter()
-        .cloned()
-        .flat_map(ascii::escape_default)
-        .map(char::from)
-        .collect();
+    let data_width = cmp::min(data.len() * 2, 32);
+    let base_width = cmp::max(data_width, length_width);
 
     s.push_str(&format!(
         "{blank:width$} # bytes({length})\n",
         blank="",
-        width=(data.len() * 2).saturating_sub(length_width),
+        width=base_width.saturating_sub(length_width),
         length=length));
-    s.push_str(&format!(
-        "   {blank:width$}{data}",
-        blank="",
-        width=length_width.saturating_sub(data.len() * 2),
-        data=hex::encode(data)));
-    s.push_str(&format!(r#" # "{}""#, text));
-    s.push_str("\n");
+
+    for line in data.chunks(16) {
+        let text: String = line
+            .iter()
+            .cloned()
+            .flat_map(ascii::escape_default)
+            .map(char::from)
+            .collect();
+
+        s.push_str(&format!(
+            r#"   {data}{blank:width$} # "{text}"{n}"#,
+            blank="",
+            width=base_width.saturating_sub(line.len() * 2),
+            data=hex::encode(line),
+            text=text,
+            n="\n"));
+    }
+
+    if data.is_empty() {
+        s.push_str(&format!(
+            r#"   {blank:width$} # ""{n}"#,
+            blank="",
+            width=base_width,
+            n="\n"));
+    }
+
     Ok(())
 }
 
