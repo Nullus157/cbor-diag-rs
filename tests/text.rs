@@ -66,8 +66,8 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
             }),
             indoc!(r#"
-                60  # text(0)
-                    # ""
+                60 # text(0)
+                   # ""
             "#)
         }
 
@@ -158,9 +158,9 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
-                78 15                               # text(21)
-                   30313233343536373839616263       # \"0123456789abc\"
-                   f09f87b3f09f87bf                 # \"\u{1F1F3}\u{1F1FF}\"
+                78 15                         # text(21)
+                   30313233343536373839616263 # \"0123456789abc\"
+                   f09f87b3f09f87bf           # \"\u{1F1F3}\u{1F1FF}\"
             ")
         }
     }

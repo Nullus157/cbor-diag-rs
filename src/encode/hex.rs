@@ -1,10 +1,10 @@
-use std::{ascii, cmp};
+use std::ascii;
 
 use hex;
 
 use {IntegerWidth, Result, Simple, Value, ByteString, TextString};
 
-fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Result<()> {
+fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if value < 24 {
             IntegerWidth::Zero
@@ -21,18 +21,18 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Res
 
     match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => s.push_str(&format!("{:02x}", value)),
-        IntegerWidth::Eight => s.push_str(&format!("18 {:02x}", value)),
-        IntegerWidth::Sixteen => s.push_str(&format!("19 {:04x}", value)),
-        IntegerWidth::ThirtyTwo => s.push_str(&format!("1a {:08x}", value)),
-        IntegerWidth::SixtyFour => s.push_str(&format!("1b {:016x}", value)),
+        IntegerWidth::Zero => hex.push(format!("{:02x}", value)),
+        IntegerWidth::Eight => hex.push(format!("18 {:02x}", value)),
+        IntegerWidth::Sixteen => hex.push(format!("19 {:04x}", value)),
+        IntegerWidth::ThirtyTwo => hex.push(format!("1a {:08x}", value)),
+        IntegerWidth::SixtyFour => hex.push(format!("1b {:016x}", value)),
     }
 
-    s.push_str(&format!(" # unsigned({})\n", value));
+    comment.push(format!("unsigned({})", value));
     Ok(())
 }
 
-fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Result<()> {
+fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if value < 24 {
             IntegerWidth::Zero
@@ -49,18 +49,18 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Re
 
     match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => s.push_str(&format!("{:02x}", value + 0x20)),
-        IntegerWidth::Eight => s.push_str(&format!("38 {:02x}", value)),
-        IntegerWidth::Sixteen => s.push_str(&format!("39 {:04x}", value)),
-        IntegerWidth::ThirtyTwo => s.push_str(&format!("3a {:08x}", value)),
-        IntegerWidth::SixtyFour => s.push_str(&format!("3b {:016x}", value)),
+        IntegerWidth::Zero => hex.push(format!("{:02x}", value + 0x20)),
+        IntegerWidth::Eight => hex.push(format!("38 {:02x}", value)),
+        IntegerWidth::Sixteen => hex.push(format!("39 {:04x}", value)),
+        IntegerWidth::ThirtyTwo => hex.push(format!("3a {:08x}", value)),
+        IntegerWidth::SixtyFour => hex.push(format!("3b {:016x}", value)),
     }
 
-    s.push_str(&format!(" # negative({})\n", value));
+    comment.push(format!("negative({})", value));
     Ok(())
 }
 
-fn string_length_to_hex(length: usize, mut bitwidth: IntegerWidth, major: u8, kind: &str, s: &mut String) -> Result<usize> {
+fn string_length_to_hex(length: usize, mut bitwidth: IntegerWidth, major: u8, kind: &str, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if length < 24 {
             IntegerWidth::Zero
@@ -77,141 +77,116 @@ fn string_length_to_hex(length: usize, mut bitwidth: IntegerWidth, major: u8, ki
 
     match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => s.push_str(&format!("{:02x} ", (length as u8) + (major << 5))),
-        IntegerWidth::Eight => s.push_str(&format!("{:02x} {:02x}", (major << 5) | 0x18, length)),
-        IntegerWidth::Sixteen => s.push_str(&format!("{:02x} {:04x}", (major << 5) | 0x19, length)),
-        IntegerWidth::ThirtyTwo => s.push_str(&format!("{:02x} {:08x}", (major << 5) | 0x1a, length)),
-        IntegerWidth::SixtyFour => s.push_str(&format!("{:02x} {:016x}", (major << 5) | 0x1b, length)),
+        IntegerWidth::Zero => hex.push(format!("{:02x}", (length as u8) + (major << 5))),
+        IntegerWidth::Eight => hex.push(format!("{:02x} {:02x}", (major << 5) | 0x18, length)),
+        IntegerWidth::Sixteen => hex.push(format!("{:02x} {:04x}", (major << 5) | 0x19, length)),
+        IntegerWidth::ThirtyTwo => hex.push(format!("{:02x} {:08x}", (major << 5) | 0x1a, length)),
+        IntegerWidth::SixtyFour => hex.push(format!("{:02x} {:016x}", (major << 5) | 0x1b, length)),
     }
 
-    let length_width = match bitwidth {
-        IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => 0,
-        IntegerWidth::Eight => 2,
-        IntegerWidth::Sixteen => 4,
-        IntegerWidth::ThirtyTwo => 8,
-        IntegerWidth::SixtyFour => 16,
-    };
+    comment.push(format!("{kind}({length})", kind=kind, length=length));
 
-    let data_width = cmp::min(length * 2, 32);
-    let base_width = cmp::max(data_width, length_width);
-
-    s.push_str(&format!(
-        "{blank:width$} # {kind}({length})\n",
-        blank="",
-        width=base_width.saturating_sub(length_width),
-        kind=kind,
-        length=length));
-
-    Ok(base_width)
+    Ok(())
 }
 
-fn bytestring_to_hex(bytestring: &ByteString, s: &mut String) -> Result<()> {
+fn bytestring_to_hex(bytestring: &ByteString, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     let ByteString { ref data, bitwidth } = *bytestring;
 
-    let base_width = string_length_to_hex(bytestring.data.len(), bitwidth, 2, "bytes", s)?;
+    string_length_to_hex(bytestring.data.len(), bitwidth, 2, "bytes", hex, comment)?;
 
     if data.is_empty() {
-        s.push_str(&format!(
-            r#"   {blank:width$} # ""{n}"#,
-            blank="",
-            width=base_width,
-            n="\n"));
-        return Ok(());
-    }
-
-    for line in data.chunks(16) {
-        let text: String = line
-            .iter()
-            .cloned()
-            .flat_map(ascii::escape_default)
-            .map(char::from)
-            .collect();
-
-        s.push_str(&format!(
-            r#"   {data}{blank:width$} # "{text}"{n}"#,
-            blank="",
-            width=base_width.saturating_sub(line.len() * 2),
-            data=hex::encode(line),
-            text=text,
-            n="\n"));
+        hex.push("".into());
+        comment.push("\"\"".into());
+    } else {
+        for line in data.chunks(16) {
+            let text: String = line
+                .iter()
+                .cloned()
+                .flat_map(ascii::escape_default)
+                .map(char::from)
+                .collect();
+            hex.push(format!("   {}", hex::encode(line)));
+            comment.push(format!("\"{}\"", text));
+        }
     }
 
     Ok(())
 }
 
-fn textstring_to_hex(textstring: &TextString, s: &mut String) -> Result<()> {
+fn textstring_to_hex(textstring: &TextString, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     let TextString { ref data, bitwidth } = *textstring;
 
-    let base_width = string_length_to_hex(data.len(), bitwidth, 3, "text", s)?;
+    string_length_to_hex(data.len(), bitwidth, 3, "text", hex, comment)?;
 
     if data.is_empty() {
-        s.push_str(&format!(
-            r#"   {blank:width$} # ""{n}"#,
-            blank="",
-            width=base_width,
-            n="\n"));
+        hex.push("".into());
+        comment.push("\"\"".into());
         return Ok(());
-    }
-
-    let mut data = data.as_str();
-    while !data.is_empty() {
-        let mut split = 16;
-        while !data.is_char_boundary(split) {
-            split -= 1;
+    } else {
+        let mut data = data.as_str();
+        while !data.is_empty() {
+            let mut split = 16;
+            while !data.is_char_boundary(split) {
+                split -= 1;
+            }
+            let (line, new_data) = data.split_at(split);
+            data = new_data;
+            hex.push(format!("   {}", hex::encode(line)));
+            comment.push(format!("\"{}\"", line));
         }
-        let (line, new_data) = data.split_at(split);
-        data = new_data;
-        s.push_str(&format!(
-            r#"   {data}{blank:width$} # "{text}"{n}"#,
-            blank="",
-            width=base_width.saturating_sub(line.len() * 2),
-            data=hex::encode(line),
-            text=line,
-            n="\n"));
     }
 
     Ok(())
 }
 
-fn simple_to_hex(simple: Simple, s: &mut String) -> Result<()> {
+fn simple_to_hex(simple: Simple, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     let Simple(value) = simple;
 
     if value < 24 {
-        s.push_str(&format!("{:02x} # ", 0b1110_0000 | value));
+        hex.push(format!("{:02x}", 0b1110_0000 | value));
     } else {
-        s.push_str(&format!("f8 {:02x} # ", value));
+        hex.push(format!("f8 {:02x}", value));
     }
 
-    match simple {
-        Simple::FALSE => s.push_str("false, "),
-        Simple::TRUE => s.push_str("true, "),
-        Simple::NULL => s.push_str("null, "),
-        Simple::UNDEFINED => s.push_str("undefined, "),
-        Simple(24...32) => s.push_str("reserved, "),
-        _ => s.push_str("unassigned, "),
-    }
+    let extra = match simple {
+        Simple::FALSE => "false, ",
+        Simple::TRUE => "true, ",
+        Simple::NULL => "null, ",
+        Simple::UNDEFINED => "undefined, ",
+        Simple(24...32) => "reserved, ",
+        _ => "unassigned, ",
+    };
 
-    s.push_str(&format!("simple({})\n", value));
+    comment.push(format!("{}simple({})", extra, value));
     Ok(())
 }
 
-fn to_hex(value: &Value, s: &mut String) -> Result<()> {
+fn to_hex(value: &Value, hex: &mut Vec<String>, comment: &mut Vec<String>) -> Result<()> {
     match *value {
-        Value::Integer { value, bitwidth } => integer_to_hex(value, bitwidth, s)?,
-        Value::Negative { value, bitwidth } => negative_to_hex(value, bitwidth, s)?,
-        Value::ByteString(ref bytestring) => bytestring_to_hex(bytestring, s)?,
-        Value::TextString(ref textstring) => textstring_to_hex(textstring, s)?,
-        Value::Simple(simple) => simple_to_hex(simple, s)?,
+        Value::Integer { value, bitwidth } => integer_to_hex(value, bitwidth, hex, comment)?,
+        Value::Negative { value, bitwidth } => negative_to_hex(value, bitwidth, hex, comment)?,
+        Value::ByteString(ref bytestring) => bytestring_to_hex(bytestring, hex, comment)?,
+        Value::TextString(ref textstring) => textstring_to_hex(textstring, hex, comment)?,
+        Value::Simple(simple) => simple_to_hex(simple, hex, comment)?,
         _ => unimplemented!(),
     }
     Ok(())
 }
 
+fn merge(hex: &[String], comment: &[String]) -> String {
+    let width = hex.iter().map(|line| line.len()).max().unwrap_or(0);
+
+    hex.iter()
+        .zip(comment)
+        .map(|(hex, comment)| format!("{hex:width$} # {comment}\n", hex=hex, width=width, comment=comment))
+        .collect()
+}
+
 impl Value {
     pub fn to_hex(&self) -> Result<String> {
-        let mut s = String::with_capacity(128);
-        to_hex(self, &mut s)?;
-        Ok(s)
+        let mut hex = Vec::with_capacity(16);
+        let mut comment = Vec::with_capacity(16);
+        to_hex(self, &mut hex, &mut comment)?;
+        Ok(merge(&hex, &comment))
     }
 }
