@@ -81,6 +81,17 @@ testcases! {
                    68656c6c6f # "hello"
             "#)
         }
+
+        escaped(hex2value, value2hex) {
+            Value::TextString(TextString {
+                data: "\\\"".into(),
+                bitwidth: IntegerWidth::Zero,
+            }),
+            indoc!(r#"
+                62      # text(2)
+                   5c22 # "\""
+            "#)
+        }
     }
 
     mod u8 {
