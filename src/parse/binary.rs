@@ -3,7 +3,7 @@ use std::str;
 // TODO(https://github.com/Geal/nom/pull/791)
 use nom::Context;
 
-use {Error, IntegerWidth, Result, Value};
+use {Error, IntegerWidth, Result, Value, ByteString, TextString};
 
 named! {
     integer<(&[u8], usize), (u64, IntegerWidth)>,
@@ -46,7 +46,7 @@ named! {
         tag_bits!(u8, 3, 2) >>
         length: integer >>
         data: bytes!(take!(length.0)) >>
-        (Value::ByteString { data: data.into(), bitwidth: Some(length.1) }))
+        (Value::ByteString(ByteString { data: data.into(), bitwidth: length.1 })))
 }
 
 named! {
@@ -55,7 +55,7 @@ named! {
         tag_bits!(u8, 3, 3) >>
         length: integer >>
         data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
-        (Value::TextString { data: data.to_owned(), bitwidth: Some(length.1) }))
+        (Value::TextString(TextString { data: data.to_owned(), bitwidth: length.1 })))
 }
 
 named! {

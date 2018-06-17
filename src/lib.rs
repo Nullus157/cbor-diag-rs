@@ -7,7 +7,7 @@ mod error;
 mod parse;
 pub mod syntax;
 
-pub use syntax::{FloatWidth, IntegerWidth, Simple, Tag, Value};
+pub use syntax::{FloatWidth, IntegerWidth, Simple, Tag, Value, ByteString, TextString};
 
 pub use error::{Error, Result};
 

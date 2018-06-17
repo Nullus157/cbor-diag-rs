@@ -5,7 +5,7 @@ use nom::{self, digit, hex_digit0};
 
 use nom::Needed;
 
-use {Error, IntegerWidth, Result, Simple, Value};
+use {Error, IntegerWidth, Result, Simple, Value, ByteString, TextString};
 
 type NStr<'a> = nom::types::CompleteStr<'a>;
 
@@ -82,7 +82,7 @@ named! {
         map_res!(
             preceded!(tag!("h"), delimited!(tag!("'"), hex_digit0, tag!("'"))),
             |s: NStr| hex::decode(s.as_ref())),
-        |data| Value::ByteString { data, bitwidth: Some(IntegerWidth::Unknown) })
+        |data| Value::ByteString(ByteString { data, bitwidth: IntegerWidth::Unknown }))
 }
 
 named! {
@@ -98,7 +98,7 @@ named! {
                   | tag!("\"") => { |_| "\"" }
                 )),
             tag!("\"")),
-        |data| Value::TextString { data, bitwidth: Some(IntegerWidth::Unknown) })
+        |data| Value::TextString(TextString { data, bitwidth: IntegerWidth::Unknown }))
 }
 
 named! {

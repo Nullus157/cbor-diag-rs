@@ -25,7 +25,21 @@ pub struct Tag(pub u64);
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 pub struct Simple(pub u8);
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
+pub struct ByteString {
+    pub data: Vec<u8>,
+    /// The bitwidth used for encoding the length
+    pub bitwidth: IntegerWidth,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct TextString {
+    pub data: String,
+    /// The bitwidth used for encoding the length
+    pub bitwidth: IntegerWidth,
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum Value {
     Integer {
         value: u64,
@@ -37,26 +51,13 @@ pub enum Value {
         bitwidth: IntegerWidth,
     },
 
-    ByteString {
-        data: Vec<u8>,
-        /// The bitwidth used for encoding the length, if none then indefinite
-        /// length
-        bitwidth: Option<IntegerWidth>,
-    },
+    ByteString(ByteString),
 
-    TextString {
-        data: String,
-        /// The bitwidth used for encoding the length, if none then indefinite
-        /// length
-        bitwidth: Option<IntegerWidth>,
-    },
+    TextString(TextString),
 
-    Array {
-        data: Vec<Value>,
-        /// The bitwidth used for encoding the length, if none then indefinite
-        /// length
-        bitwidth: Option<IntegerWidth>,
-    },
+    IndefiniteByteString(Vec<ByteString>),
+
+    IndefiniteTextString(Vec<TextString>),
 
     Map {
         data: Vec<(Value, Value)>,

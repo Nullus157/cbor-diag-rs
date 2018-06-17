@@ -2,7 +2,7 @@ use std::{ascii, cmp};
 
 use hex;
 
-use {IntegerWidth, Result, Simple, Value};
+use {IntegerWidth, Result, Simple, Value, ByteString, TextString};
 
 fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Result<()> {
     if bitwidth == IntegerWidth::Unknown {
@@ -60,9 +60,7 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Re
     Ok(())
 }
 
-fn string_length_to_hex(length: usize, bitwidth: Option<IntegerWidth>, major: u8, kind: &str, s: &mut String) -> Result<usize> {
-    let mut bitwidth = bitwidth.expect("indefinite length is unimplemented");
-
+fn string_length_to_hex(length: usize, mut bitwidth: IntegerWidth, major: u8, kind: &str, s: &mut String) -> Result<usize> {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if length < 24 {
             IntegerWidth::Zero
@@ -108,8 +106,10 @@ fn string_length_to_hex(length: usize, bitwidth: Option<IntegerWidth>, major: u8
     Ok(base_width)
 }
 
-fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
-    let base_width = string_length_to_hex(data.len(), bitwidth, 2, "bytes", s)?;
+fn bytestring_to_hex(bytestring: &ByteString, s: &mut String) -> Result<()> {
+    let ByteString { ref data, bitwidth } = *bytestring;
+
+    let base_width = string_length_to_hex(bytestring.data.len(), bitwidth, 2, "bytes", s)?;
 
     if data.is_empty() {
         s.push_str(&format!(
@@ -140,7 +140,9 @@ fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String
     Ok(())
 }
 
-fn textstring_to_hex(mut data: &str, bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
+fn textstring_to_hex(textstring: &TextString, s: &mut String) -> Result<()> {
+    let TextString { ref data, bitwidth } = *textstring;
+
     let base_width = string_length_to_hex(data.len(), bitwidth, 3, "text", s)?;
 
     if data.is_empty() {
@@ -152,6 +154,7 @@ fn textstring_to_hex(mut data: &str, bitwidth: Option<IntegerWidth>, s: &mut Str
         return Ok(());
     }
 
+    let mut data = data.as_str();
     while !data.is_empty() {
         let mut split = 16;
         while !data.is_char_boundary(split) {
@@ -197,8 +200,8 @@ fn to_hex(value: &Value, s: &mut String) -> Result<()> {
     match *value {
         Value::Integer { value, bitwidth } => integer_to_hex(value, bitwidth, s)?,
         Value::Negative { value, bitwidth } => negative_to_hex(value, bitwidth, s)?,
-        Value::ByteString { ref data, bitwidth } => bytestring_to_hex(data, bitwidth, s)?,
-        Value::TextString { ref data, bitwidth } => textstring_to_hex(data, bitwidth, s)?,
+        Value::ByteString(ref bytestring) => bytestring_to_hex(bytestring, s)?,
+        Value::TextString(ref textstring) => textstring_to_hex(textstring, s)?,
         Value::Simple(simple) => simple_to_hex(simple, s)?,
         _ => unimplemented!(),
     }

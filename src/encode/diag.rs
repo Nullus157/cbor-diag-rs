@@ -1,6 +1,6 @@
 use hex;
 
-use {IntegerWidth, Result, Simple, Value};
+use {IntegerWidth, Result, Simple, Value, ByteString, TextString};
 
 fn integer_to_diag(value: u64, bitwidth: IntegerWidth, s: &mut String) -> Result<()> {
     if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
@@ -35,18 +35,14 @@ fn negative_to_diag(value: u64, bitwidth: IntegerWidth, s: &mut String) -> Resul
     Ok(())
 }
 
-fn bytestring_to_diag(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
-    let _bitwidth = bitwidth.expect("indefinite length is unimplemented");
-
-    s.push_str(&format!("h'{}'", hex::encode(data)));
+fn bytestring_to_diag(bytestring: &ByteString, s: &mut String) -> Result<()> {
+    s.push_str(&format!("h'{}'", hex::encode(&bytestring.data)));
     Ok(())
 }
 
-fn textstring_to_diag(data: &str, bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
-    let _bitwidth = bitwidth.expect("indefinite length is unimplemented");
-
+fn textstring_to_diag(textstring: &TextString, s: &mut String) -> Result<()> {
     s.push('"');
-    for c in data.chars() {
+    for c in textstring.data.chars() {
         if c == '\"' || c == '\\' {
             for c in c.escape_default() {
                 s.push(c);
@@ -75,8 +71,8 @@ fn value_to_diag(value: &Value, s: &mut String) -> Result<()> {
     match *value {
         Value::Integer { value, bitwidth } => integer_to_diag(value, bitwidth, s)?,
         Value::Negative { value, bitwidth } => negative_to_diag(value, bitwidth, s)?,
-        Value::ByteString { ref data, bitwidth } => bytestring_to_diag(data, bitwidth, s)?,
-        Value::TextString { ref data, bitwidth } => textstring_to_diag(data, bitwidth, s)?,
+        Value::ByteString(ref bytestring) => bytestring_to_diag(bytestring, s)?,
+        Value::TextString(ref textstring) => textstring_to_diag(textstring, s)?,
         Value::Simple(simple) => simple_to_diag(simple, s)?,
         _ => unimplemented!(),
     }
