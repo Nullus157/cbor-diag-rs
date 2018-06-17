@@ -66,8 +66,8 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
             }),
             indoc!(r#"
-                60 # text(0)
-                   # ""
+                60  # text(0)
+                    # ""
             "#)
         }
 

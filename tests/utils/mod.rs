@@ -59,7 +59,7 @@ macro_rules! testcases {
     ) => {
         #[test]
         fn value2hex() {
-            let hex = $value.to_hex().unwrap();
+            let hex = $value.to_hex();
             assert_eq!(hex, $hex);
         }
 
