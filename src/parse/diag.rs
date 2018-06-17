@@ -3,6 +3,8 @@ use std::str::FromStr;
 use hex;
 use nom::{self, digit, hex_digit0};
 
+use nom::Needed;
+
 use {Error, IntegerWidth, Result, Simple, Value};
 
 type NStr<'a> = nom::types::CompleteStr<'a>;
@@ -84,6 +86,22 @@ named! {
 }
 
 named! {
+    string<NStr, Value>,
+    map!(
+        delimited!(
+            tag!("\""),
+            escaped_transform!(
+                none_of!("\\\""),
+                '\\',
+                alt!(
+                    tag!("\\") => { |_| "\\" }
+                  | tag!("\"") => { |_| "\"" }
+                )),
+            tag!("\"")),
+        |data: String| Value::String { data, bitwidth: Some(IntegerWidth::Unknown) })
+}
+
+named! {
     simple<NStr, Value>,
     map!(
         alt_complete!(
@@ -100,7 +118,7 @@ named! {
 
 named! {
     value<NStr, Value>,
-    alt_complete!(integer | negative | bytestring | simple)
+    alt_complete!(integer | negative | bytestring | string | simple)
 }
 
 pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {

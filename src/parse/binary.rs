@@ -1,3 +1,5 @@
+use std::str;
+
 // TODO(https://github.com/Geal/nom/pull/791)
 use nom::Context;
 
@@ -48,6 +50,15 @@ named! {
 }
 
 named! {
+    string<(&[u8], usize), Value>,
+    do_parse!(
+        tag_bits!(u8, 3, 3) >>
+        length: integer >>
+        data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
+        (Value::String { data: data.to_owned(), bitwidth: Some(length.1) }))
+}
+
+named! {
     simple<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
@@ -63,7 +74,7 @@ named! {
 
 named! {
     value<&[u8], Value>,
-    bits!(alt_complete!(positive | negative | bytestring | simple))
+    bits!(alt_complete!(positive | negative | bytestring | string | simple))
 }
 
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<Value> {

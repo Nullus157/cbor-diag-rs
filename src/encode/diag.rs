@@ -42,6 +42,24 @@ fn bytestring_to_diag(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut Strin
     Ok(())
 }
 
+fn string_to_diag(data: &str, bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
+    let _bitwidth = bitwidth.expect("indefinite length is unimplemented");
+
+    s.push('"');
+    for c in data.chars() {
+        if c == '\"' || c == '\\' {
+            for c in c.escape_default() {
+                s.push(c);
+            }
+        } else {
+            s.push(c);
+        }
+    }
+    s.push('"');
+
+    Ok(())
+}
+
 fn simple_to_diag(simple: Simple, s: &mut String) -> Result<()> {
     match simple {
         Simple::FALSE => s.push_str("false"),
@@ -58,6 +76,7 @@ fn value_to_diag(value: &Value, s: &mut String) -> Result<()> {
         Value::Integer { value, bitwidth } => integer_to_diag(value, bitwidth, s)?,
         Value::Negative { value, bitwidth } => negative_to_diag(value, bitwidth, s)?,
         Value::ByteString { ref data, bitwidth } => bytestring_to_diag(data, bitwidth, s)?,
+        Value::String { ref data, bitwidth } => string_to_diag(data, bitwidth, s)?,
         Value::Simple(simple) => simple_to_diag(simple, s)?,
         _ => unimplemented!(),
     }
