@@ -44,7 +44,7 @@ pub enum Value {
         bitwidth: Option<IntegerWidth>,
     },
 
-    String {
+    TextString {
         data: String,
         /// The bitwidth used for encoding the length, if none then indefinite
         /// length

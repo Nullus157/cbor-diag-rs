@@ -55,7 +55,7 @@ named! {
         tag_bits!(u8, 3, 3) >>
         length: integer >>
         data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
-        (Value::String { data: data.to_owned(), bitwidth: Some(length.1) }))
+        (Value::TextString { data: data.to_owned(), bitwidth: Some(length.1) }))
 }
 
 named! {

@@ -19,7 +19,7 @@ mod utils;
 testcases! {
     mod diag {
         empty(diag2value, value2diag) {
-            Value::String {
+            Value::TextString {
                 data: "".into(),
                 bitwidth: Some(IntegerWidth::Unknown),
             },
@@ -27,7 +27,7 @@ testcases! {
         }
 
         hello(diag2value, value2diag) {
-            Value::String {
+            Value::TextString {
                 data: "hello".into(),
                 bitwidth: Some(IntegerWidth::Unknown),
             },
@@ -35,7 +35,7 @@ testcases! {
         }
 
         alpha(diag2value, value2diag) {
-            Value::String {
+            Value::TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: Some(IntegerWidth::Unknown),
             },
@@ -43,7 +43,7 @@ testcases! {
         }
 
         non_alpha(diag2value, value2diag) {
-            Value::String {
+            Value::TextString {
                 data: "\u{1F1F3}\u{1F1FF}".into(),
                 bitwidth: Some(IntegerWidth::Unknown),
             },
@@ -51,7 +51,7 @@ testcases! {
         }
 
         escaped(diag2value, value2diag) {
-            Value::String {
+            Value::TextString {
                 data: "\\\"".into(),
                 bitwidth: Some(IntegerWidth::Unknown),
             },
@@ -61,23 +61,23 @@ testcases! {
 
     mod tiny {
         empty(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "".into(),
                 bitwidth: Some(IntegerWidth::Zero),
             },
             indoc!(r#"
-                60  # string(0)
+                60  # text(0)
                     # ""
             "#)
         }
 
         hello(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "hello".into(),
                 bitwidth: Some(IntegerWidth::Zero),
             },
             indoc!(r#"
-                65            # string(5)
+                65            # text(5)
                    68656c6c6f # "hello"
             "#)
         }
@@ -85,69 +85,69 @@ testcases! {
 
     mod u8 {
         empty(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "".into(),
                 bitwidth: Some(IntegerWidth::Eight),
             },
             indoc!(r#"
-                78 00 # string(0)
+                78 00 # text(0)
                       # ""
             "#)
         }
 
         hello(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "hello".into(),
                 bitwidth: Some(IntegerWidth::Eight),
             },
             indoc!(r#"
-                78 05         # string(5)
+                78 05         # text(5)
                    68656c6c6f # "hello"
             "#)
         }
 
         alpha(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: Some(IntegerWidth::Eight),
             },
             indoc!(r#"
-                78 1a                               # string(26)
+                78 1a                               # text(26)
                    6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
                    7172737475767778797a             # "qrstuvwxyz"
             "#)
         }
 
         non_alpha(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "\u{1F1F3}\u{1F1FF}".into(),
                 bitwidth: Some(IntegerWidth::Eight),
             },
             indoc!("
-                78 08               # string(8)
+                78 08               # text(8)
                    f09f87b3f09f87bf # \"\u{1F1F3}\u{1F1FF}\"
             ")
         }
 
         non_alpha_across_break(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "0123456789ab\u{1F1F3}\u{1F1FF}".into(),
                 bitwidth: Some(IntegerWidth::Eight),
             },
             indoc!("
-                78 14                               # string(20)
+                78 14                               # text(20)
                    303132333435363738396162f09f87b3 # \"0123456789ab\u{1F1F3}\"
                    f09f87bf                         # \"\u{1F1FF}\"
             ")
         }
 
         non_alpha_not_quite_at_break(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "0123456789abc\u{1F1F3}\u{1F1FF}".into(),
                 bitwidth: Some(IntegerWidth::Eight),
             },
             indoc!("
-                78 15                               # string(21)
+                78 15                               # text(21)
                    30313233343536373839616263       # \"0123456789abc\"
                    f09f87b3f09f87bf                 # \"\u{1F1F3}\u{1F1FF}\"
             ")
@@ -156,34 +156,34 @@ testcases! {
 
     mod u16 {
         empty(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "".into(),
                 bitwidth: Some(IntegerWidth::Sixteen),
             },
             indoc!(r#"
-                79 0000 # string(0)
+                79 0000 # text(0)
                         # ""
             "#)
         }
 
         hello(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "hello".into(),
                 bitwidth: Some(IntegerWidth::Sixteen),
             },
             indoc!(r#"
-                79 0005       # string(5)
+                79 0005       # text(5)
                    68656c6c6f # "hello"
             "#)
         }
 
         alpha(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: Some(IntegerWidth::Sixteen),
             },
             indoc!(r#"
-                79 001a                             # string(26)
+                79 001a                             # text(26)
                    6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
                    7172737475767778797a             # "qrstuvwxyz"
             "#)
@@ -192,34 +192,34 @@ testcases! {
 
     mod u32 {
         empty(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "".into(),
                 bitwidth: Some(IntegerWidth::ThirtyTwo),
             },
             indoc!(r#"
-                7a 00000000 # string(0)
+                7a 00000000 # text(0)
                             # ""
             "#)
         }
 
         hello(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "hello".into(),
                 bitwidth: Some(IntegerWidth::ThirtyTwo),
             },
             indoc!(r#"
-                7a 00000005   # string(5)
+                7a 00000005   # text(5)
                    68656c6c6f # "hello"
             "#)
         }
 
         alpha(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: Some(IntegerWidth::ThirtyTwo),
             },
             indoc!(r#"
-                7a 0000001a                         # string(26)
+                7a 0000001a                         # text(26)
                    6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
                    7172737475767778797a             # "qrstuvwxyz"
             "#)
@@ -228,34 +228,34 @@ testcases! {
 
     mod u64 {
         empty(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "".into(),
                 bitwidth: Some(IntegerWidth::SixtyFour),
             },
             indoc!(r#"
-                7b 0000000000000000 # string(0)
+                7b 0000000000000000 # text(0)
                                     # ""
             "#)
         }
 
         hello(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "hello".into(),
                 bitwidth: Some(IntegerWidth::SixtyFour),
             },
             indoc!(r#"
-                7b 0000000000000005 # string(5)
+                7b 0000000000000005 # text(5)
                    68656c6c6f       # "hello"
             "#)
         }
 
         alpha(hex2value, value2hex) {
-            Value::String {
+            Value::TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: Some(IntegerWidth::SixtyFour),
             },
             indoc!(r#"
-                7b 000000000000001a                 # string(26)
+                7b 000000000000001a                 # text(26)
                    6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
                    7172737475767778797a             # "qrstuvwxyz"
             "#)

@@ -140,8 +140,8 @@ fn bytestring_to_hex(data: &[u8], bitwidth: Option<IntegerWidth>, s: &mut String
     Ok(())
 }
 
-fn string_to_hex(mut data: &str, bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
-    let base_width = string_length_to_hex(data.len(), bitwidth, 3, "string", s)?;
+fn textstring_to_hex(mut data: &str, bitwidth: Option<IntegerWidth>, s: &mut String) -> Result<()> {
+    let base_width = string_length_to_hex(data.len(), bitwidth, 3, "text", s)?;
 
     if data.is_empty() {
         s.push_str(&format!(
@@ -198,7 +198,7 @@ fn to_hex(value: &Value, s: &mut String) -> Result<()> {
         Value::Integer { value, bitwidth } => integer_to_hex(value, bitwidth, s)?,
         Value::Negative { value, bitwidth } => negative_to_hex(value, bitwidth, s)?,
         Value::ByteString { ref data, bitwidth } => bytestring_to_hex(data, bitwidth, s)?,
-        Value::String { ref data, bitwidth } => string_to_hex(data, bitwidth, s)?,
+        Value::TextString { ref data, bitwidth } => textstring_to_hex(data, bitwidth, s)?,
         Value::Simple(simple) => simple_to_hex(simple, s)?,
         _ => unimplemented!(),
     }

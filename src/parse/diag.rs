@@ -98,7 +98,7 @@ named! {
                   | tag!("\"") => { |_| "\"" }
                 )),
             tag!("\"")),
-        |data: String| Value::String { data, bitwidth: Some(IntegerWidth::Unknown) })
+        |data| Value::TextString { data, bitwidth: Some(IntegerWidth::Unknown) })
 }
 
 named! {
