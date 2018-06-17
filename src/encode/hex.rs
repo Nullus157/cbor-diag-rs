@@ -31,7 +31,10 @@ impl Line {
                 bytestring_to_hex(bytestring)
             }
             Value::TextString(ref textstring) => {
-                textstring_to_hex(textstring)
+                definite_textstring_to_hex(textstring)
+            }
+            Value::IndefiniteTextString(ref textstrings) => {
+                indefinite_textstring_to_hex(textstrings)
             }
             Value::Simple(simple) => {
                 simple_to_hex(simple)
@@ -47,7 +50,7 @@ impl Line {
         output
     }
 
-    fn do_merge(self, hex_width: usize, indent: usize, output: &mut String) {
+    fn do_merge(self, mut hex_width: usize, mut indent: usize, output: &mut String) {
         output.push_str(&format!(
             "{blank:indent$}{hex:width$} # {comment}\n",
             blank="",
@@ -56,8 +59,13 @@ impl Line {
             width=hex_width,
             comment=self.comment));
 
+        if hex_width > 3 {
+            hex_width -= 3;
+            indent += 3;
+        }
+
         for line in self.sublines {
-            line.do_merge(hex_width - 3, indent + 3, output);
+            line.do_merge(hex_width, indent, output);
         }
     }
 
@@ -65,7 +73,14 @@ impl Line {
         cmp::max(
             self.hex.len(),
             self.sublines.iter()
-                .map(|line| line.hex_width() + 3)
+                .map(|line| {
+                    let subwidth = line.hex_width();
+                    if subwidth == 0 {
+                        0
+                    } else {
+                        subwidth + 3
+                    }
+                })
                 .max()
                 .unwrap_or(0))
     }
@@ -182,7 +197,7 @@ fn bytestring_to_hex(bytestring: &ByteString) -> Line {
     line
 }
 
-fn textstring_to_hex(textstring: &TextString) -> Line {
+fn definite_textstring_to_hex(textstring: &TextString) -> Line {
     let TextString { ref data, bitwidth } = *textstring;
 
     let mut line = string_length_to_hex(data.len(), bitwidth, 3, "text");
@@ -199,12 +214,35 @@ fn textstring_to_hex(textstring: &TextString) -> Line {
             let (datum, new_data) = data.split_at(split);
             data = new_data;
             let hex = hex::encode(datum);
-            let comment = format!("\"{}\"", datum);
+            let mut comment = String::with_capacity(datum.len());
+            comment.push('"');
+            for c in datum.chars() {
+                if c == '\"' || c == '\\' {
+                    for c in c.escape_default() {
+                        comment.push(c);
+                    }
+                } else {
+                    comment.push(c);
+                }
+            }
+            comment.push('"');
             line.sublines.push(Line::new(hex, comment));
         }
     }
 
     line
+}
+
+fn indefinite_textstring_to_hex(textstrings: &[TextString]) -> Line {
+    Line {
+        hex: "7F".into(),
+        comment: "text(*)".into(),
+        sublines: textstrings
+            .iter()
+            .map(definite_textstring_to_hex)
+            .chain(Some(Line::new("FF", "break")))
+            .collect(),
+    }
 }
 
 fn simple_to_hex(simple: Simple) -> Line {

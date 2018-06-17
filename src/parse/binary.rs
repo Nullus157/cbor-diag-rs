@@ -50,12 +50,29 @@ named! {
 }
 
 named! {
-    string<(&[u8], usize), Value>,
+    definite_string<(&[u8], usize), TextString>,
     do_parse!(
         tag_bits!(u8, 3, 3) >>
         length: integer >>
         data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
-        (Value::TextString(TextString { data: data.to_owned(), bitwidth: length.1 })))
+        (TextString { data: data.to_owned(), bitwidth: length.1 }))
+}
+
+named! {
+    indefinite_string<(&[u8], usize), Value>,
+    preceded!(
+        pair!(tag_bits!(u8, 3, 3), tag_bits!(u8, 5, 31)),
+        map!(
+            many_till!(definite_string, pair!(tag_bits!(u8, 3, 7), tag_bits!(u8, 5, 31))),
+            |(strings, _)| Value::IndefiniteTextString(strings)))
+}
+
+named! {
+    string<(&[u8], usize), Value>,
+    alt_complete!(
+        definite_string => { Value::TextString }
+      | indefinite_string
+    )
 }
 
 named! {

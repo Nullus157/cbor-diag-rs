@@ -66,8 +66,8 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
             }),
             indoc!(r#"
-                60  # text(0)
-                    # ""
+                60 # text(0)
+                   # ""
             "#)
         }
 
@@ -89,7 +89,7 @@ testcases! {
             }),
             indoc!(r#"
                 62      # text(2)
-                   5c22 # "\""
+                   5c22 # "\\\""
             "#)
         }
     }
@@ -366,6 +366,149 @@ testcases! {
                     },
                 ]),
                 r#"(_ "\\", "\"")"#,
+            }
+        }
+
+        mod hex {
+            empty(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![]),
+                indoc!(r#"
+                    7F    # text(*)
+                       FF # break
+                "#)
+            }
+
+            one_empty(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                ]),
+                indoc!(r#"
+                    7F    # text(*)
+                       60 # text(0)
+                          # ""
+                       FF # break
+                "#)
+            }
+
+            some_empty(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                ]),
+                indoc!(r#"
+                    7F    # text(*)
+                       60 # text(0)
+                          # ""
+                       60 # text(0)
+                          # ""
+                       FF # break
+                "#)
+            }
+
+            hello_world(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "hello".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    TextString {
+                        data: "world".into(),
+                        bitwidth: IntegerWidth::Sixteen,
+                    },
+                ]),
+                indoc!(r#"
+                    7F               # text(*)
+                       65            # text(5)
+                          68656c6c6f # "hello"
+                       79 0005       # text(5)
+                          776f726c64 # "world"
+                       FF            # break
+                "#)
+            }
+
+            alpha(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "abc".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Sixteen,
+                    },
+                    TextString {
+                        data: "defghijklmnopqrstuv".into(),
+                        bitwidth: IntegerWidth::ThirtyTwo,
+                    },
+                    TextString {
+                        data: "wxyz".into(),
+                        bitwidth: IntegerWidth::SixtyFour,
+                    },
+                ]),
+                indoc!(r#"
+                    7F                                     # text(*)
+                       63                                  # text(3)
+                          616263                           # "abc"
+                       79 0000                             # text(0)
+                                                           # ""
+                       7a 00000013                         # text(19)
+                          6465666768696a6b6c6d6e6f70717273 # "defghijklmnopqrs"
+                          747576                           # "tuv"
+                       7b 0000000000000004                 # text(4)
+                          7778797a                         # "wxyz"
+                       FF                                  # break
+                "#)
+            }
+
+            non_alpha(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "\u{1F1F3}".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    TextString {
+                        data: "\u{1F1FF}".into(),
+                        bitwidth: IntegerWidth::Eight,
+                    },
+                ]),
+                indoc!("
+                    7F             # text(*)
+                       64          # text(4)
+                          f09f87b3 # \"\u{1F1F3}\"
+                       78 04       # text(4)
+                          f09f87bf # \"\u{1F1FF}\"
+                       FF          # break
+                ")
+            }
+
+            escaped(hex2value, value2hex) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "\\".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    TextString {
+                        data: "\"".into(),
+                        bitwidth: IntegerWidth::Eight,
+                    },
+                ]),
+                indoc!(r#"
+                    7F       # text(*)
+                       61    # text(1)
+                          5c # "\\"
+                       78 01 # text(1)
+                          22 # "\""
+                       FF    # break
+                "#)
             }
         }
     }
