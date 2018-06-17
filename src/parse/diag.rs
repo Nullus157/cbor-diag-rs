@@ -86,7 +86,7 @@ named! {
 }
 
 named! {
-    string<NStr, Value>,
+    definite_string<NStr, TextString>,
     map!(
         delimited!(
             tag!("\""),
@@ -98,7 +98,25 @@ named! {
                   | tag!("\"") => { |_| "\"" }
                 )),
             tag!("\"")),
-        |data| Value::TextString(TextString { data, bitwidth: IntegerWidth::Unknown }))
+        |data| TextString { data, bitwidth: IntegerWidth::Unknown })
+}
+
+named! {
+    indefinite_string<NStr, Value>,
+    map!(
+        delimited!(
+            tag!("(_ "),
+            separated_list_complete!(tag!(" "), definite_string),
+            tag!(")")),
+        Value::IndefiniteTextString)
+}
+
+named! {
+    string<NStr, Value>,
+    alt_complete!(
+        definite_string => { Value::TextString }
+      | indefinite_string
+    )
 }
 
 named! {

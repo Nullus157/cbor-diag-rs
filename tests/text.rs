@@ -261,4 +261,91 @@ testcases! {
             "#)
         }
     }
+
+    mod indefinite {
+        mod diag {
+            empty(value2diag) {
+                Value::IndefiniteTextString(vec![]),
+                "(_ )",
+            }
+
+            some_empty(diag2value, value2diag) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                r#"(_ "" "")"#,
+            }
+
+            hello_world(diag2value, value2diag) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "hello".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "world".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                r#"(_ "hello" "world")"#,
+            }
+
+            alpha(diag2value, value2diag) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "abc".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "defghijklmnopqrstuv".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "wxyz".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                r#"(_ "abc" "" "defghijklmnopqrstuv" "wxyz")"#,
+            }
+
+            non_alpha(diag2value, value2diag) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "\u{1F1F3}".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "\u{1F1FF}".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                "(_ \"\u{1F1F3}\" \"\u{1F1FF}\")",
+            }
+
+            escaped(diag2value, value2diag) {
+                Value::IndefiniteTextString(vec![
+                    TextString {
+                        data: "\\".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    TextString {
+                        data: "\"".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                r#"(_ "\\" "\"")"#,
+            }
+        }
+    }
 }

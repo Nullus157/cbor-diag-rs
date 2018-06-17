@@ -56,6 +56,20 @@ fn textstring_to_diag(textstring: &TextString, s: &mut String) -> Result<()> {
     Ok(())
 }
 
+fn indefinite_textstring_to_diag(textstrings: &[TextString], s: &mut String) -> Result<()> {
+    s.push_str("(_");
+    if textstrings.is_empty() {
+        s.push(' ');
+    }
+    for textstring in textstrings {
+        s.push(' ');
+        textstring_to_diag(textstring, s)?;
+    }
+    s.push(')');
+
+    Ok(())
+}
+
 fn simple_to_diag(simple: Simple, s: &mut String) -> Result<()> {
     match simple {
         Simple::FALSE => s.push_str("false"),
@@ -73,6 +87,7 @@ fn value_to_diag(value: &Value, s: &mut String) -> Result<()> {
         Value::Negative { value, bitwidth } => negative_to_diag(value, bitwidth, s)?,
         Value::ByteString(ref bytestring) => bytestring_to_diag(bytestring, s)?,
         Value::TextString(ref textstring) => textstring_to_diag(textstring, s)?,
+        Value::IndefiniteTextString(ref textstrings) => indefinite_textstring_to_diag(textstrings, s)?,
         Value::Simple(simple) => simple_to_diag(simple, s)?,
         _ => unimplemented!(),
     }
