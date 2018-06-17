@@ -60,11 +60,14 @@ fn indefinite_textstring_to_diag(textstrings: &[TextString], s: &mut String) -> 
     s.push_str("(_");
     if textstrings.is_empty() {
         s.push(' ');
+        s.push(' ');
     }
     for textstring in textstrings {
         s.push(' ');
         textstring_to_diag(textstring, s)?;
+        s.push(',');
     }
+    s.pop();
     s.push(')');
 
     Ok(())

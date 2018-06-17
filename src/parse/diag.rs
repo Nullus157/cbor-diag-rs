@@ -106,7 +106,7 @@ named! {
     map!(
         delimited!(
             tag!("(_ "),
-            separated_list_complete!(tag!(" "), definite_string),
+            separated_list_complete!(tag!(", "), definite_string),
             tag!(")")),
         Value::IndefiniteTextString)
 }
