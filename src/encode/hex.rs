@@ -28,7 +28,7 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Res
         IntegerWidth::SixtyFour => s.push_str(&format!("1b {:016x}", value)),
     }
 
-    s.push_str(&format!(" # unsigned({})", value));
+    s.push_str(&format!(" # unsigned({})\n", value));
     Ok(())
 }
 
@@ -56,7 +56,7 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth, s: &mut String) -> Re
         IntegerWidth::SixtyFour => s.push_str(&format!("3b {:016x}", value)),
     }
 
-    s.push_str(&format!(" # negative({})", value));
+    s.push_str(&format!(" # negative({})\n", value));
     Ok(())
 }
 
@@ -152,7 +152,7 @@ fn simple_to_hex(simple: Simple, s: &mut String) -> Result<()> {
         _ => s.push_str("unassigned, "),
     }
 
-    s.push_str(&format!("simple({})", value));
+    s.push_str(&format!("simple({})\n", value));
     Ok(())
 }
 
