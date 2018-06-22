@@ -59,6 +59,13 @@ pub enum Value {
 
     IndefiniteTextString(Vec<TextString>),
 
+    Array {
+        data: Vec<Value>,
+        /// The bitwidth used for encoding the length, if none then indefinite
+        /// length
+        bitwidth: Option<IntegerWidth>,
+    },
+
     Map {
         data: Vec<(Value, Value)>,
         /// The bitwidth used for encoding the length, if none then indefinite

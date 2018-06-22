@@ -93,6 +93,15 @@ named! {
 }
 
 named! {
+    definite_array<(&[u8], usize), Value>,
+    do_parse!(
+        tag_bits!(u8, 3, 4) >>
+        length: integer >>
+        data: bytes!(count!(value, length.0 as usize)) >>
+        (Value::Array { data, bitwidth: Some(length.1) }))
+}
+
+named! {
     simple<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
@@ -113,6 +122,7 @@ named! {
       | negative
       | bytestring
       | textstring
+      | definite_array
       | simple
     ))
 }

@@ -44,10 +44,10 @@ testcases! {
 
         non_alpha(diag2value, value2diag) {
             Value::TextString(TextString {
-                data: "\u{1F1F3}\u{1F1ff}".into(),
+                data: "\u{1f1f3}\u{1f1ff}".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
-            "\"\u{1F1F3}\u{1F1ff}\"",
+            "\"\u{1f1f3}\u{1f1ff}\"",
         }
 
         escaped(diag2value, value2diag) {
@@ -131,36 +131,36 @@ testcases! {
 
         non_alpha(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "\u{1F1F3}\u{1F1ff}".into(),
+                data: "\u{1f1f3}\u{1f1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
                 78 08               # text(8)
-                   f09f87b3f09f87bf # \"\u{1F1F3}\u{1F1ff}\"
+                   f09f87b3f09f87bf # \"\u{1f1f3}\u{1f1ff}\"
             ")
         }
 
         non_alpha_across_break(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "0123456789ab\u{1F1F3}\u{1F1ff}".into(),
+                data: "0123456789ab\u{1f1f3}\u{1f1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
                 78 14                               # text(20)
-                   303132333435363738396162f09f87b3 # \"0123456789ab\u{1F1F3}\"
-                   f09f87bf                         # \"\u{1F1ff}\"
+                   303132333435363738396162f09f87b3 # \"0123456789ab\u{1f1f3}\"
+                   f09f87bf                         # \"\u{1f1ff}\"
             ")
         }
 
         non_alpha_not_quite_at_break(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "0123456789abc\u{1F1F3}\u{1F1ff}".into(),
+                data: "0123456789abc\u{1f1f3}\u{1f1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
                 78 15                         # text(21)
                    30313233343536373839616263 # \"0123456789abc\"
-                   f09f87b3f09f87bf           # \"\u{1F1F3}\u{1F1ff}\"
+                   f09f87b3f09f87bf           # \"\u{1f1f3}\u{1f1ff}\"
             ")
         }
     }
@@ -343,15 +343,15 @@ testcases! {
             non_alpha(diag2value, value2diag) {
                 Value::IndefiniteTextString(vec![
                     TextString {
-                        data: "\u{1F1F3}".into(),
+                        data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     },
                     TextString {
-                        data: "\u{1F1ff}".into(),
+                        data: "\u{1f1ff}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ \"\u{1F1F3}\", \"\u{1F1ff}\")",
+                "(_ \"\u{1f1f3}\", \"\u{1f1ff}\")",
             }
 
             escaped(diag2value, value2diag) {
@@ -472,20 +472,20 @@ testcases! {
             non_alpha(hex2value, value2hex) {
                 Value::IndefiniteTextString(vec![
                     TextString {
-                        data: "\u{1F1F3}".into(),
+                        data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Zero,
                     },
                     TextString {
-                        data: "\u{1F1ff}".into(),
+                        data: "\u{1f1ff}".into(),
                         bitwidth: IntegerWidth::Eight,
                     },
                 ]),
                 indoc!("
                     7f             # text(*)
                        64          # text(4)
-                          f09f87b3 # \"\u{1F1F3}\"
+                          f09f87b3 # \"\u{1f1f3}\"
                        78 04       # text(4)
-                          f09f87bf # \"\u{1F1ff}\"
+                          f09f87bf # \"\u{1f1ff}\"
                        ff          # break
                 ")
             }

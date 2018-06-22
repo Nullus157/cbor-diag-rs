@@ -49,6 +49,10 @@ impl Line {
                     definite_textstring_to_hex,
                 )
             }
+            Value::Array {
+                ref data,
+                bitwidth: Some(bitwidth),
+            } => definite_array_to_hex(data, bitwidth),
             Value::Simple(simple) => simple_to_hex(simple),
             _ => unimplemented!(),
         }
@@ -163,7 +167,7 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     Line::new(hex, comment)
 }
 
-fn string_length_to_hex(
+fn length_to_hex(
     length: usize,
     mut bitwidth: IntegerWidth,
     major: u8,
@@ -208,7 +212,7 @@ fn string_length_to_hex(
 fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
     let ByteString { ref data, bitwidth } = *bytestring;
 
-    let mut line = string_length_to_hex(data.len(), bitwidth, 2, "bytes");
+    let mut line = length_to_hex(data.len(), bitwidth, 2, "bytes");
 
     if data.is_empty() {
         line.sublines.push(Line::new("", "\"\""));
@@ -232,7 +236,7 @@ fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
 fn definite_textstring_to_hex(textstring: &TextString) -> Line {
     let TextString { ref data, bitwidth } = *textstring;
 
-    let mut line = string_length_to_hex(data.len(), bitwidth, 3, "text");
+    let mut line = length_to_hex(data.len(), bitwidth, 3, "text");
 
     if data.is_empty() {
         line.sublines.push(Line::new("", "\"\""));
@@ -280,6 +284,14 @@ fn indefinite_string_to_hex<T>(
             .chain(Some(Line::new("ff", "break")))
             .collect(),
     }
+}
+
+fn definite_array_to_hex(array: &[Value], bitwidth: IntegerWidth) -> Line {
+    let mut line = length_to_hex(array.len(), bitwidth, 4, "array");
+
+    line.sublines.extend(array.iter().map(Line::from_value));
+
+    line
 }
 
 fn simple_to_hex(simple: Simple) -> Line {

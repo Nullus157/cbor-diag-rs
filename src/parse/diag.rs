@@ -138,6 +138,16 @@ named! {
 }
 
 named! {
+    definite_array<NStr, Value>,
+    map!(
+        delimited!(
+            tag!("["),
+            separated_list_complete!(tag!(", "), value),
+            tag!("]")),
+        |data| Value::Array { data, bitwidth: Some(IntegerWidth::Unknown) })
+}
+
+named! {
     simple<NStr, Value>,
     map!(
         alt_complete!(
@@ -159,6 +169,7 @@ named! {
       | negative
       | bytestring
       | textstring
+      | definite_array
       | simple
     )
 }
