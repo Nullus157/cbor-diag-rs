@@ -5,7 +5,7 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{IntegerWidth, Value, TextString};
+use cbor_diag::{IntegerWidth, TextString, Value};
 
 #[macro_use]
 mod utils;
@@ -44,10 +44,10 @@ testcases! {
 
         non_alpha(diag2value, value2diag) {
             Value::TextString(TextString {
-                data: "\u{1F1F3}\u{1F1FF}".into(),
+                data: "\u{1F1F3}\u{1F1ff}".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
-            "\"\u{1F1F3}\u{1F1FF}\"",
+            "\"\u{1F1F3}\u{1F1ff}\"",
         }
 
         escaped(diag2value, value2diag) {
@@ -131,36 +131,36 @@ testcases! {
 
         non_alpha(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "\u{1F1F3}\u{1F1FF}".into(),
+                data: "\u{1F1F3}\u{1F1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
                 78 08               # text(8)
-                   f09f87b3f09f87bf # \"\u{1F1F3}\u{1F1FF}\"
+                   f09f87b3f09f87bf # \"\u{1F1F3}\u{1F1ff}\"
             ")
         }
 
         non_alpha_across_break(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "0123456789ab\u{1F1F3}\u{1F1FF}".into(),
+                data: "0123456789ab\u{1F1F3}\u{1F1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
                 78 14                               # text(20)
                    303132333435363738396162f09f87b3 # \"0123456789ab\u{1F1F3}\"
-                   f09f87bf                         # \"\u{1F1FF}\"
+                   f09f87bf                         # \"\u{1F1ff}\"
             ")
         }
 
         non_alpha_not_quite_at_break(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "0123456789abc\u{1F1F3}\u{1F1FF}".into(),
+                data: "0123456789abc\u{1F1F3}\u{1F1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
                 78 15                         # text(21)
                    30313233343536373839616263 # \"0123456789abc\"
-                   f09f87b3f09f87bf           # \"\u{1F1F3}\u{1F1FF}\"
+                   f09f87b3f09f87bf           # \"\u{1F1F3}\u{1F1ff}\"
             ")
         }
     }
@@ -347,11 +347,11 @@ testcases! {
                         bitwidth: IntegerWidth::Unknown,
                     },
                     TextString {
-                        data: "\u{1F1FF}".into(),
+                        data: "\u{1F1ff}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ \"\u{1F1F3}\", \"\u{1F1FF}\")",
+                "(_ \"\u{1F1F3}\", \"\u{1F1ff}\")",
             }
 
             escaped(diag2value, value2diag) {
@@ -373,8 +373,8 @@ testcases! {
             empty(hex2value, value2hex) {
                 Value::IndefiniteTextString(vec![]),
                 indoc!(r#"
-                    7F    # text(*)
-                       FF # break
+                    7f    # text(*)
+                       ff # break
                 "#)
             }
 
@@ -386,10 +386,10 @@ testcases! {
                     },
                 ]),
                 indoc!(r#"
-                    7F    # text(*)
+                    7f    # text(*)
                        60 # text(0)
                           # ""
-                       FF # break
+                       ff # break
                 "#)
             }
 
@@ -405,12 +405,12 @@ testcases! {
                     },
                 ]),
                 indoc!(r#"
-                    7F    # text(*)
+                    7f    # text(*)
                        60 # text(0)
                           # ""
                        60 # text(0)
                           # ""
-                       FF # break
+                       ff # break
                 "#)
             }
 
@@ -426,12 +426,12 @@ testcases! {
                     },
                 ]),
                 indoc!(r#"
-                    7F               # text(*)
+                    7f               # text(*)
                        65            # text(5)
                           68656c6c6f # "hello"
                        79 0005       # text(5)
                           776f726c64 # "world"
-                       FF            # break
+                       ff            # break
                 "#)
             }
 
@@ -455,7 +455,7 @@ testcases! {
                     },
                 ]),
                 indoc!(r#"
-                    7F                                     # text(*)
+                    7f                                     # text(*)
                        63                                  # text(3)
                           616263                           # "abc"
                        79 0000                             # text(0)
@@ -465,7 +465,7 @@ testcases! {
                           747576                           # "tuv"
                        7b 0000000000000004                 # text(4)
                           7778797a                         # "wxyz"
-                       FF                                  # break
+                       ff                                  # break
                 "#)
             }
 
@@ -476,17 +476,17 @@ testcases! {
                         bitwidth: IntegerWidth::Zero,
                     },
                     TextString {
-                        data: "\u{1F1FF}".into(),
+                        data: "\u{1F1ff}".into(),
                         bitwidth: IntegerWidth::Eight,
                     },
                 ]),
                 indoc!("
-                    7F             # text(*)
+                    7f             # text(*)
                        64          # text(4)
                           f09f87b3 # \"\u{1F1F3}\"
                        78 04       # text(4)
-                          f09f87bf # \"\u{1F1FF}\"
-                       FF          # break
+                          f09f87bf # \"\u{1F1ff}\"
+                       ff          # break
                 ")
             }
 
@@ -502,12 +502,12 @@ testcases! {
                     },
                 ]),
                 indoc!(r#"
-                    7F       # text(*)
+                    7f       # text(*)
                        61    # text(1)
                           5c # "\\"
                        78 01 # text(1)
                           22 # "\""
-                       FF    # break
+                       ff    # break
                 "#)
             }
         }

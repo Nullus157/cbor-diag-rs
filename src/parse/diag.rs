@@ -5,7 +5,7 @@ use nom::{self, digit, hex_digit0};
 
 use nom::Needed;
 
-use {Error, IntegerWidth, Result, Simple, Value, ByteString, TextString};
+use {ByteString, Error, IntegerWidth, Result, Simple, TextString, Value};
 
 type NStr<'a> = nom::types::CompleteStr<'a>;
 
@@ -77,16 +77,34 @@ named! {
 }
 
 named! {
-    bytestring<NStr, Value>,
+    definite_bytestring<NStr, ByteString>,
     map!(
         map_res!(
             preceded!(tag!("h"), delimited!(tag!("'"), hex_digit0, tag!("'"))),
             |s: NStr| hex::decode(s.as_ref())),
-        |data| Value::ByteString(ByteString { data, bitwidth: IntegerWidth::Unknown }))
+        |data| ByteString { data, bitwidth: IntegerWidth::Unknown })
 }
 
 named! {
-    definite_string<NStr, TextString>,
+    indefinite_bytestring<NStr, Value>,
+    map!(
+        delimited!(
+            tag!("(_ "),
+            separated_list_complete!(tag!(", "), definite_bytestring),
+            tag!(")")),
+        Value::IndefiniteByteString)
+}
+
+named! {
+    bytestring<NStr, Value>,
+    alt_complete!(
+        definite_bytestring => { Value::ByteString }
+      | indefinite_bytestring
+    )
+}
+
+named! {
+    definite_textstring<NStr, TextString>,
     map!(
         delimited!(
             tag!("\""),
@@ -102,20 +120,20 @@ named! {
 }
 
 named! {
-    indefinite_string<NStr, Value>,
+    indefinite_textstring<NStr, Value>,
     map!(
         delimited!(
             tag!("(_ "),
-            separated_list_complete!(tag!(", "), definite_string),
+            separated_list_complete!(tag!(", "), definite_textstring),
             tag!(")")),
         Value::IndefiniteTextString)
 }
 
 named! {
-    string<NStr, Value>,
+    textstring<NStr, Value>,
     alt_complete!(
-        definite_string => { Value::TextString }
-      | indefinite_string
+        definite_textstring => { Value::TextString }
+      | indefinite_textstring
     )
 }
 
@@ -124,10 +142,10 @@ named! {
     map!(
         alt_complete!(
             value!(Simple::FALSE, tag!("false"))
-            | value!(Simple::TRUE, tag!("true"))
-            | value!(Simple::NULL, tag!("null"))
-            | value!(Simple::UNDEFINED, tag!("undefined"))
-            | map!(preceded!(tag!("simple"),
+          | value!(Simple::TRUE, tag!("true"))
+          | value!(Simple::NULL, tag!("null"))
+          | value!(Simple::UNDEFINED, tag!("undefined"))
+          | map!(preceded!(tag!("simple"),
                 map_res!(delimited!(tag!("("), digit, tag!(")")), parse::<u8>)),
                 Simple)
         ),
@@ -136,7 +154,13 @@ named! {
 
 named! {
     value<NStr, Value>,
-    alt_complete!(integer | negative | bytestring | string | simple)
+    alt_complete!(
+        integer
+      | negative
+      | bytestring
+      | textstring
+      | simple
+    )
 }
 
 pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {

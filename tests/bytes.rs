@@ -5,7 +5,7 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{IntegerWidth, Value, ByteString};
+use cbor_diag::{ByteString, IntegerWidth, Value};
 
 #[macro_use]
 mod utils;
@@ -41,9 +41,14 @@ testcases! {
             }),
             "h'6162636465666768696a6b6c6d6e6f707172737475767778797a'",
         }
-    }
 
-    mod indefinite {
+        non_alpha(diag2value, value2diag) {
+            Value::ByteString(ByteString {
+                data: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            "h'000102030405060708090a'",
+        }
     }
 
     mod tiny {
@@ -222,6 +227,232 @@ testcases! {
                    6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
                    7172737475767778797a             # "qrstuvwxyz"
             "#)
+        }
+    }
+
+    mod indefinite {
+        mod diag {
+            empty(value2diag) {
+                Value::IndefiniteByteString(vec![]),
+                "(_ )",
+            }
+
+            one_empty(diag2value, value2diag) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: vec![],
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                "(_ h'')",
+            }
+
+            some_empty(diag2value, value2diag) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: vec![],
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    ByteString {
+                        data: vec![],
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                "(_ h'', h'')",
+            }
+
+            hello_world(diag2value, value2diag) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: b"hello"[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    ByteString {
+                        data: b"world"[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                "(_ h'68656c6c6f', h'776f726c64')",
+            }
+
+            alpha(diag2value, value2diag) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: b"abc"[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    ByteString {
+                        data: b""[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    ByteString {
+                        data: b"defghijklmnopqrstuv"[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    ByteString {
+                        data: b"wxyz"[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                "(_ h'616263', h'', h'6465666768696a6b6c6d6e6f70717273747576', h'7778797a')",
+            }
+
+            non_alpha(diag2value, value2diag) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: vec![0, 1, 2, 3, 4],
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                    ByteString {
+                        data: vec![5, 6, 7, 8, 9, 10],
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                "(_ h'0001020304', h'05060708090a')",
+            }
+        }
+
+        mod hex {
+            empty(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![]),
+                indoc!(r#"
+                    5f    # bytes(*)
+                       ff # break
+                "#)
+            }
+
+            one_empty(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                ]),
+                indoc!(r#"
+                    5f    # bytes(*)
+                       40 # bytes(0)
+                          # ""
+                       ff # break
+                "#)
+            }
+
+            some_empty(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    ByteString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                ]),
+                indoc!(r#"
+                    5f    # bytes(*)
+                       40 # bytes(0)
+                          # ""
+                       40 # bytes(0)
+                          # ""
+                       ff # break
+                "#)
+            }
+
+            hello_world(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: b"hello"[..].into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    ByteString {
+                        data: b"world"[..].into(),
+                        bitwidth: IntegerWidth::Sixteen,
+                    },
+                ]),
+                indoc!(r#"
+                    5f               # bytes(*)
+                       45            # bytes(5)
+                          68656c6c6f # "hello"
+                       59 0005       # bytes(5)
+                          776f726c64 # "world"
+                       ff            # break
+                "#)
+            }
+
+            alpha(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: b"abc"[..].into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    ByteString {
+                        data: "".into(),
+                        bitwidth: IntegerWidth::Sixteen,
+                    },
+                    ByteString {
+                        data: b"defghijklmnopqrstuv"[..].into(),
+                        bitwidth: IntegerWidth::ThirtyTwo,
+                    },
+                    ByteString {
+                        data: b"wxyz"[..].into(),
+                        bitwidth: IntegerWidth::SixtyFour,
+                    },
+                ]),
+                indoc!(r#"
+                    5f                                     # bytes(*)
+                       43                                  # bytes(3)
+                          616263                           # "abc"
+                       59 0000                             # bytes(0)
+                                                           # ""
+                       5a 00000013                         # bytes(19)
+                          6465666768696a6b6c6d6e6f70717273 # "defghijklmnopqrs"
+                          747576                           # "tuv"
+                       5b 0000000000000004                 # bytes(4)
+                          7778797a                         # "wxyz"
+                       ff                                  # break
+                "#)
+            }
+
+            non_alpha(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: vec![0, 1, 2, 3, 4],
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    ByteString {
+                        data: vec![5, 6, 7, 8, 9, 10],
+                        bitwidth: IntegerWidth::Eight,
+                    },
+                ]),
+                indoc!(r#"
+                    5f                 # bytes(*)
+                       45              # bytes(5)
+                          0001020304   # "\x00\x01\x02\x03\x04"
+                       58 06           # bytes(6)
+                          05060708090a # "\x05\x06\x07\x08\t\n"
+                       ff              # break
+                "#)
+            }
+
+            escaped(hex2value, value2hex) {
+                Value::IndefiniteByteString(vec![
+                    ByteString {
+                        data: b"\\"[..].into(),
+                        bitwidth: IntegerWidth::Zero,
+                    },
+                    ByteString {
+                        data: b"\""[..].into(),
+                        bitwidth: IntegerWidth::Eight,
+                    },
+                ]),
+                indoc!(r#"
+                    5f       # bytes(*)
+                       41    # bytes(1)
+                          5c # "\\"
+                       58 01 # bytes(1)
+                          22 # "\""
+                       ff    # break
+                "#)
+            }
         }
     }
 }

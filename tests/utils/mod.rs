@@ -43,7 +43,7 @@ macro_rules! testcases {
     ) => {
         #[test]
         fn value2diag() {
-            let diag = $value.to_diag().unwrap();
+            let diag = $value.to_diag();
             assert_eq!(diag, $diag);
         }
 

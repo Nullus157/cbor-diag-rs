@@ -2,7 +2,7 @@ use std::{ascii, cmp};
 
 use hex;
 
-use {IntegerWidth, Simple, Value, ByteString, TextString};
+use {ByteString, IntegerWidth, Simple, TextString, Value};
 
 struct Line {
     hex: String,
@@ -28,17 +28,28 @@ impl Line {
                 negative_to_hex(value, bitwidth)
             }
             Value::ByteString(ref bytestring) => {
-                bytestring_to_hex(bytestring)
+                definite_bytestring_to_hex(bytestring)
+            }
+            Value::IndefiniteByteString(ref bytestrings) => {
+                indefinite_string_to_hex(
+                    0x02,
+                    "bytes",
+                    bytestrings,
+                    definite_bytestring_to_hex,
+                )
             }
             Value::TextString(ref textstring) => {
                 definite_textstring_to_hex(textstring)
             }
             Value::IndefiniteTextString(ref textstrings) => {
-                indefinite_textstring_to_hex(textstrings)
+                indefinite_string_to_hex(
+                    0x03,
+                    "text",
+                    textstrings,
+                    definite_textstring_to_hex,
+                )
             }
-            Value::Simple(simple) => {
-                simple_to_hex(simple)
-            }
+            Value::Simple(simple) => simple_to_hex(simple),
             _ => unimplemented!(),
         }
     }
@@ -50,14 +61,20 @@ impl Line {
         output
     }
 
-    fn do_merge(self, mut hex_width: usize, mut indent: usize, output: &mut String) {
+    fn do_merge(
+        self,
+        mut hex_width: usize,
+        mut indent: usize,
+        output: &mut String,
+    ) {
         output.push_str(&format!(
             "{blank:indent$}{hex:width$} # {comment}\n",
-            blank="",
-            indent=indent,
-            hex=self.hex,
-            width=hex_width,
-            comment=self.comment));
+            blank = "",
+            indent = indent,
+            hex = self.hex,
+            width = hex_width,
+            comment = self.comment
+        ));
 
         if hex_width > 3 {
             hex_width -= 3;
@@ -72,7 +89,8 @@ impl Line {
     fn hex_width(&self) -> usize {
         cmp::max(
             self.hex.len(),
-            self.sublines.iter()
+            self.sublines
+                .iter()
                 .map(|line| {
                     let subwidth = line.hex_width();
                     if subwidth == 0 {
@@ -82,7 +100,8 @@ impl Line {
                     }
                 })
                 .max()
-                .unwrap_or(0))
+                .unwrap_or(0),
+        )
     }
 }
 
@@ -144,7 +163,12 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     Line::new(hex, comment)
 }
 
-fn string_length_to_hex(length: usize, mut bitwidth: IntegerWidth, major: u8, kind: &str) -> Line {
+fn string_length_to_hex(
+    length: usize,
+    mut bitwidth: IntegerWidth,
+    major: u8,
+    kind: &str,
+) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if length < 24 {
             IntegerWidth::Zero
@@ -162,18 +186,26 @@ fn string_length_to_hex(length: usize, mut bitwidth: IntegerWidth, major: u8, ki
     let hex = match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
         IntegerWidth::Zero => format!("{:02x}", (length as u8) + (major << 5)),
-        IntegerWidth::Eight => format!("{:02x} {:02x}", (major << 5) | 0x18, length),
-        IntegerWidth::Sixteen => format!("{:02x} {:04x}", (major << 5) | 0x19, length),
-        IntegerWidth::ThirtyTwo => format!("{:02x} {:08x}", (major << 5) | 0x1a, length),
-        IntegerWidth::SixtyFour => format!("{:02x} {:016x}", (major << 5) | 0x1b, length),
+        IntegerWidth::Eight => {
+            format!("{:02x} {:02x}", (major << 5) | 0x18, length)
+        }
+        IntegerWidth::Sixteen => {
+            format!("{:02x} {:04x}", (major << 5) | 0x19, length)
+        }
+        IntegerWidth::ThirtyTwo => {
+            format!("{:02x} {:08x}", (major << 5) | 0x1a, length)
+        }
+        IntegerWidth::SixtyFour => {
+            format!("{:02x} {:016x}", (major << 5) | 0x1b, length)
+        }
     };
 
-    let comment = format!("{kind}({length})", kind=kind, length=length);
+    let comment = format!("{kind}({length})", kind = kind, length = length);
 
     Line::new(hex, comment)
 }
 
-fn bytestring_to_hex(bytestring: &ByteString) -> Line {
+fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
     let ByteString { ref data, bitwidth } = *bytestring;
 
     let mut line = string_length_to_hex(data.len(), bitwidth, 2, "bytes");
@@ -233,14 +265,19 @@ fn definite_textstring_to_hex(textstring: &TextString) -> Line {
     line
 }
 
-fn indefinite_textstring_to_hex(textstrings: &[TextString]) -> Line {
+fn indefinite_string_to_hex<T>(
+    major: u8,
+    name: &str,
+    strings: &[T],
+    definite_string_to_hex: fn(&T) -> Line,
+) -> Line {
     Line {
-        hex: "7F".into(),
-        comment: "text(*)".into(),
-        sublines: textstrings
+        hex: format!("{:02x}", (major << 5) | 0x1F),
+        comment: format!("{}(*)", name),
+        sublines: strings
             .iter()
-            .map(definite_textstring_to_hex)
-            .chain(Some(Line::new("FF", "break")))
+            .map(definite_string_to_hex)
+            .chain(Some(Line::new("ff", "break")))
             .collect(),
     }
 }
