@@ -61,32 +61,34 @@ impl Line {
     fn merge(self) -> String {
         let hex_width = self.hex_width();
         let mut output = String::with_capacity(128);
-        self.do_merge(hex_width, 0, &mut output);
+        self.do_merge(hex_width as isize, 0, &mut output);
         output
     }
 
     fn do_merge(
         self,
-        mut hex_width: usize,
-        mut indent: usize,
+        hex_width: isize,
+        indent_level: usize,
         output: &mut String,
     ) {
+        let (hex_indent, width) = if hex_width < 0 {
+            (indent_level * 3 - hex_width.abs() as usize, 0)
+        } else {
+            (indent_level * 3, hex_width as usize)
+        };
+
         output.push_str(&format!(
-            "{blank:indent$}{hex:width$} # {comment}\n",
+            "{blank:hex_indent$}{hex:width$} # {blank:comment_indent$}{comment}\n",
             blank = "",
-            indent = indent,
+            hex_indent = hex_indent,
+            comment_indent = indent_level * 2,
             hex = self.hex,
-            width = hex_width,
+            width = width,
             comment = self.comment
         ));
 
-        if hex_width > 3 {
-            hex_width -= 3;
-            indent += 3;
-        }
-
         for line in self.sublines {
-            line.do_merge(hex_width, indent, output);
+            line.do_merge(hex_width - 3, indent_level + 1, output);
         }
     }
 

@@ -59,7 +59,7 @@ testcases! {
             }),
             indoc!(r#"
                 40 # bytes(0)
-                   # ""
+                   #   ""
             "#)
         }
 
@@ -70,7 +70,7 @@ testcases! {
             }),
             indoc!(r#"
                 45            # bytes(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
     }
@@ -83,7 +83,7 @@ testcases! {
             }),
             indoc!(r#"
                 58 00 # bytes(0)
-                      # ""
+                      #   ""
             "#)
         }
 
@@ -94,7 +94,7 @@ testcases! {
             }),
             indoc!(r#"
                 58 05         # bytes(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -105,8 +105,8 @@ testcases! {
             }),
             indoc!(r#"
                 58 1a                               # bytes(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
 
@@ -117,7 +117,7 @@ testcases! {
             }),
             indoc!(r#"
                 58 0b                     # bytes(11)
-                   000102030405060708090a # "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n"
+                   000102030405060708090a #   "\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n"
             "#)
         }
     }
@@ -130,7 +130,7 @@ testcases! {
             }),
             indoc!(r#"
                 59 0000 # bytes(0)
-                        # ""
+                        #   ""
             "#)
         }
 
@@ -141,7 +141,7 @@ testcases! {
             }),
             indoc!(r#"
                 59 0005       # bytes(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -152,8 +152,8 @@ testcases! {
             }),
             indoc!(r#"
                 59 001a                             # bytes(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
     }
@@ -166,7 +166,7 @@ testcases! {
             }),
             indoc!(r#"
                 5a 00000000 # bytes(0)
-                            # ""
+                            #   ""
             "#)
         }
 
@@ -177,7 +177,7 @@ testcases! {
             }),
             indoc!(r#"
                 5a 00000005   # bytes(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -188,8 +188,8 @@ testcases! {
             }),
             indoc!(r#"
                 5a 0000001a                         # bytes(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
     }
@@ -202,7 +202,7 @@ testcases! {
             }),
             indoc!(r#"
                 5b 0000000000000000 # bytes(0)
-                                    # ""
+                                    #   ""
             "#)
         }
 
@@ -213,7 +213,7 @@ testcases! {
             }),
             indoc!(r#"
                 5b 0000000000000005 # bytes(5)
-                   68656c6c6f       # "hello"
+                   68656c6c6f       #   "hello"
             "#)
         }
 
@@ -224,8 +224,8 @@ testcases! {
             }),
             indoc!(r#"
                 5b 000000000000001a                 # bytes(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
     }
@@ -317,7 +317,7 @@ testcases! {
                 Value::IndefiniteByteString(vec![]),
                 indoc!(r#"
                     5f    # bytes(*)
-                       ff # break
+                       ff #   break
                 "#)
             }
 
@@ -330,9 +330,9 @@ testcases! {
                 ]),
                 indoc!(r#"
                     5f    # bytes(*)
-                       40 # bytes(0)
-                          # ""
-                       ff # break
+                       40 #   bytes(0)
+                          #     ""
+                       ff #   break
                 "#)
             }
 
@@ -349,11 +349,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     5f    # bytes(*)
-                       40 # bytes(0)
-                          # ""
-                       40 # bytes(0)
-                          # ""
-                       ff # break
+                       40 #   bytes(0)
+                          #     ""
+                       40 #   bytes(0)
+                          #     ""
+                       ff #   break
                 "#)
             }
 
@@ -370,11 +370,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     5f               # bytes(*)
-                       45            # bytes(5)
-                          68656c6c6f # "hello"
-                       59 0005       # bytes(5)
-                          776f726c64 # "world"
-                       ff            # break
+                       45            #   bytes(5)
+                          68656c6c6f #     "hello"
+                       59 0005       #   bytes(5)
+                          776f726c64 #     "world"
+                       ff            #   break
                 "#)
             }
 
@@ -399,16 +399,16 @@ testcases! {
                 ]),
                 indoc!(r#"
                     5f                                     # bytes(*)
-                       43                                  # bytes(3)
-                          616263                           # "abc"
-                       59 0000                             # bytes(0)
-                                                           # ""
-                       5a 00000013                         # bytes(19)
-                          6465666768696a6b6c6d6e6f70717273 # "defghijklmnopqrs"
-                          747576                           # "tuv"
-                       5b 0000000000000004                 # bytes(4)
-                          7778797a                         # "wxyz"
-                       ff                                  # break
+                       43                                  #   bytes(3)
+                          616263                           #     "abc"
+                       59 0000                             #   bytes(0)
+                                                           #     ""
+                       5a 00000013                         #   bytes(19)
+                          6465666768696a6b6c6d6e6f70717273 #     "defghijklmnopqrs"
+                          747576                           #     "tuv"
+                       5b 0000000000000004                 #   bytes(4)
+                          7778797a                         #     "wxyz"
+                       ff                                  #   break
                 "#)
             }
 
@@ -425,11 +425,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     5f                 # bytes(*)
-                       45              # bytes(5)
-                          0001020304   # "\x00\x01\x02\x03\x04"
-                       58 06           # bytes(6)
-                          05060708090a # "\x05\x06\x07\x08\t\n"
-                       ff              # break
+                       45              #   bytes(5)
+                          0001020304   #     "\x00\x01\x02\x03\x04"
+                       58 06           #   bytes(6)
+                          05060708090a #     "\x05\x06\x07\x08\t\n"
+                       ff              #   break
                 "#)
             }
 
@@ -446,11 +446,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     5f       # bytes(*)
-                       41    # bytes(1)
-                          5c # "\\"
-                       58 01 # bytes(1)
-                          22 # "\""
-                       ff    # break
+                       41    #   bytes(1)
+                          5c #     "\\"
+                       58 01 #   bytes(1)
+                          22 #     "\""
+                       ff    #   break
                 "#)
             }
         }

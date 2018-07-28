@@ -135,10 +135,10 @@ testcases! {
             },
             indoc!(r#"
                 98 02            # array(2)
-                   65            # text(5)
-                      68656c6c6f # "hello"
-                   79 0005       # text(5)
-                      776f726c64 # "world"
+                   65            #   text(5)
+                      68656c6c6f #     "hello"
+                   79 0005       #   text(5)
+                      776f726c64 #     "world"
             "#),
         }
 
@@ -158,10 +158,10 @@ testcases! {
             },
             indoc!("
                 99 0002        # array(2)
-                   64          # text(4)
-                      f09f87b3 # \"\u{1f1f3}\"
-                   78 04       # text(4)
-                      f09f87bf # \"\u{1f1ff}\"
+                   64          #   text(4)
+                      f09f87b3 #     \"\u{1f1f3}\"
+                   78 04       #   text(4)
+                      f09f87bf #     \"\u{1f1ff}\"
             "),
         }
 
@@ -181,9 +181,9 @@ testcases! {
             },
             indoc!("
                 82                     # array(2)
-                   64                  # text(4)
-                      f09f87b3         # \"\u{1f1f3}\"
-                   1b 0000000000000017 # unsigned(23)
+                   64                  #   text(4)
+                      f09f87b3         #     \"\u{1f1f3}\"
+                   1b 0000000000000017 #   unsigned(23)
             "),
         }
 
@@ -216,13 +216,13 @@ testcases! {
             },
             indoc!("
                 83                        # array(3)
-                   64                     # text(4)
-                      f09f87b3            # \"\u{1f1f3}\"
-                   1b 0000000000000017    # unsigned(23)
-                   9a 00000002            # array(2)
-                      64                  # text(4)
-                         f09f87b3         # \"\u{1f1f3}\"
-                      1b 0000000000000017 # unsigned(23)
+                   64                     #   text(4)
+                      f09f87b3            #     \"\u{1f1f3}\"
+                   1b 0000000000000017    #   unsigned(23)
+                   9a 00000002            #   array(2)
+                      64                  #     text(4)
+                         f09f87b3         #       \"\u{1f1f3}\"
+                      1b 0000000000000017 #     unsigned(23)
             "),
         }
     }

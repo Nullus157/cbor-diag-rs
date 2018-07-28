@@ -67,7 +67,7 @@ testcases! {
             }),
             indoc!(r#"
                 60 # text(0)
-                   # ""
+                   #   ""
             "#)
         }
 
@@ -78,7 +78,7 @@ testcases! {
             }),
             indoc!(r#"
                 65            # text(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -89,7 +89,7 @@ testcases! {
             }),
             indoc!(r#"
                 62      # text(2)
-                   5c22 # "\\\""
+                   5c22 #   "\\\""
             "#)
         }
     }
@@ -102,7 +102,7 @@ testcases! {
             }),
             indoc!(r#"
                 78 00 # text(0)
-                      # ""
+                      #   ""
             "#)
         }
 
@@ -113,7 +113,7 @@ testcases! {
             }),
             indoc!(r#"
                 78 05         # text(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -124,8 +124,8 @@ testcases! {
             }),
             indoc!(r#"
                 78 1a                               # text(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
 
@@ -136,7 +136,7 @@ testcases! {
             }),
             indoc!("
                 78 08               # text(8)
-                   f09f87b3f09f87bf # \"\u{1f1f3}\u{1f1ff}\"
+                   f09f87b3f09f87bf #   \"\u{1f1f3}\u{1f1ff}\"
             ")
         }
 
@@ -147,8 +147,8 @@ testcases! {
             }),
             indoc!("
                 78 14                               # text(20)
-                   303132333435363738396162f09f87b3 # \"0123456789ab\u{1f1f3}\"
-                   f09f87bf                         # \"\u{1f1ff}\"
+                   303132333435363738396162f09f87b3 #   \"0123456789ab\u{1f1f3}\"
+                   f09f87bf                         #   \"\u{1f1ff}\"
             ")
         }
 
@@ -159,8 +159,8 @@ testcases! {
             }),
             indoc!("
                 78 15                         # text(21)
-                   30313233343536373839616263 # \"0123456789abc\"
-                   f09f87b3f09f87bf           # \"\u{1f1f3}\u{1f1ff}\"
+                   30313233343536373839616263 #   \"0123456789abc\"
+                   f09f87b3f09f87bf           #   \"\u{1f1f3}\u{1f1ff}\"
             ")
         }
     }
@@ -173,7 +173,7 @@ testcases! {
             }),
             indoc!(r#"
                 79 0000 # text(0)
-                        # ""
+                        #   ""
             "#)
         }
 
@@ -184,7 +184,7 @@ testcases! {
             }),
             indoc!(r#"
                 79 0005       # text(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -195,8 +195,8 @@ testcases! {
             }),
             indoc!(r#"
                 79 001a                             # text(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
     }
@@ -209,7 +209,7 @@ testcases! {
             }),
             indoc!(r#"
                 7a 00000000 # text(0)
-                            # ""
+                            #   ""
             "#)
         }
 
@@ -220,7 +220,7 @@ testcases! {
             }),
             indoc!(r#"
                 7a 00000005   # text(5)
-                   68656c6c6f # "hello"
+                   68656c6c6f #   "hello"
             "#)
         }
 
@@ -231,8 +231,8 @@ testcases! {
             }),
             indoc!(r#"
                 7a 0000001a                         # text(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
     }
@@ -245,7 +245,7 @@ testcases! {
             }),
             indoc!(r#"
                 7b 0000000000000000 # text(0)
-                                    # ""
+                                    #   ""
             "#)
         }
 
@@ -256,7 +256,7 @@ testcases! {
             }),
             indoc!(r#"
                 7b 0000000000000005 # text(5)
-                   68656c6c6f       # "hello"
+                   68656c6c6f       #   "hello"
             "#)
         }
 
@@ -267,8 +267,8 @@ testcases! {
             }),
             indoc!(r#"
                 7b 000000000000001a                 # text(26)
-                   6162636465666768696a6b6c6d6e6f70 # "abcdefghijklmnop"
-                   7172737475767778797a             # "qrstuvwxyz"
+                   6162636465666768696a6b6c6d6e6f70 #   "abcdefghijklmnop"
+                   7172737475767778797a             #   "qrstuvwxyz"
             "#)
         }
     }
@@ -374,7 +374,7 @@ testcases! {
                 Value::IndefiniteTextString(vec![]),
                 indoc!(r#"
                     7f    # text(*)
-                       ff # break
+                       ff #   break
                 "#)
             }
 
@@ -387,9 +387,9 @@ testcases! {
                 ]),
                 indoc!(r#"
                     7f    # text(*)
-                       60 # text(0)
-                          # ""
-                       ff # break
+                       60 #   text(0)
+                          #     ""
+                       ff #   break
                 "#)
             }
 
@@ -406,11 +406,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     7f    # text(*)
-                       60 # text(0)
-                          # ""
-                       60 # text(0)
-                          # ""
-                       ff # break
+                       60 #   text(0)
+                          #     ""
+                       60 #   text(0)
+                          #     ""
+                       ff #   break
                 "#)
             }
 
@@ -427,11 +427,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     7f               # text(*)
-                       65            # text(5)
-                          68656c6c6f # "hello"
-                       79 0005       # text(5)
-                          776f726c64 # "world"
-                       ff            # break
+                       65            #   text(5)
+                          68656c6c6f #     "hello"
+                       79 0005       #   text(5)
+                          776f726c64 #     "world"
+                       ff            #   break
                 "#)
             }
 
@@ -456,16 +456,16 @@ testcases! {
                 ]),
                 indoc!(r#"
                     7f                                     # text(*)
-                       63                                  # text(3)
-                          616263                           # "abc"
-                       79 0000                             # text(0)
-                                                           # ""
-                       7a 00000013                         # text(19)
-                          6465666768696a6b6c6d6e6f70717273 # "defghijklmnopqrs"
-                          747576                           # "tuv"
-                       7b 0000000000000004                 # text(4)
-                          7778797a                         # "wxyz"
-                       ff                                  # break
+                       63                                  #   text(3)
+                          616263                           #     "abc"
+                       79 0000                             #   text(0)
+                                                           #     ""
+                       7a 00000013                         #   text(19)
+                          6465666768696a6b6c6d6e6f70717273 #     "defghijklmnopqrs"
+                          747576                           #     "tuv"
+                       7b 0000000000000004                 #   text(4)
+                          7778797a                         #     "wxyz"
+                       ff                                  #   break
                 "#)
             }
 
@@ -482,11 +482,11 @@ testcases! {
                 ]),
                 indoc!("
                     7f             # text(*)
-                       64          # text(4)
-                          f09f87b3 # \"\u{1f1f3}\"
-                       78 04       # text(4)
-                          f09f87bf # \"\u{1f1ff}\"
-                       ff          # break
+                       64          #   text(4)
+                          f09f87b3 #     \"\u{1f1f3}\"
+                       78 04       #   text(4)
+                          f09f87bf #     \"\u{1f1ff}\"
+                       ff          #   break
                 ")
             }
 
@@ -503,11 +503,11 @@ testcases! {
                 ]),
                 indoc!(r#"
                     7f       # text(*)
-                       61    # text(1)
-                          5c # "\\"
-                       78 01 # text(1)
-                          22 # "\""
-                       ff    # break
+                       61    #   text(1)
+                          5c #     "\\"
+                       78 01 #   text(1)
+                          22 #     "\""
+                       ff    #   break
                 "#)
             }
         }
