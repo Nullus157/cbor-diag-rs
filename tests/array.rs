@@ -229,7 +229,7 @@ testcases! {
 
     mod indefinite {
         mod diag {
-            empty(value2diag) {
+            empty(diag2value, value2diag) {
                 Value::Array {
                     data: vec![],
                     bitwidth: None,
@@ -442,7 +442,6 @@ testcases! {
                        ff                     #   break
                 ")
             }
-
         }
     }
 }

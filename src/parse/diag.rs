@@ -163,6 +163,31 @@ named! {
 }
 
 named! {
+    definite_map<NStr, Value>,
+    map!(
+        delimited!(
+            tag!("{"),
+            separated_list_complete!(tag!(","), separated_pair!(value, tag!(":"), value)),
+            tag!("}")),
+        |data| Value::Map { data, bitwidth: Some(IntegerWidth::Unknown) })
+}
+
+named! {
+    indefinite_map<NStr, Value>,
+    map!(
+        ws!(delimited!(
+            tag!("{_"),
+            separated_list_complete!(tag!(","), separated_pair!(value, tag!(":"), value)),
+            tag!("}"))),
+        |data| Value::Map { data, bitwidth: None })
+}
+
+named! {
+    map<NStr, Value>,
+    alt_complete!(definite_map | indefinite_map)
+}
+
+named! {
     simple<NStr, Value>,
     map!(
         alt_complete!(
@@ -179,14 +204,15 @@ named! {
 
 named! {
     value<NStr, Value>,
-    alt_complete!(
+    ws!(alt_complete!(
         integer
       | negative
       | bytestring
       | textstring
       | array
+      | map
       | simple
-    )
+    ))
 }
 
 pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {

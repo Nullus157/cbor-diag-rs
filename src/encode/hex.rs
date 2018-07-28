@@ -1,4 +1,4 @@
-use std::{ascii, cmp};
+use std::{ascii, cmp, iter};
 
 use hex;
 
@@ -50,6 +50,7 @@ impl Line {
                 )
             }
             Value::Array { ref data, bitwidth } => array_to_hex(data, bitwidth),
+            Value::Map { ref data, bitwidth } => map_to_hex(data, bitwidth),
             Value::Simple(simple) => simple_to_hex(simple),
             _ => unimplemented!(),
         }
@@ -300,6 +301,26 @@ fn array_to_hex(array: &[Value], bitwidth: Option<IntegerWidth>) -> Line {
     let mut line = length_to_hex(Some(array.len()), bitwidth, 4, "array");
 
     line.sublines.extend(array.iter().map(Line::from_value));
+
+    if bitwidth.is_none() {
+        line.sublines.push(Line::new("ff", "break"));
+    }
+
+    line
+}
+
+fn map_to_hex(
+    values: &[(Value, Value)],
+    bitwidth: Option<IntegerWidth>,
+) -> Line {
+    let mut line = length_to_hex(Some(values.len()), bitwidth, 5, "map");
+
+    line.sublines.extend(
+        values
+            .iter()
+            .flat_map(|(v1, v2)| iter::once(v1).chain(iter::once(v2)))
+            .map(Line::from_value),
+    );
 
     if bitwidth.is_none() {
         line.sublines.push(Line::new("ff", "break"));

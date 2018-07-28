@@ -116,6 +116,29 @@ named! {
 }
 
 named! {
+    definite_map<(&[u8], usize), Value>,
+    do_parse!(
+        tag_bits!(u8, 3, 5) >>
+        length: integer >>
+        data: bytes!(count!(pair!(value, value), length.0 as usize)) >>
+        (Value::Map { data, bitwidth: Some(length.1) }))
+}
+
+named! {
+    indefinite_map<(&[u8], usize), Value>,
+    preceded!(
+        pair!(tag_bits!(u8, 3, 5), tag_bits!(u8, 5, 31)),
+        map!(
+            many_till!(bytes!(pair!(value, value)), stop_code),
+            |(data, _)| Value::Map { data, bitwidth: None }))
+}
+
+named! {
+    map<(&[u8], usize), Value>,
+    alt_complete!(definite_map | indefinite_map)
+}
+
+named! {
     simple<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
@@ -144,6 +167,7 @@ named! {
       | bytestring
       | textstring
       | array
+      | map
       | simple
     ))
 }

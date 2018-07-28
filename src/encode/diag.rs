@@ -90,6 +90,29 @@ fn array_to_diag(array: &[Value], s: &mut String, definite: bool) {
     s.push(']');
 }
 
+fn map_to_diag(values: &[(Value, Value)], s: &mut String, definite: bool) {
+    s.push('{');
+    if !definite {
+        s.push('_');
+        if values.is_empty() {
+            s.push(' ');
+        }
+    }
+    for (key, value) in values {
+        s.push(' ');
+        value_to_diag(key, s);
+        s.push(':');
+        s.push(' ');
+        value_to_diag(value, s);
+        s.push(',');
+    }
+    if !values.is_empty() {
+        s.pop();
+        s.push(' ');
+    }
+    s.push('}');
+}
+
 fn simple_to_diag(simple: Simple, s: &mut String) {
     match simple {
         Simple::FALSE => s.push_str("false"),
@@ -133,6 +156,12 @@ fn value_to_diag(value: &Value, s: &mut String) {
             ref bitwidth,
         } => {
             array_to_diag(data, s, bitwidth.is_some());
+        }
+        Value::Map {
+            ref data,
+            ref bitwidth,
+        } => {
+            map_to_diag(data, s, bitwidth.is_some());
         }
         Value::Simple(simple) => {
             simple_to_diag(simple, s);
