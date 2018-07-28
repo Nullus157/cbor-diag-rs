@@ -49,10 +49,7 @@ impl Line {
                     definite_textstring_to_hex,
                 )
             }
-            Value::Array {
-                ref data,
-                bitwidth: Some(bitwidth),
-            } => definite_array_to_hex(data, bitwidth),
+            Value::Array { ref data, bitwidth } => array_to_hex(data, bitwidth),
             Value::Simple(simple) => simple_to_hex(simple),
             _ => unimplemented!(),
         }
@@ -170,43 +167,56 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
 }
 
 fn length_to_hex(
-    length: usize,
-    mut bitwidth: IntegerWidth,
+    length: Option<usize>,
+    mut bitwidth: Option<IntegerWidth>,
     major: u8,
     kind: &str,
 ) -> Line {
-    if bitwidth == IntegerWidth::Unknown {
-        bitwidth = if length < 24 {
-            IntegerWidth::Zero
-        } else if length < usize::from(u8::max_value()) {
-            IntegerWidth::Eight
-        } else if length < usize::from(u16::max_value()) {
-            IntegerWidth::Sixteen
-        } else if length < u32::max_value() as usize {
-            IntegerWidth::ThirtyTwo
+    // TODO: Rearrange the data to remove the unwraps.
+
+    if bitwidth == Some(IntegerWidth::Unknown) {
+        bitwidth = if length.unwrap() < 24 {
+            Some(IntegerWidth::Zero)
+        } else if length.unwrap() < usize::from(u8::max_value()) {
+            Some(IntegerWidth::Eight)
+        } else if length.unwrap() < usize::from(u16::max_value()) {
+            Some(IntegerWidth::Sixteen)
+        } else if length.unwrap() < u32::max_value() as usize {
+            Some(IntegerWidth::ThirtyTwo)
         } else {
-            IntegerWidth::SixtyFour
+            Some(IntegerWidth::SixtyFour)
         };
     }
 
     let hex = match bitwidth {
-        IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => format!("{:02x}", (length as u8) + (major << 5)),
-        IntegerWidth::Eight => {
-            format!("{:02x} {:02x}", (major << 5) | 0x18, length)
+        Some(IntegerWidth::Unknown) => unreachable!(),
+        Some(IntegerWidth::Zero) => {
+            format!("{:02x}", (length.unwrap() as u8) + (major << 5))
         }
-        IntegerWidth::Sixteen => {
-            format!("{:02x} {:04x}", (major << 5) | 0x19, length)
+        Some(IntegerWidth::Eight) => {
+            format!("{:02x} {:02x}", (major << 5) | 0x18, length.unwrap())
         }
-        IntegerWidth::ThirtyTwo => {
-            format!("{:02x} {:08x}", (major << 5) | 0x1a, length)
+        Some(IntegerWidth::Sixteen) => {
+            format!("{:02x} {:04x}", (major << 5) | 0x19, length.unwrap())
         }
-        IntegerWidth::SixtyFour => {
-            format!("{:02x} {:016x}", (major << 5) | 0x1b, length)
+        Some(IntegerWidth::ThirtyTwo) => {
+            format!("{:02x} {:08x}", (major << 5) | 0x1a, length.unwrap())
         }
+        Some(IntegerWidth::SixtyFour) => {
+            format!("{:02x} {:016x}", (major << 5) | 0x1b, length.unwrap())
+        }
+        None => format!("{:02x}", (major << 5) | 0x1F),
     };
 
-    let comment = format!("{kind}({length})", kind = kind, length = length);
+    let comment = format!(
+        "{kind}({length})",
+        kind = kind,
+        length = if bitwidth.is_some() {
+            length.unwrap().to_string()
+        } else {
+            "*".to_owned()
+        },
+    );
 
     Line::new(hex, comment)
 }
@@ -214,7 +224,7 @@ fn length_to_hex(
 fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
     let ByteString { ref data, bitwidth } = *bytestring;
 
-    let mut line = length_to_hex(data.len(), bitwidth, 2, "bytes");
+    let mut line = length_to_hex(Some(data.len()), Some(bitwidth), 2, "bytes");
 
     if data.is_empty() {
         line.sublines.push(Line::new("", "\"\""));
@@ -238,7 +248,7 @@ fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
 fn definite_textstring_to_hex(textstring: &TextString) -> Line {
     let TextString { ref data, bitwidth } = *textstring;
 
-    let mut line = length_to_hex(data.len(), bitwidth, 3, "text");
+    let mut line = length_to_hex(Some(data.len()), Some(bitwidth), 3, "text");
 
     if data.is_empty() {
         line.sublines.push(Line::new("", "\"\""));
@@ -277,21 +287,23 @@ fn indefinite_string_to_hex<T>(
     strings: &[T],
     definite_string_to_hex: fn(&T) -> Line,
 ) -> Line {
-    Line {
-        hex: format!("{:02x}", (major << 5) | 0x1F),
-        comment: format!("{}(*)", name),
-        sublines: strings
-            .iter()
-            .map(definite_string_to_hex)
-            .chain(Some(Line::new("ff", "break")))
-            .collect(),
-    }
+    let mut line = length_to_hex(None, None, major, name);
+
+    line.sublines
+        .extend(strings.iter().map(definite_string_to_hex));
+    line.sublines.push(Line::new("ff", "break"));
+
+    line
 }
 
-fn definite_array_to_hex(array: &[Value], bitwidth: IntegerWidth) -> Line {
-    let mut line = length_to_hex(array.len(), bitwidth, 4, "array");
+fn array_to_hex(array: &[Value], bitwidth: Option<IntegerWidth>) -> Line {
+    let mut line = length_to_hex(Some(array.len()), bitwidth, 4, "array");
 
     line.sublines.extend(array.iter().map(Line::from_value));
+
+    if bitwidth.is_none() {
+        line.sublines.push(Line::new("ff", "break"));
+    }
 
     line
 }

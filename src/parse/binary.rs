@@ -54,7 +54,7 @@ named! {
     preceded!(
         pair!(tag_bits!(u8, 3, 2), tag_bits!(u8, 5, 31)),
         map!(
-            many_till!(definite_bytestring, pair!(tag_bits!(u8, 3, 7), tag_bits!(u8, 5, 31))),
+            many_till!(definite_bytestring, stop_code),
             |(strings, _)| Value::IndefiniteByteString(strings)))
 }
 
@@ -80,7 +80,7 @@ named! {
     preceded!(
         pair!(tag_bits!(u8, 3, 3), tag_bits!(u8, 5, 31)),
         map!(
-            many_till!(definite_textstring, pair!(tag_bits!(u8, 3, 7), tag_bits!(u8, 5, 31))),
+            many_till!(definite_textstring, stop_code),
             |(strings, _)| Value::IndefiniteTextString(strings)))
 }
 
@@ -102,6 +102,20 @@ named! {
 }
 
 named! {
+    indefinite_array<(&[u8], usize), Value>,
+    preceded!(
+        pair!(tag_bits!(u8, 3, 4), tag_bits!(u8, 5, 31)),
+        map!(
+            many_till!(bytes!(value), stop_code),
+            |(data, _)| Value::Array { data, bitwidth: None }))
+}
+
+named! {
+    array<(&[u8], usize), Value>,
+    alt_complete!(definite_array | indefinite_array)
+}
+
+named! {
     simple<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
@@ -116,13 +130,20 @@ named! {
 }
 
 named! {
+    stop_code<(&[u8], usize), Value>,
+    preceded!(
+        tag_bits!(u8, 3, 7),
+        map!(tag_bits!(u8, 5, 31), Value::simple))
+}
+
+named! {
     value<&[u8], Value>,
     bits!(alt_complete!(
         positive
       | negative
       | bytestring
       | textstring
-      | definite_array
+      | array
       | simple
     ))
 }

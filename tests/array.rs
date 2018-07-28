@@ -226,4 +226,223 @@ testcases! {
             "),
         }
     }
+
+    mod indefinite {
+        mod diag {
+            empty(value2diag) {
+                Value::Array {
+                    data: vec![],
+                    bitwidth: None,
+                },
+                "[_ ]",
+            }
+
+            hello_world(diag2value, value2diag) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "hello".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                        Value::TextString(TextString {
+                            data: "world".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ],
+                    bitwidth: None,
+                },
+                r#"[_ "hello", "world"]"#,
+            }
+
+            non_alpha(diag2value, value2diag) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "\u{1f1f3}".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                        Value::TextString(TextString {
+                            data: "\u{1f1ff}".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ],
+                    bitwidth: None,
+                },
+                "[_ \"\u{1f1f3}\", \"\u{1f1ff}\"]",
+            }
+
+            heterogenous(diag2value, value2diag) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "\u{1f1f3}".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                        Value::Integer {
+                            value: 23,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                    ],
+                    bitwidth: None,
+                },
+                "[_ \"\u{1f1f3}\", 23]",
+            }
+
+            nested(diag2value, value2diag) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "\u{1f1f3}".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                        Value::Integer {
+                            value: 23,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Array {
+                            data: vec![
+                                Value::TextString(TextString {
+                                    data: "\u{1f1f3}".into(),
+                                    bitwidth: IntegerWidth::Unknown,
+                                }),
+                                Value::Integer {
+                                    value: 23,
+                                    bitwidth: IntegerWidth::Zero,
+                                },
+                            ],
+                            bitwidth: None,
+                        },
+                    ],
+                    bitwidth: None,
+                },
+                "[_ \"\u{1f1f3}\", 23, [_ \"\u{1f1f3}\", 23]]",
+            }
+        }
+
+        mod hex {
+            empty(hex2value, value2hex) {
+                Value::Array {
+                    data: vec![],
+                    bitwidth: None,
+                },
+                indoc!(r#"
+                    9f    # array(*)
+                       ff #   break
+                "#),
+            }
+
+            hello_world(hex2value, value2hex) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "hello".into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        Value::TextString(TextString {
+                            data: "world".into(),
+                            bitwidth: IntegerWidth::Sixteen,
+                        }),
+                    ],
+                    bitwidth: None,
+                },
+                indoc!(r#"
+                    9f               # array(*)
+                       65            #   text(5)
+                          68656c6c6f #     "hello"
+                       79 0005       #   text(5)
+                          776f726c64 #     "world"
+                       ff            #   break
+                "#),
+            }
+
+            non_alpha(hex2value, value2hex) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "\u{1f1f3}".into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        Value::TextString(TextString {
+                            data: "\u{1f1ff}".into(),
+                            bitwidth: IntegerWidth::Eight,
+                        }),
+                    ],
+                    bitwidth: None,
+                },
+                indoc!("
+                    9f             # array(*)
+                       64          #   text(4)
+                          f09f87b3 #     \"\u{1f1f3}\"
+                       78 04       #   text(4)
+                          f09f87bf #     \"\u{1f1ff}\"
+                       ff          #   break
+                "),
+            }
+
+            heterogenous(hex2value, value2hex) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "\u{1f1f3}".into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        Value::Integer {
+                            value: 23,
+                            bitwidth: IntegerWidth::SixtyFour,
+                        },
+                    ],
+                    bitwidth: None,
+                },
+                indoc!("
+                    9f                     # array(*)
+                       64                  #   text(4)
+                          f09f87b3         #     \"\u{1f1f3}\"
+                       1b 0000000000000017 #   unsigned(23)
+                       ff                  #   break
+                "),
+            }
+
+            nested(hex2value, value2hex) {
+                Value::Array {
+                    data: vec![
+                        Value::TextString(TextString {
+                            data: "\u{1f1f3}".into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        Value::Integer {
+                            value: 23,
+                            bitwidth: IntegerWidth::SixtyFour,
+                        },
+                        Value::Array {
+                            data: vec![
+                                Value::TextString(TextString {
+                                    data: "\u{1f1f3}".into(),
+                                    bitwidth: IntegerWidth::Zero,
+                                }),
+                                Value::Integer {
+                                    value: 23,
+                                    bitwidth: IntegerWidth::SixtyFour,
+                                },
+                            ],
+                            bitwidth: None,
+                        },
+                    ],
+                    bitwidth: None,
+                },
+                indoc!("
+                    9f                        # array(*)
+                       64                     #   text(4)
+                          f09f87b3            #     \"\u{1f1f3}\"
+                       1b 0000000000000017    #   unsigned(23)
+                       9f                     #   array(*)
+                          64                  #     text(4)
+                             f09f87b3         #       \"\u{1f1f3}\"
+                          1b 0000000000000017 #     unsigned(23)
+                          ff                  #     break
+                       ff                     #   break
+                ")
+            }
+
+        }
+    }
 }

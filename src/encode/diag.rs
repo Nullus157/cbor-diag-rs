@@ -70,8 +70,12 @@ fn indefinite_string_to_diag<T>(
     s.push(')');
 }
 
-fn definite_array_to_diag(array: &[Value], s: &mut String) {
+fn array_to_diag(array: &[Value], s: &mut String, definite: bool) {
     s.push('[');
+    if !definite {
+        s.push('_');
+        s.push(' ');
+    }
     if array.is_empty() {
         s.push(' ');
         s.push(' ');
@@ -126,9 +130,9 @@ fn value_to_diag(value: &Value, s: &mut String) {
         }
         Value::Array {
             ref data,
-            bitwidth: Some(_),
+            ref bitwidth,
         } => {
-            definite_array_to_diag(data, s);
+            array_to_diag(data, s, bitwidth.is_some());
         }
         Value::Simple(simple) => {
             simple_to_diag(simple, s);
