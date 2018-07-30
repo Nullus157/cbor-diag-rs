@@ -1,6 +1,7 @@
+use half::f16;
 use hex;
 
-use {ByteString, IntegerWidth, Simple, TextString, Value};
+use {ByteString, FloatWidth, IntegerWidth, Simple, TextString, Value};
 
 fn integer_to_diag(value: u64, bitwidth: IntegerWidth, s: &mut String) {
     if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
@@ -113,6 +114,33 @@ fn map_to_diag(values: &[(Value, Value)], s: &mut String, definite: bool) {
     s.push('}');
 }
 
+pub fn float_to_diag(value: f64, bitwidth: FloatWidth, s: &mut String) {
+    if value.is_nan() {
+        s.push_str("NaN");
+    } else if value.is_infinite() {
+        if value.is_sign_negative() {
+            s.push('-');
+        }
+        s.push_str("Infinity");
+    } else {
+        let value = match bitwidth {
+            FloatWidth::Unknown | FloatWidth::SixtyFour => value.to_string(),
+            FloatWidth::Sixteen => f16::from_f64(value).to_string(),
+            FloatWidth::ThirtyTwo => (value as f32).to_string(),
+        };
+        s.push_str(&value);
+        if !value.contains('.') && !value.contains('e') {
+            s.push_str(".0");
+        }
+    }
+    s.push_str(match bitwidth {
+        FloatWidth::Unknown => "",
+        FloatWidth::Sixteen => "_1",
+        FloatWidth::ThirtyTwo => "_2",
+        FloatWidth::SixtyFour => "_3",
+    });
+}
+
 fn simple_to_diag(simple: Simple, s: &mut String) {
     match simple {
         Simple::FALSE => s.push_str("false"),
@@ -162,6 +190,9 @@ fn value_to_diag(value: &Value, s: &mut String) {
             ref bitwidth,
         } => {
             map_to_diag(data, s, bitwidth.is_some());
+        }
+        Value::Float { value, bitwidth } => {
+            float_to_diag(value, bitwidth, s);
         }
         Value::Simple(simple) => {
             simple_to_diag(simple, s);

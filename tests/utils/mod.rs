@@ -105,18 +105,20 @@ macro_rules! testcases {
         }
     };
 
-    ($($name:ident($($test:ident),+) { $($tt:tt)+ })*) => {
-        $(testcases! {
+    ($name:ident($($test:ident),+) { $($tt:tt)+ } $($rest:tt)*) => {
+        testcases! {
             @testcases $name($($test),+) { $($tt)+ }
-        })*
+        }
+        testcases! { $($rest)* }
     };
 
-    ($($name:ident { $($tt:tt)+ })*) => {
-        $(testcases! {
+    ($name:ident { $($tt:tt)+ } $($rest:tt)*) => {
+        testcases! {
             @testcases $name(diag2value, hex2value, value2diag, value2hex) {
                 $($tt)+
             }
-        })*
+        }
+        testcases! { $($rest)* }
     };
 
     ($(mod $name:ident { $($tt:tt)* })*) => {

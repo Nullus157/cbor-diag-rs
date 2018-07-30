@@ -1,8 +1,10 @@
 use std::{ascii, cmp, iter};
 
+use super::diag;
+use half::f16;
 use hex;
 
-use {ByteString, IntegerWidth, Simple, TextString, Value};
+use {ByteString, FloatWidth, IntegerWidth, Simple, TextString, Value};
 
 struct Line {
     hex: String,
@@ -51,6 +53,7 @@ impl Line {
             }
             Value::Array { ref data, bitwidth } => array_to_hex(data, bitwidth),
             Value::Map { ref data, bitwidth } => map_to_hex(data, bitwidth),
+            Value::Float { value, bitwidth } => float_to_hex(value, bitwidth),
             Value::Simple(simple) => simple_to_hex(simple),
             _ => unimplemented!(),
         }
@@ -327,6 +330,27 @@ fn map_to_hex(
     }
 
     line
+}
+
+fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
+    if bitwidth == FloatWidth::Unknown {
+        bitwidth = FloatWidth::SixtyFour;
+    }
+
+    let hex = match bitwidth {
+        FloatWidth::Unknown => unreachable!(),
+        FloatWidth::Sixteen => {
+            format!("f9 {:04x}", f16::from_f64(value).as_bits())
+        }
+        FloatWidth::ThirtyTwo => format!("fa {:08x}", (value as f32).to_bits()),
+        FloatWidth::SixtyFour => format!("fb {:016x}", value.to_bits()),
+    };
+
+    let mut comment = "float(".to_owned();
+    diag::float_to_diag(value, FloatWidth::Unknown, &mut comment);
+    comment.push(')');
+
+    Line::new(hex, comment)
 }
 
 fn simple_to_hex(simple: Simple) -> Line {

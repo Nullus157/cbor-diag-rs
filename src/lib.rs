@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate nom;
+extern crate half;
 extern crate hex;
 
 mod encode;

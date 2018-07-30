@@ -1,3 +1,4 @@
+use std::f64;
 use std::str::FromStr;
 
 use hex;
@@ -5,7 +6,10 @@ use nom::{self, digit, hex_digit0};
 
 use nom::Needed;
 
-use {ByteString, Error, IntegerWidth, Result, Simple, TextString, Value};
+use {
+    ByteString, Error, FloatWidth, IntegerWidth, Result, Simple, TextString,
+    Value,
+};
 
 type NStr<'a> = nom::types::CompleteStr<'a>;
 
@@ -187,6 +191,70 @@ named! {
     alt_complete!(definite_map | indefinite_map)
 }
 
+#[allow(unused_imports)]
+fn recognize_float<T>(input: T) -> nom::IResult<T, T, u32>
+where
+    T: nom::Slice<::std::ops::Range<usize>>
+        + nom::Slice<::std::ops::RangeFrom<usize>>
+        + nom::Slice<::std::ops::RangeTo<usize>>
+        + Clone
+        + nom::Offset
+        + nom::InputIter
+        + nom::AtEof
+        + nom::InputTakeAtPosition,
+    <T as nom::InputIter>::Item: nom::AsChar,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar,
+{
+    recognize!(
+        input,
+        tuple!(
+            opt!(alt!(char!('+') | char!('-'))),
+            tuple!(digit, pair!(char!('.'), digit)),
+            opt!(tuple!(
+                alt!(char!('e') | char!('E')),
+                opt!(alt!(char!('+') | char!('-'))),
+                digit
+            ))
+        )
+    )
+}
+
+named! {
+    float_value<NStr, f64>,
+    alt_complete!(
+        map_res!(recognize_float, parse::<f64>)
+      | value!(f64::INFINITY, tag!("Infinity"))
+      | value!(f64::NEG_INFINITY, tag!("-Infinity"))
+      | value!(f64::NAN, tag!("NaN"))
+    )
+}
+
+named! {
+    float<NStr, Value>,
+    alt_complete!(
+        do_parse!(
+            value: float_value >>
+            tag!("_") >>
+            encoding: verify!(map_res!(digit, parse::<u8>), |e| 0 < e && e < 4) >>
+            (Value::Float {
+                value,
+                bitwidth: match encoding {
+                    1 => FloatWidth::Sixteen,
+                    2 => FloatWidth::ThirtyTwo,
+                    3 => FloatWidth::SixtyFour,
+                    _ => unreachable!(),
+                }
+            })
+        )
+        | map!(
+            float_value,
+            |value| Value::Float {
+                value,
+                bitwidth: FloatWidth::Unknown,
+            })
+    )
+}
+
 named! {
     simple<NStr, Value>,
     map!(
@@ -205,7 +273,8 @@ named! {
 named! {
     value<NStr, Value>,
     ws!(alt_complete!(
-        integer
+        float
+      | integer
       | negative
       | bytestring
       | textstring
@@ -222,6 +291,7 @@ pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {
         Error::Todos("Parsing error")
     })?;
     if !remaining.is_empty() {
+        println!("parsed: {:?} remaining: {:?}", parsed, remaining);
         return Err(Error::Todos("Remaining text"));
     }
     Ok(parsed)

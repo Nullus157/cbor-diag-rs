@@ -1,9 +1,10 @@
 use std::str;
 
 // TODO(https://github.com/Geal/nom/pull/791)
-use nom::Context;
+use half::f16;
+use nom::{be_f32, be_f64, be_u16, Context};
 
-use {ByteString, Error, IntegerWidth, Result, TextString, Value};
+use {ByteString, Error, FloatWidth, IntegerWidth, Result, TextString, Value};
 
 named! {
     integer<(&[u8], usize), (u64, IntegerWidth)>,
@@ -139,6 +140,29 @@ named! {
 }
 
 named! {
+    float<(&[u8], usize), Value>,
+    preceded!(
+        tag_bits!(u8, 3, 7),
+        map!(
+            alt_complete!(
+                pair!(
+                    preceded!(
+                        tag_bits!(u8, 5, 25),
+                        map!(bytes!(be_u16), |u| f16::from_bits(u).to_f64())),
+                    value!(FloatWidth::Sixteen))
+              | pair!(
+                    preceded!(
+                        tag_bits!(u8, 5, 26),
+                        map!(bytes!(be_f32), |f| f as f64)),
+                    value!(FloatWidth::ThirtyTwo))
+              | pair!(
+                    preceded!(tag_bits!(u8, 5, 27), bytes!(be_f64)),
+                    value!(FloatWidth::SixtyFour))
+            ),
+            |(value, bitwidth)| Value::Float { value, bitwidth }))
+}
+
+named! {
     simple<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
@@ -168,6 +192,7 @@ named! {
       | textstring
       | array
       | map
+      | float
       | simple
     ))
 }
