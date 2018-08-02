@@ -4,7 +4,7 @@ use super::diag;
 use half::f16;
 use hex;
 
-use {ByteString, FloatWidth, IntegerWidth, Simple, TextString, Value};
+use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
 
 struct Line {
     hex: String,
@@ -53,9 +53,13 @@ impl Line {
             }
             Value::Array { ref data, bitwidth } => array_to_hex(data, bitwidth),
             Value::Map { ref data, bitwidth } => map_to_hex(data, bitwidth),
+            Value::Tag {
+                tag,
+                bitwidth,
+                ref value,
+            } => tagged_to_hex(tag, bitwidth, &*value),
             Value::Float { value, bitwidth } => float_to_hex(value, bitwidth),
             Value::Simple(simple) => simple_to_hex(simple),
-            _ => unimplemented!(),
         }
     }
 
@@ -330,6 +334,44 @@ fn map_to_hex(
     }
 
     line
+}
+
+fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
+    if bitwidth == IntegerWidth::Unknown {
+        bitwidth = if tag.0 < 24 {
+            IntegerWidth::Zero
+        } else if tag.0 < u64::from(u8::max_value()) {
+            IntegerWidth::Eight
+        } else if tag.0 < u64::from(u16::max_value()) {
+            IntegerWidth::Sixteen
+        } else if tag.0 < u64::from(u32::max_value()) {
+            IntegerWidth::ThirtyTwo
+        } else {
+            IntegerWidth::SixtyFour
+        };
+    }
+
+    let hex = match bitwidth {
+        IntegerWidth::Unknown => unreachable!(),
+        IntegerWidth::Zero => format!("{:02x}", 0xc0 | tag.0),
+        IntegerWidth::Eight => format!("d8 {:02x}", tag.0),
+        IntegerWidth::Sixteen => format!("d9 {:04x}", tag.0),
+        IntegerWidth::ThirtyTwo => format!("da {:08x}", tag.0),
+        IntegerWidth::SixtyFour => format!("db {:016x}", tag.0),
+    };
+
+    let extra = match tag {
+        Tag::DATETIME => "standard date/time string, ",
+        _ => unimplemented!(),
+    };
+
+    let comment = format!("{}tag({})", extra, tag.0);
+
+    Line {
+        hex,
+        comment,
+        sublines: vec![Line::from_value(value)],
+    }
 }
 
 fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {

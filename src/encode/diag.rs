@@ -1,7 +1,7 @@
 use half::f16;
 use hex;
 
-use {ByteString, FloatWidth, IntegerWidth, Simple, TextString, Value};
+use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
 
 fn integer_to_diag(value: u64, bitwidth: IntegerWidth, s: &mut String) {
     if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
@@ -114,6 +114,29 @@ fn map_to_diag(values: &[(Value, Value)], s: &mut String, definite: bool) {
     s.push('}');
 }
 
+pub fn tagged_to_diag(
+    tag: Tag,
+    bitwidth: IntegerWidth,
+    value: &Value,
+    s: &mut String,
+) {
+    if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
+        s.push_str(&tag.0.to_string());
+    } else {
+        let encoding = match bitwidth {
+            IntegerWidth::Eight => 0,
+            IntegerWidth::Sixteen => 1,
+            IntegerWidth::ThirtyTwo => 2,
+            IntegerWidth::SixtyFour => 3,
+            _ => unreachable!(),
+        };
+        s.push_str(&format!("{}_{}", tag.0, encoding));
+    }
+    s.push('(');
+    value_to_diag(value, s);
+    s.push(')');
+}
+
 pub fn float_to_diag(value: f64, bitwidth: FloatWidth, s: &mut String) {
     if value.is_nan() {
         s.push_str("NaN");
@@ -191,13 +214,19 @@ fn value_to_diag(value: &Value, s: &mut String) {
         } => {
             map_to_diag(data, s, bitwidth.is_some());
         }
+        Value::Tag {
+            tag,
+            bitwidth,
+            ref value,
+        } => {
+            tagged_to_diag(tag, bitwidth, &*value, s);
+        }
         Value::Float { value, bitwidth } => {
             float_to_diag(value, bitwidth, s);
         }
         Value::Simple(simple) => {
             simple_to_diag(simple, s);
         }
-        _ => unimplemented!(),
     }
 }
 

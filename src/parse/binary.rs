@@ -4,7 +4,9 @@ use std::str;
 use half::f16;
 use nom::{be_f32, be_f64, be_u16, Context};
 
-use {ByteString, Error, FloatWidth, IntegerWidth, Result, TextString, Value};
+use {
+    ByteString, Error, FloatWidth, IntegerWidth, Result, Tag, TextString, Value,
+};
 
 named! {
     integer<(&[u8], usize), (u64, IntegerWidth)>,
@@ -140,6 +142,16 @@ named! {
 }
 
 named! {
+    tagged<(&[u8], usize), Value>,
+    do_parse!(
+        tag_bits!(u8, 3, 6) >>
+        tag: integer >>
+        value: bytes!(value) >>
+        (Value::Tag { tag: Tag(tag.0), bitwidth: tag.1, value: Box::new(value) })
+    )
+}
+
+named! {
     float<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
@@ -192,6 +204,7 @@ named! {
       | textstring
       | array
       | map
+      | tagged
       | float
       | simple
     ))

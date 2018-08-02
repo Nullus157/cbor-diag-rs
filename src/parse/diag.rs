@@ -7,8 +7,8 @@ use nom::{self, digit, hex_digit0};
 use nom::Needed;
 
 use {
-    ByteString, Error, FloatWidth, IntegerWidth, Result, Simple, TextString,
-    Value,
+    ByteString, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
+    TextString, Value,
 };
 
 type NStr<'a> = nom::types::CompleteStr<'a>;
@@ -18,32 +18,27 @@ fn parse<T: FromStr>(s: NStr) -> ::std::result::Result<T, T::Err> {
 }
 
 named! {
-    integer<NStr, Value>,
-    alt_complete!(
-        do_parse!(
-            value: map_res!(digit, parse::<u64>) >>
-            tag!("_") >>
-            encoding: verify!(map_res!(digit, parse::<u64>), |e| e < 4) >>
-            (Value::Integer {
-                value,
-                bitwidth: match encoding {
-                    0 => IntegerWidth::Eight,
-                    1 => IntegerWidth::Sixteen,
-                    2 => IntegerWidth::ThirtyTwo,
-                    3 => IntegerWidth::SixtyFour,
-                    _ => unreachable!(),
-                }
-            })
-        )
-        | map!(
-            map_res!(digit, parse::<u64>),
-            |value| Value::Integer {
-                value,
-                bitwidth: match value {
-                    0...23 => IntegerWidth::Zero,
-                    _ => IntegerWidth::Unknown,
-                }
-            })
+    encoding<NStr, u64>,
+    preceded!(tag!("_"), verify!(map_res!(digit, parse::<u64>), |e| e < 4))
+}
+
+named! {
+    positive<NStr, Value>,
+    do_parse!(
+        value: map_res!(digit, parse::<u64>) >>
+        encoding: opt!(encoding) >>
+        (Value::Integer {
+            value,
+            bitwidth: match (encoding, value) {
+                (None, 0...23) => IntegerWidth::Zero,
+                (Some(0), _) => IntegerWidth::Eight,
+                (Some(1), _) => IntegerWidth::Sixteen,
+                (Some(2), _) => IntegerWidth::ThirtyTwo,
+                (Some(3), _) => IntegerWidth::SixtyFour,
+                (None, _) => IntegerWidth::Unknown,
+                (Some(_), _) => unreachable!(),
+            },
+        })
     )
 }
 
@@ -51,31 +46,21 @@ named! {
     negative<NStr, Value>,
     preceded!(
         tag!("-"),
-        alt_complete!(
-            do_parse!(
-                value: map_res!(digit, parse::<u64>) >>
-                tag!("_") >>
-                encoding: verify!(map_res!(digit, parse::<u64>), |e| e < 4) >>
-                (Value::Negative {
-                    value: value - 1,
-                    bitwidth: match encoding {
-                        0 => IntegerWidth::Eight,
-                        1 => IntegerWidth::Sixteen,
-                        2 => IntegerWidth::ThirtyTwo,
-                        3 => IntegerWidth::SixtyFour,
-                        _ => unreachable!(),
-                    }
-                })
-            )
-            | map!(
-                map_res!(digit, parse::<u64>),
-                |value| Value::Negative {
-                    value: value - 1,
-                    bitwidth: match value {
-                        0...24 => IntegerWidth::Zero,
-                        _ => IntegerWidth::Unknown,
-                    }
-                })
+        do_parse!(
+            value: map_res!(digit, parse::<u64>) >>
+            encoding: opt!(encoding) >>
+            (Value::Negative {
+                value: value - 1,
+                bitwidth: match (encoding, value) {
+                    (None, 0...24) => IntegerWidth::Zero,
+                    (Some(0), _) => IntegerWidth::Eight,
+                    (Some(1), _) => IntegerWidth::Sixteen,
+                    (Some(2), _) => IntegerWidth::ThirtyTwo,
+                    (Some(3), _) => IntegerWidth::SixtyFour,
+                    (None, _) => IntegerWidth::Unknown,
+                    (Some(_), _) => unreachable!(),
+                },
+            })
         )
     )
 }
@@ -191,6 +176,28 @@ named! {
     alt_complete!(definite_map | indefinite_map)
 }
 
+named! {
+    tagged<NStr, Value>,
+    do_parse!(
+        tag: map_res!(digit, parse::<u64>) >>
+        encoding: opt!(encoding) >>
+        value: delimited!(tag!("("), value, tag!(")")) >>
+        (Value::Tag {
+            tag: Tag(tag),
+            bitwidth: match (encoding, tag) {
+                (None, 0...23) => IntegerWidth::Zero,
+                (Some(0), _) => IntegerWidth::Eight,
+                (Some(1), _) => IntegerWidth::Sixteen,
+                (Some(2), _) => IntegerWidth::ThirtyTwo,
+                (Some(3), _) => IntegerWidth::SixtyFour,
+                (None, _) => IntegerWidth::Unknown,
+                (Some(_), _) => unreachable!(),
+            },
+            value: Box::new(value),
+        })
+    )
+}
+
 #[allow(unused_imports)]
 fn recognize_float<T>(input: T) -> nom::IResult<T, T, u32>
 where
@@ -231,27 +238,19 @@ named! {
 
 named! {
     float<NStr, Value>,
-    alt_complete!(
-        do_parse!(
-            value: float_value >>
-            tag!("_") >>
-            encoding: verify!(map_res!(digit, parse::<u8>), |e| 0 < e && e < 4) >>
-            (Value::Float {
-                value,
-                bitwidth: match encoding {
-                    1 => FloatWidth::Sixteen,
-                    2 => FloatWidth::ThirtyTwo,
-                    3 => FloatWidth::SixtyFour,
-                    _ => unreachable!(),
-                }
-            })
-        )
-        | map!(
-            float_value,
-            |value| Value::Float {
-                value,
-                bitwidth: FloatWidth::Unknown,
-            })
+    do_parse!(
+        value: float_value >>
+        encoding: opt!(verify!(encoding, |e| e > 0)) >>
+        (Value::Float {
+            value,
+            bitwidth: match encoding {
+                Some(1) => FloatWidth::Sixteen,
+                Some(2) => FloatWidth::ThirtyTwo,
+                Some(3) => FloatWidth::SixtyFour,
+                Some(_) => unreachable!(),
+                None => FloatWidth::Unknown,
+            },
+        })
     )
 }
 
@@ -274,7 +273,8 @@ named! {
     value<NStr, Value>,
     ws!(alt_complete!(
         float
-      | integer
+      | tagged
+      | positive
       | negative
       | bytestring
       | textstring
