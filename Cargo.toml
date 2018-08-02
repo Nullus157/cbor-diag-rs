@@ -7,6 +7,7 @@ version = "0.1.0"
 hex = "0.3.2"
 nom = "4.0.0"
 half = "1.1.2"
+chrono = "0.4.5"
 
 [dev-dependencies]
 indoc = "0.2.6"

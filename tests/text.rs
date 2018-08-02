@@ -142,25 +142,25 @@ testcases! {
 
         non_alpha_across_break(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "0123456789ab\u{1f1f3}\u{1f1ff}".into(),
+                data: "0123456789ab\u{1f1f3}\u{1f1ff}12345".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
-                78 14                               # text(20)
+                78 19                               # text(25)
                    303132333435363738396162f09f87b3 #   \"0123456789ab\u{1f1f3}\"
-                   f09f87bf                         #   \"\u{1f1ff}\"
+                   f09f87bf3132333435               #   \"\u{1f1ff}12345\"
             ")
         }
 
         non_alpha_not_quite_at_break(hex2value, value2hex) {
             Value::TextString(TextString {
-                data: "0123456789abc\u{1f1f3}\u{1f1ff}".into(),
+                data: "0123456789abc\u{1f1f3}\u{1f1ff}1234".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
             indoc!("
-                78 15                         # text(21)
+                78 19                         # text(25)
                    30313233343536373839616263 #   \"0123456789abc\"
-                   f09f87b3f09f87bf           #   \"\u{1f1f3}\u{1f1ff}\"
+                   f09f87b3f09f87bf31323334   #   \"\u{1f1f3}\u{1f1ff}1234\"
             ")
         }
     }
@@ -455,17 +455,16 @@ testcases! {
                     },
                 ]),
                 indoc!(r#"
-                    7f                                     # text(*)
-                       63                                  #   text(3)
-                          616263                           #     "abc"
-                       79 0000                             #   text(0)
-                                                           #     ""
-                       7a 00000013                         #   text(19)
-                          6465666768696a6b6c6d6e6f70717273 #     "defghijklmnopqrs"
-                          747576                           #     "tuv"
-                       7b 0000000000000004                 #   text(4)
-                          7778797a                         #     "wxyz"
-                       ff                                  #   break
+                    7f                                           # text(*)
+                       63                                        #   text(3)
+                          616263                                 #     "abc"
+                       79 0000                                   #   text(0)
+                                                                 #     ""
+                       7a 00000013                               #   text(19)
+                          6465666768696a6b6c6d6e6f70717273747576 #     "defghijklmnopqrstuv"
+                       7b 0000000000000004                       #   text(4)
+                          7778797a                               #     "wxyz"
+                       ff                                        #   break
                 "#)
             }
 

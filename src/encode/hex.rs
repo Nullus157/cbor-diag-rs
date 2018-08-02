@@ -1,6 +1,7 @@
-use std::{ascii, cmp, iter};
+use std::{ascii, cmp, i64, iter};
 
 use super::diag;
+use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
 
@@ -261,14 +262,7 @@ fn definite_textstring_to_hex(textstring: &TextString) -> Line {
     if data.is_empty() {
         line.sublines.push(Line::new("", "\"\""));
     } else {
-        let mut data = data.as_str();
-        while !data.is_empty() {
-            let mut split = 16;
-            while !data.is_char_boundary(split) {
-                split -= 1;
-            }
-            let (datum, new_data) = data.split_at(split);
-            data = new_data;
+        let mut push_line = |datum: &str| {
             let hex = hex::encode(datum);
             let mut comment = String::with_capacity(datum.len());
             comment.push('"');
@@ -283,6 +277,21 @@ fn definite_textstring_to_hex(textstring: &TextString) -> Line {
             }
             comment.push('"');
             line.sublines.push(Line::new(hex, comment));
+        };
+
+        if data.len() <= 24 {
+            push_line(&data);
+        } else {
+            let mut data = data.as_str();
+            while !data.is_empty() {
+                let mut split = 16;
+                while !data.is_char_boundary(split) {
+                    split -= 1;
+                }
+                let (datum, new_data) = data.split_at(split);
+                data = new_data;
+                push_line(datum);
+            }
         }
     }
 
@@ -360,8 +369,27 @@ fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
         IntegerWidth::SixtyFour => format!("db {:016x}", tag.0),
     };
 
-    let extra = match tag {
-        Tag::DATETIME => "standard date/time string, ",
+    let (extra, extra_line) = match tag {
+        Tag::DATETIME => {
+            ("standard datetime string, ", Some(datetime_epoch(value)))
+        }
+        Tag::EPOCH_DATETIME => {
+            ("epoch datetime value, ", Some(epoch_datetime(value)))
+        }
+        Tag::POSITIVE_BIGNUM => ("positive bignum, ", None),
+        Tag::NEGATIVE_BIGNUM => ("negative bignum, ", None),
+        Tag::DECIMAL_FRACTION => ("decimal fraction, ", None),
+        Tag::BIGFLOAT => ("bigfloat, ", None),
+        Tag::ENCODED_BASE64URL => ("suggested base64url encoding, ", None),
+        Tag::ENCODED_BASE64 => ("suggested base64 encoding, ", None),
+        Tag::ENCODED_BASE16 => ("suggested base16 encoding, ", None),
+        Tag::ENCODED_CBOR => ("encoded cbor data item, ", None),
+        Tag::URI => ("uri, ", None),
+        Tag::BASE64URL => ("base64url encoded text, ", None),
+        Tag::BASE64 => ("base64 encoded text, ", None),
+        Tag::REGEX => ("regex, ", None),
+        Tag::MIME => ("mime message, ", None),
+        Tag::SELF_DESCRIBE_CBOR => ("positive bignum, ", None),
         _ => unimplemented!(),
     };
 
@@ -370,8 +398,62 @@ fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
     Line {
         hex,
         comment,
-        sublines: vec![Line::from_value(value)],
+        sublines: iter::once(Line::from_value(value))
+            .chain(extra_line)
+            .collect(),
     }
+}
+
+fn datetime_epoch(value: &Value) -> Line {
+    let date = if let Value::TextString(TextString { data, .. }) = value {
+        match DateTime::parse_from_rfc3339(data) {
+            Ok(value) => value,
+            Err(err) => {
+                return Line::new("", format!("error parsing datetime: {}", err))
+            }
+        }
+    } else {
+        return Line::new("", "invalid type for datetime");
+    };
+
+    Line::new("", format!("epoch({})", date.format("%s%.f")))
+}
+fn epoch_datetime(value: &Value) -> Line {
+    let date = match *value {
+        Value::Integer { value, .. } => {
+            if value >= (i64::max_value() as u64) {
+                return Line::new("", "offset is too large");
+            }
+            NaiveDateTime::from_timestamp(value as i64, 0)
+        }
+        Value::Negative { value, .. } => {
+            if value >= (i64::max_value() as u64) {
+                return Line::new("", "offset is too large");
+            }
+            if let Some(value) = (-1i64).checked_sub(value as i64) {
+                NaiveDateTime::from_timestamp(value, 0)
+            } else {
+                return Line::new("", "offset is too large");
+            }
+        }
+        Value::Float { value, .. } => NaiveDateTime::from_timestamp(
+            value.abs() as i64,
+            (value.fract() * 1_000_000_000.0) as u32,
+        ),
+
+        Value::ByteString(..)
+        | Value::IndefiniteByteString(..)
+        | Value::TextString(..)
+        | Value::IndefiniteTextString(..)
+        | Value::Array { .. }
+        | Value::Map { .. }
+        | Value::Tag { .. }
+        | Value::Simple(..) => {
+            return Line::new("", "invalid type for epoch datetime");
+        }
+    };
+
+    Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
 }
 
 fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
