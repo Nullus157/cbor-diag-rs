@@ -92,6 +92,20 @@ testcases! {
             },
             "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
         }
+
+        negative_bignum(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::NEGATIVE_BIGNUM,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode(
+                        "123456789abcdeffedcba987654321"
+                    ).unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                }))
+            },
+            "3(h'123456789abcdeffedcba987654321')",
+        }
     }
 
     mod hex_tests {
@@ -203,6 +217,25 @@ testcases! {
                       000001ffffffffffffffffffffff0000 #     "\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00"
                       000000000000000000               #     "\x00\x00\x00\x00\x00\x00\x00\x00\x00"
                                                        #   bignum(191561942608236107294793378084303638130997321548169216)
+            "#),
+        }
+
+        negative_bignum(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::NEGATIVE_BIGNUM,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode(
+                        "123456789abcdeffedcba987654321"
+                    ).unwrap(),
+                    bitwidth: IntegerWidth::Eight,
+                }))
+            },
+            indoc!(r#"
+                c3                                   # negative bignum, tag(3)
+                   58 0f                             #   bytes(15)
+                      123456789abcdeffedcba987654321 #     "\x124Vx\x9a\xbc\xde\xff\xed\xcb\xa9\x87eC!"
+                                                     #   bignum(-94522879700260684208272210605196066)
             "#),
         }
     }

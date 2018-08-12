@@ -4,7 +4,7 @@ use super::diag;
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
-use num_bigint::BigUint;
+use num_bigint::{BigInt, BigUint, Sign};
 
 use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
 
@@ -380,7 +380,9 @@ fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
         Tag::POSITIVE_BIGNUM => {
             ("positive bignum, ", Some(positive_bignum(value)))
         }
-        Tag::NEGATIVE_BIGNUM => ("negative bignum, ", None),
+        Tag::NEGATIVE_BIGNUM => {
+            ("negative bignum, ", Some(negative_bignum(value)))
+        }
         Tag::DECIMAL_FRACTION => ("decimal fraction, ", None),
         Tag::BIGFLOAT => ("bigfloat, ", None),
         Tag::ENCODED_BASE64URL => ("suggested base64url encoding, ", None),
@@ -463,6 +465,16 @@ fn epoch_datetime(value: &Value) -> Line {
 fn positive_bignum(value: &Value) -> Line {
     let num = if let Value::ByteString(ByteString { data, .. }) = value {
         BigUint::from_bytes_be(data)
+    } else {
+        return Line::new("", "invalid type for bignum");
+    };
+
+    Line::new("", format!("bignum({})", num))
+}
+
+fn negative_bignum(value: &Value) -> Line {
+    let num = if let Value::ByteString(ByteString { data, .. }) = value {
+        BigInt::from(-1) - BigInt::from_bytes_be(Sign::Plus, data)
     } else {
         return Line::new("", "invalid type for bignum");
     };
