@@ -216,6 +216,7 @@ pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<Value> {
         Error::Todos("Parsing error")
     })?;
     if !remaining.is_empty() {
+        println!("parsed: {:?} remaining: {:?}", parsed, remaining);
         return Err(Error::Todos("Remaining text"));
     }
     Ok(parsed)

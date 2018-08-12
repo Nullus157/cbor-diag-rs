@@ -6,7 +6,7 @@ extern crate hex;
 
 extern crate cbor_diag;
 
-use cbor_diag::{FloatWidth, IntegerWidth, Tag, TextString, Value};
+use cbor_diag::{ByteString, FloatWidth, IntegerWidth, Tag, TextString, Value};
 
 #[macro_use]
 mod utils;
@@ -79,19 +79,19 @@ testcases! {
             r#"[1(1533233978), 1(-1533233979), 1(1533233978.125)]"#,
         }
 
-        // positive_bignum(hex2value, value2hex) {
-        //     Value::Tag {
-        //         tag: Tag::POSITIVE_BIGNUM,
-        //         bitwidth: IntegerWidth::Zero,
-        //         value: Box::new(Value::ByteString(ByteString {
-        //             data: hex::decode(
-        //                 "01ffffffffffffffffffffff0000000000000000000000"
-        //             ).unwrap(),
-        //             bitwidth: IntegerWidth::Unknown,
-        //         }))
-        //     },
-        //     "3(h'01ffffffffffffffffffffff0000000000000000000000')",
-        // }
+        positive_bignum(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::POSITIVE_BIGNUM,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode(
+                        "000001ffffffffffffffffffffff0000000000000000000000"
+                    ).unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                }))
+            },
+            "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
+        }
     }
 
     mod hex_tests {
@@ -186,23 +186,24 @@ testcases! {
             "#),
         }
 
-        // positive_bignum(hex2value, value2hex) {
-        //     Value::Tag {
-        //         tag: Tag::POSITIVE_BIGNUM,
-        //         bitwidth: IntegerWidth::Zero,
-        //         value: Box::new(Value::ByteString(ByteString {
-        //             data: hex::decode(
-        //                 "01ffffffffffffffffffffff0000000000000000000000"
-        //             ).unwrap(),
-        //             bitwidth: IntegerWidth::Zero,
-        //         }))
-        //     },
-        //     indoc!(r#"
-        //         c2                                     # positive bignum, tag(2)
-        //            57                                  #   bytes(23)
-        //               01ffffffffffffffffffffff00000000 #     "\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00"
-        //               00000000000000                   #     "\x00\x00\x00\x00\x00\x00\x00"
-        //     "#),
-        // }
+        positive_bignum(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::POSITIVE_BIGNUM,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode(
+                        "000001ffffffffffffffffffffff0000000000000000000000"
+                    ).unwrap(),
+                    bitwidth: IntegerWidth::Eight,
+                }))
+            },
+            indoc!(r#"
+                c2                                     # positive bignum, tag(2)
+                   58 19                               #   bytes(25)
+                      000001ffffffffffffffffffffff0000 #     "\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00"
+                      000000000000000000               #     "\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                                       #   bignum(191561942608236107294793378084303638130997321548169216)
+            "#),
+        }
     }
 }

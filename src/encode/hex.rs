@@ -4,6 +4,7 @@ use super::diag;
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
+use num_bigint::BigUint;
 
 use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
 
@@ -376,7 +377,9 @@ fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
         Tag::EPOCH_DATETIME => {
             ("epoch datetime value, ", Some(epoch_datetime(value)))
         }
-        Tag::POSITIVE_BIGNUM => ("positive bignum, ", None),
+        Tag::POSITIVE_BIGNUM => {
+            ("positive bignum, ", Some(positive_bignum(value)))
+        }
         Tag::NEGATIVE_BIGNUM => ("negative bignum, ", None),
         Tag::DECIMAL_FRACTION => ("decimal fraction, ", None),
         Tag::BIGFLOAT => ("bigfloat, ", None),
@@ -418,6 +421,7 @@ fn datetime_epoch(value: &Value) -> Line {
 
     Line::new("", format!("epoch({})", date.format("%s%.f")))
 }
+
 fn epoch_datetime(value: &Value) -> Line {
     let date = match *value {
         Value::Integer { value, .. } => {
@@ -454,6 +458,16 @@ fn epoch_datetime(value: &Value) -> Line {
     };
 
     Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+}
+
+fn positive_bignum(value: &Value) -> Line {
+    let num = if let Value::ByteString(ByteString { data, .. }) = value {
+        BigUint::from_bytes_be(data)
+    } else {
+        return Line::new("", "invalid type for bignum");
+    };
+
+    Line::new("", format!("bignum({})", num))
 }
 
 fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
