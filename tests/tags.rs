@@ -106,6 +106,102 @@ testcases! {
             },
             "3(h'123456789abcdeffedcba987654321')",
         }
+
+        decimal_fraction(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::DECIMAL_FRACTION,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 1,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Integer {
+                            value: 27315,
+                            bitwidth: IntegerWidth::Unknown,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Unknown),
+                })
+            },
+            "4([-2, 27315])",
+        }
+
+        bigfloat(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::BIGFLOAT,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 0,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Integer {
+                            value: 3,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Unknown),
+                })
+            },
+            "5([-1, 3])",
+        }
+
+        decimal_fraction_bignum(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::DECIMAL_FRACTION,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 1,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Tag {
+                            tag: Tag::POSITIVE_BIGNUM,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::ByteString(ByteString {
+                                data: hex::decode(
+                                    "000001ffffffffffffffffffffff0000000000000000000000"
+                                ).unwrap(),
+                                bitwidth: IntegerWidth::Unknown,
+                            }))
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Unknown),
+                })
+            },
+            "4([-2, 2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+        }
+
+        bigfloat_bignum(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::BIGFLOAT,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 0,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Tag {
+                            tag: Tag::POSITIVE_BIGNUM,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::ByteString(ByteString {
+                                data: hex::decode(
+                                    "000001ffffffffffffffffffffff0000000000000000000000"
+                                ).unwrap(),
+                                bitwidth: IntegerWidth::Unknown,
+                            }))
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Unknown),
+                })
+            },
+            "5([-1, 2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+        }
     }
 
     mod hex_tests {
@@ -236,6 +332,134 @@ testcases! {
                    58 0f                             #   bytes(15)
                       123456789abcdeffedcba987654321 #     "\x124Vx\x9a\xbc\xde\xff\xed\xcb\xa9\x87eC!"
                                                      #   bignum(-94522879700260684208272210605196066)
+            "#),
+        }
+
+        decimal_fraction(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::DECIMAL_FRACTION,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 1,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Integer {
+                            value: 27315,
+                            bitwidth: IntegerWidth::Sixteen,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                })
+            },
+            indoc!(r#"
+                c4            # decimal fraction, tag(4)
+                   82         #   array(2)
+                      21      #     negative(1)
+                      19 6ab3 #     unsigned(27315)
+                              #   decimal fraction(5463/20)
+            "#),
+        }
+
+        bigfloat(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::BIGFLOAT,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 0,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                        Value::Integer {
+                            value: 3,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                })
+            },
+            indoc!(r#"
+                c5       # bigfloat, tag(5)
+                   82    #   array(2)
+                      20 #     negative(0)
+                      03 #     unsigned(3)
+                         #   bigfloat(3/2)
+            "#),
+        }
+
+        decimal_fraction_bignum(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::DECIMAL_FRACTION,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 52,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                        Value::Tag {
+                            tag: Tag::POSITIVE_BIGNUM,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::ByteString(ByteString {
+                                data: hex::decode(
+                                    "000001ffffffffffffffffffffff0000000000000000000000"
+                                ).unwrap(),
+                                bitwidth: IntegerWidth::Eight,
+                            }))
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                })
+            },
+            indoc!(r#"
+                c4                                           # decimal fraction, tag(4)
+                   82                                        #   array(2)
+                      38 34                                  #     negative(52)
+                      c2                                     #     positive bignum, tag(2)
+                         58 19                               #       bytes(25)
+                            000001ffffffffffffffffffffff0000 #         "\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00"
+                            000000000000000000               #         "\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                                             #       bignum(191561942608236107294793378084303638130997321548169216)
+                                                             #   decimal fraction(21267647932558653966460912930125774848/11102230246251565404236316680908203125)
+            "#),
+        }
+
+        bigfloat_bignum(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::BIGFLOAT,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::Negative {
+                            value: 175,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                        Value::Tag {
+                            tag: Tag::POSITIVE_BIGNUM,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::ByteString(ByteString {
+                                data: hex::decode(
+                                    "000001ffffffffffffffffffffff0000000000000000000000"
+                                ).unwrap(),
+                                bitwidth: IntegerWidth::Eight,
+                            }))
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                })
+            },
+            indoc!(r#"
+                c5                                           # bigfloat, tag(5)
+                   82                                        #   array(2)
+                      38 af                                  #     negative(175)
+                      c2                                     #     positive bignum, tag(2)
+                         58 19                               #       bytes(25)
+                            000001ffffffffffffffffffffff0000 #         "\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00"
+                            000000000000000000               #         "\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+                                                             #       bignum(191561942608236107294793378084303638130997321548169216)
+                                                             #   bigfloat(618970019642690137449562111/309485009821345068724781056)
             "#),
         }
     }

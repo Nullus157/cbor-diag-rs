@@ -4,7 +4,9 @@ use super::diag;
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
-use num_bigint::{BigInt, BigUint, Sign};
+use num::{
+    bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
+};
 
 use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
 
@@ -383,8 +385,10 @@ fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
         Tag::NEGATIVE_BIGNUM => {
             ("negative bignum, ", Some(negative_bignum(value)))
         }
-        Tag::DECIMAL_FRACTION => ("decimal fraction, ", None),
-        Tag::BIGFLOAT => ("bigfloat, ", None),
+        Tag::DECIMAL_FRACTION => {
+            ("decimal fraction, ", Some(decimal_fraction(value)))
+        }
+        Tag::BIGFLOAT => ("bigfloat, ", Some(bigfloat(value))),
         Tag::ENCODED_BASE64URL => ("suggested base64url encoding, ", None),
         Tag::ENCODED_BASE64 => ("suggested base64 encoding, ", None),
         Tag::ENCODED_BASE16 => ("suggested base16 encoding, ", None),
@@ -462,24 +466,110 @@ fn epoch_datetime(value: &Value) -> Line {
     Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
 }
 
-fn positive_bignum(value: &Value) -> Line {
-    let num = if let Value::ByteString(ByteString { data, .. }) = value {
-        BigUint::from_bytes_be(data)
+fn extract_positive_bignum(value: &Value) -> Option<BigUint> {
+    if let Value::ByteString(ByteString { data, .. }) = value {
+        Some(BigUint::from_bytes_be(data))
     } else {
-        return Line::new("", "invalid type for bignum");
-    };
+        None
+    }
+}
 
-    Line::new("", format!("bignum({})", num))
+fn positive_bignum(value: &Value) -> Line {
+    extract_positive_bignum(value)
+        .map(|num| Line::new("", format!("bignum({})", num)))
+        .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
+}
+
+fn extract_negative_bignum(value: &Value) -> Option<BigInt> {
+    if let Value::ByteString(ByteString { data, .. }) = value {
+        Some(BigInt::from(-1) - BigInt::from_bytes_be(Sign::Plus, data))
+    } else {
+        None
+    }
 }
 
 fn negative_bignum(value: &Value) -> Line {
-    let num = if let Value::ByteString(ByteString { data, .. }) = value {
-        BigInt::from(-1) - BigInt::from_bytes_be(Sign::Plus, data)
-    } else {
-        return Line::new("", "invalid type for bignum");
-    };
+    extract_negative_bignum(value)
+        .map(|num| Line::new("", format!("bignum({})", num)))
+        .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
+}
 
-    Line::new("", format!("bignum({})", num))
+fn extract_fraction(
+    value: &Value,
+    base: usize,
+) -> Result<BigRational, &'static str> {
+    Ok(match value {
+        Value::Array { data, .. } => {
+            if data.len() != 2 {
+                return Err("invalid type");
+            }
+            let (exponent, positive_exponent) = match data[0] {
+                Value::Integer { value, .. } => {
+                    if value <= usize::max_value() as u64 {
+                        (value as usize, true)
+                    } else {
+                        return Err("exponent is too large");
+                    }
+                }
+                Value::Negative { value, .. } => {
+                    if value < usize::max_value() as u64 {
+                        (value as usize + 1, false)
+                    } else {
+                        return Err("exponent is too large");
+                    }
+                }
+                _ => return Err("invalid type"),
+            };
+            let mantissa = match data[1] {
+                Value::Integer { value, .. } => BigInt::from(value),
+                Value::Negative { value, .. } => {
+                    BigInt::from(-1) - BigInt::from(value)
+                }
+                Value::Tag {
+                    tag: Tag::POSITIVE_BIGNUM,
+                    ref value,
+                    ..
+                } => match extract_positive_bignum(&*value) {
+                    Some(value) => BigInt::from_biguint(Sign::Plus, value),
+                    _ => return Err("invalid type"),
+                },
+                Value::Tag {
+                    tag: Tag::NEGATIVE_BIGNUM,
+                    ref value,
+                    ..
+                } => match extract_negative_bignum(&*value) {
+                    Some(value) => value,
+                    _ => return Err("invalid type"),
+                },
+                _ => return Err("invalid type"),
+            };
+            let multiplier = if positive_exponent {
+                Ratio::from_integer(pow(BigInt::from(base), exponent))
+            } else {
+                Ratio::new(BigInt::from(1), pow(BigInt::from(base), exponent))
+            };
+            Ratio::from_integer(mantissa) * multiplier
+        }
+        _ => return Err("invalid type"),
+    })
+}
+
+fn decimal_fraction(value: &Value) -> Line {
+    // TODO: https://github.com/rust-num/num-rational/issues/10
+    extract_fraction(value, 10)
+        .map(|fraction| {
+            Line::new("", format!("decimal fraction({})", fraction))
+        })
+        .unwrap_or_else(|err| {
+            Line::new("", format!("{} for decimal fraction", err))
+        })
+}
+
+fn bigfloat(value: &Value) -> Line {
+    // TODO: https://github.com/rust-num/num-rational/issues/10
+    extract_fraction(value, 2)
+        .map(|fraction| Line::new("", format!("bigfloat({})", fraction)))
+        .unwrap_or_else(|err| Line::new("", format!("{} for bigfloat", err)))
 }
 
 fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {

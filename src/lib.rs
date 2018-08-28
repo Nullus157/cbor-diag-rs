@@ -3,7 +3,7 @@ extern crate nom;
 extern crate chrono;
 extern crate half;
 extern crate hex;
-extern crate num_bigint;
+extern crate num;
 
 mod encode;
 mod error;
