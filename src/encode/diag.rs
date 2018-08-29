@@ -2,13 +2,8 @@ use base64::{self, display::Base64Display};
 use half::f16;
 use hex;
 
+use super::Encoding;
 use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
-
-pub(crate) enum Encoding {
-    Base16,
-    Base64,
-    Base64Url,
-}
 
 pub(crate) struct Context<'a> {
     encoding: Encoding,

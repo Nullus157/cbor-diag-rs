@@ -1,6 +1,7 @@
 use std::{ascii, cmp, i64, iter};
 
-use super::diag;
+use super::{diag, Encoding};
+use base64::{self, display::Base64Display};
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
@@ -25,7 +26,7 @@ impl Line {
         }
     }
 
-    fn from_value(value: &Value) -> Line {
+    fn from_value(encoding: Option<Encoding>, value: &Value) -> Line {
         match *value {
             Value::Integer { value, bitwidth } => {
                 integer_to_hex(value, bitwidth)
@@ -34,14 +35,16 @@ impl Line {
                 negative_to_hex(value, bitwidth)
             }
             Value::ByteString(ref bytestring) => {
-                definite_bytestring_to_hex(bytestring)
+                definite_bytestring_to_hex(encoding, bytestring)
             }
             Value::IndefiniteByteString(ref bytestrings) => {
                 indefinite_string_to_hex(
                     0x02,
                     "bytes",
                     bytestrings,
-                    definite_bytestring_to_hex,
+                    |bytestring| {
+                        definite_bytestring_to_hex(encoding, bytestring)
+                    },
                 )
             }
             Value::TextString(ref textstring) => {
@@ -55,13 +58,17 @@ impl Line {
                     definite_textstring_to_hex,
                 )
             }
-            Value::Array { ref data, bitwidth } => array_to_hex(data, bitwidth),
-            Value::Map { ref data, bitwidth } => map_to_hex(data, bitwidth),
+            Value::Array { ref data, bitwidth } => {
+                array_to_hex(encoding, data, bitwidth)
+            }
+            Value::Map { ref data, bitwidth } => {
+                map_to_hex(encoding, data, bitwidth)
+            }
             Value::Tag {
                 tag,
                 bitwidth,
                 ref value,
-            } => tagged_to_hex(tag, bitwidth, &*value),
+            } => tagged_to_hex(encoding, tag, bitwidth, &*value),
             Value::Float { value, bitwidth } => float_to_hex(value, bitwidth),
             Value::Simple(simple) => simple_to_hex(simple),
         }
@@ -232,7 +239,10 @@ fn length_to_hex(
     Line::new(hex, comment)
 }
 
-fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
+fn definite_bytestring_to_hex(
+    encoding: Option<Encoding>,
+    bytestring: &ByteString,
+) -> Line {
     let ByteString { ref data, bitwidth } = *bytestring;
 
     let mut line = length_to_hex(Some(data.len()), Some(bitwidth), 2, "bytes");
@@ -241,14 +251,33 @@ fn definite_bytestring_to_hex(bytestring: &ByteString) -> Line {
         line.sublines.push(Line::new("", "\"\""));
     } else {
         for datum in data.chunks(16) {
-            let text: String = datum
-                .iter()
-                .cloned()
-                .flat_map(ascii::escape_default)
-                .map(char::from)
-                .collect();
             let hex = hex::encode(datum);
-            let comment = format!("\"{}\"", text);
+            let comment = match encoding {
+                Some(Encoding::Base64Url) => format!(
+                    "b64'{}'",
+                    Base64Display::with_config(
+                        &bytestring.data,
+                        base64::URL_SAFE_NO_PAD
+                    ).unwrap()
+                ),
+                Some(Encoding::Base64) => format!(
+                    "b64'{}'",
+                    Base64Display::with_config(
+                        &bytestring.data,
+                        base64::STANDARD_NO_PAD
+                    ).unwrap()
+                ),
+                Some(Encoding::Base16) => format!("h'{}'", hex),
+                None => {
+                    let text: String = datum
+                        .iter()
+                        .cloned()
+                        .flat_map(ascii::escape_default)
+                        .map(char::from)
+                        .collect();
+                    format!("\"{}\"", text)
+                }
+            };
             line.sublines.push(Line::new(hex, comment));
         }
     }
@@ -304,7 +333,7 @@ fn indefinite_string_to_hex<T>(
     major: u8,
     name: &str,
     strings: &[T],
-    definite_string_to_hex: fn(&T) -> Line,
+    definite_string_to_hex: impl Fn(&T) -> Line,
 ) -> Line {
     let mut line = length_to_hex(None, None, major, name);
 
@@ -315,10 +344,15 @@ fn indefinite_string_to_hex<T>(
     line
 }
 
-fn array_to_hex(array: &[Value], bitwidth: Option<IntegerWidth>) -> Line {
+fn array_to_hex(
+    encoding: Option<Encoding>,
+    array: &[Value],
+    bitwidth: Option<IntegerWidth>,
+) -> Line {
     let mut line = length_to_hex(Some(array.len()), bitwidth, 4, "array");
 
-    line.sublines.extend(array.iter().map(Line::from_value));
+    line.sublines
+        .extend(array.iter().map(|value| Line::from_value(encoding, value)));
 
     if bitwidth.is_none() {
         line.sublines.push(Line::new("ff", "break"));
@@ -328,6 +362,7 @@ fn array_to_hex(array: &[Value], bitwidth: Option<IntegerWidth>) -> Line {
 }
 
 fn map_to_hex(
+    encoding: Option<Encoding>,
     values: &[(Value, Value)],
     bitwidth: Option<IntegerWidth>,
 ) -> Line {
@@ -337,7 +372,7 @@ fn map_to_hex(
         values
             .iter()
             .flat_map(|(v1, v2)| iter::once(v1).chain(iter::once(v2)))
-            .map(Line::from_value),
+            .map(|value| Line::from_value(encoding, value)),
     );
 
     if bitwidth.is_none() {
@@ -347,7 +382,12 @@ fn map_to_hex(
     line
 }
 
-fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
+fn tagged_to_hex(
+    encoding: Option<Encoding>,
+    tag: Tag,
+    mut bitwidth: IntegerWidth,
+    value: &Value,
+) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if tag.0 < 24 {
             IntegerWidth::Zero
@@ -371,42 +411,53 @@ fn tagged_to_hex(tag: Tag, mut bitwidth: IntegerWidth, value: &Value) -> Line {
         IntegerWidth::SixtyFour => format!("db {:016x}", tag.0),
     };
 
-    let (extra, extra_line) = match tag {
-        Tag::DATETIME => {
-            ("standard datetime string, ", Some(datetime_epoch(value)))
-        }
-        Tag::EPOCH_DATETIME => {
-            ("epoch datetime value, ", Some(epoch_datetime(value)))
-        }
-        Tag::POSITIVE_BIGNUM => {
-            ("positive bignum, ", Some(positive_bignum(value)))
-        }
-        Tag::NEGATIVE_BIGNUM => {
-            ("negative bignum, ", Some(negative_bignum(value)))
-        }
-        Tag::DECIMAL_FRACTION => {
-            ("decimal fraction, ", Some(decimal_fraction(value)))
-        }
-        Tag::BIGFLOAT => ("bigfloat, ", Some(bigfloat(value))),
-        Tag::ENCODED_BASE64URL => ("suggested base64url encoding, ", None),
-        Tag::ENCODED_BASE64 => ("suggested base64 encoding, ", None),
-        Tag::ENCODED_BASE16 => ("suggested base16 encoding, ", None),
-        Tag::ENCODED_CBOR => ("encoded cbor data item, ", None),
-        Tag::URI => ("uri, ", None),
-        Tag::BASE64URL => ("base64url encoded text, ", None),
-        Tag::BASE64 => ("base64 encoded text, ", None),
-        Tag::REGEX => ("regex, ", None),
-        Tag::MIME => ("mime message, ", None),
-        Tag::SELF_DESCRIBE_CBOR => ("positive bignum, ", None),
-        _ => unimplemented!(),
+    let extra = match tag {
+        Tag::DATETIME => Some("standard datetime string"),
+        Tag::EPOCH_DATETIME => Some("epoch datetime value"),
+        Tag::POSITIVE_BIGNUM => Some("positive bignum"),
+        Tag::NEGATIVE_BIGNUM => Some("negative bignum"),
+        Tag::DECIMAL_FRACTION => Some("decimal fraction"),
+        Tag::BIGFLOAT => Some("bigfloat"),
+        Tag::ENCODED_BASE64URL => Some("suggested base64url encoding"),
+        Tag::ENCODED_BASE64 => Some("suggested base64 encoding"),
+        Tag::ENCODED_BASE16 => Some("suggested base16 encoding"),
+        Tag::ENCODED_CBOR => Some("encoded cbor data item"),
+        Tag::URI => Some("uri"),
+        Tag::BASE64URL => Some("base64url encoded text"),
+        Tag::BASE64 => Some("base64 encoded text"),
+        Tag::REGEX => Some("regex"),
+        Tag::MIME => Some("mime message"),
+        Tag::SELF_DESCRIBE_CBOR => Some("positive bignum"),
+        _ => None,
     };
 
-    let comment = format!("{}tag({})", extra, tag.0);
+    let extra_line = match tag {
+        Tag::DATETIME => Some(datetime_epoch(value)),
+        Tag::EPOCH_DATETIME => Some(epoch_datetime(value)),
+        Tag::POSITIVE_BIGNUM => Some(positive_bignum(value)),
+        Tag::NEGATIVE_BIGNUM => Some(negative_bignum(value)),
+        Tag::DECIMAL_FRACTION => Some(decimal_fraction(value)),
+        Tag::BIGFLOAT => Some(bigfloat(value)),
+        _ => None,
+    };
+
+    let encoding = match tag {
+        Tag::ENCODED_BASE64URL => Some(Encoding::Base64Url),
+        Tag::ENCODED_BASE64 => Some(Encoding::Base64),
+        Tag::ENCODED_BASE16 => Some(Encoding::Base16),
+        _ => encoding,
+    };
+
+    let comment = if let Some(extra) = extra {
+        format!("{}, tag({})", extra, tag.0)
+    } else {
+        format!("tag({})", tag.0)
+    };
 
     Line {
         hex,
         comment,
-        sublines: iter::once(Line::from_value(value))
+        sublines: iter::once(Line::from_value(encoding, value))
             .chain(extra_line)
             .collect(),
     }
@@ -616,6 +667,6 @@ fn simple_to_hex(simple: Simple) -> Line {
 
 impl Value {
     pub fn to_hex(&self) -> String {
-        Line::from_value(self).merge()
+        Line::from_value(None, self).merge()
     }
 }

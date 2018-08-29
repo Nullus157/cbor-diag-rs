@@ -587,5 +587,175 @@ testcases! {
                                                              #   bigfloat(618970019642690137449562111/309485009821345068724781056)
             "#),
         }
+
+        base64url_encoding(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d5                                 # suggested base64url encoding, tag(21)
+                   4e                              #   bytes(14)
+                      123456789abcdeffedcba9876543 #     b64'EjRWeJq83v_ty6mHZUM'
+            "#),
+        }
+
+        base64url_encoding_nested(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: None,
+                })
+            },
+            indoc!(r#"
+                d5                                    # suggested base64url encoding, tag(21)
+                   9f                                 #   array(*)
+                      4e                              #     bytes(14)
+                         123456789abcdeffedcba9876543 #       b64'EjRWeJq83v_ty6mHZUM'
+                      ff                              #     break
+            "#),
+        }
+
+        base64_encoding(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d6                                 # suggested base64 encoding, tag(22)
+                   4e                              #   bytes(14)
+                      123456789abcdeffedcba9876543 #     b64'EjRWeJq83v/ty6mHZUM'
+            "#),
+        }
+
+        base64_encoding_nested(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: None,
+                })
+            },
+            indoc!(r#"
+                d6                                    # suggested base64 encoding, tag(22)
+                   9f                                 #   array(*)
+                      4e                              #     bytes(14)
+                         123456789abcdeffedcba9876543 #       b64'EjRWeJq83v/ty6mHZUM'
+                      ff                              #     break
+            "#),
+        }
+
+        base16_encoding(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE16,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d7                                 # suggested base16 encoding, tag(23)
+                   4e                              #   bytes(14)
+                      123456789abcdeffedcba9876543 #     h'123456789abcdeffedcba9876543'
+            "#),
+        }
+
+        base16_encoding_nested(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE16,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: None,
+                })
+            },
+            indoc!(r#"
+                d7                                    # suggested base16 encoding, tag(23)
+                   9f                                 #   array(*)
+                      4e                              #     bytes(14)
+                         123456789abcdeffedcba9876543 #       h'123456789abcdeffedcba9876543'
+                      ff                              #     break
+            "#),
+        }
+
+        multiple_encodings(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        Value::Tag {
+                            tag: Tag::ENCODED_BASE64,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::Array {
+                                data: vec![
+                                    Value::ByteString(ByteString {
+                                        data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                                        bitwidth: IntegerWidth::Zero,
+                                    })
+                                ],
+                                bitwidth: None,
+                            })
+                        },
+                        Value::Tag {
+                            tag: Tag::ENCODED_BASE16,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::ByteString(ByteString {
+                                data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                                bitwidth: IntegerWidth::Zero,
+                            })),
+                        },
+                    ],
+                    bitwidth: None,
+                })
+            },
+            indoc!(r#"
+                d5                                          # suggested base64url encoding, tag(21)
+                   9f                                       #   array(*)
+                      4e                                    #     bytes(14)
+                         123456789abcdeffedcba9876543       #       b64'EjRWeJq83v_ty6mHZUM'
+                      d6                                    #     suggested base64 encoding, tag(22)
+                         9f                                 #       array(*)
+                            4e                              #         bytes(14)
+                               123456789abcdeffedcba9876543 #           b64'EjRWeJq83v/ty6mHZUM'
+                            ff                              #         break
+                      d7                                    #     suggested base16 encoding, tag(23)
+                         4e                                 #       bytes(14)
+                            123456789abcdeffedcba9876543    #         h'123456789abcdeffedcba9876543'
+                      ff                                    #     break
+            "#),
+
+        }
     }
 }
