@@ -9,7 +9,10 @@ use num::{
     bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
 };
 
-use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
+use {
+    parse_bytes, ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString,
+    Value,
+};
 
 struct Line {
     hex: String,
@@ -438,6 +441,7 @@ fn tagged_to_hex(
         Tag::NEGATIVE_BIGNUM => Some(negative_bignum(value)),
         Tag::DECIMAL_FRACTION => Some(decimal_fraction(value)),
         Tag::BIGFLOAT => Some(bigfloat(value)),
+        Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
         _ => None,
     };
 
@@ -619,6 +623,28 @@ fn bigfloat(value: &Value) -> Line {
     extract_fraction(value, 2)
         .map(|fraction| Line::new("", format!("bigfloat({})", fraction)))
         .unwrap_or_else(|err| Line::new("", format!("{} for bigfloat", err)))
+}
+
+fn encoded_cbor(value: &Value) -> Line {
+    if let Value::ByteString(ByteString { data, .. }) = value {
+        match parse_bytes(data) {
+            Ok(value) => {
+                let mut line = Line::new("", "encoded cbor data item");
+                line.sublines.extend(
+                    value.to_hex().lines().map(|line| Line::new("", line)),
+                );
+                line
+            }
+            Err(err) => {
+                let mut line =
+                    Line::new("", "failed to parse encoded cbor data item");
+                line.sublines.push(Line::new("", format!("{:?}", err)));
+                line
+            }
+        }
+    } else {
+        Line::new("", "invalid type for encoded cbor")
+    }
 }
 
 fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {

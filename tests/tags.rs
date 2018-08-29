@@ -327,6 +327,42 @@ testcases! {
             },
             "21([_ b64'EjRWeJq83v_ty6mHZUM', 22([_ b64'EjRWeJq83v/ty6mHZUM']), 23(h'123456789abcdeffedcba9876543')])",
         }
+
+        encoded_cbor(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("9f64f09f87b317ff").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            "24(h'9f64f09f87b317ff')",
+        }
+
+        encoded_cbor_invalid(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("ff").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            "24(h'ff')",
+        }
+
+        encoded_cbor_nested(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("d818489f64f09f87b317ff").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            "24(h'd818489f64f09f87b317ff')",
+        }
     }
 
     mod hex_tests {
@@ -755,7 +791,72 @@ testcases! {
                             123456789abcdeffedcba9876543    #         h'123456789abcdeffedcba9876543'
                       ff                                    #     break
             "#),
+        }
 
+        encoded_cbor(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("9f64f09f87b317ff").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!("
+                d8 18                  # encoded cbor data item, tag(24)
+                   48                  #   bytes(8)
+                      9f64f09f87b317ff #     \"\\x9fd\\xf0\\x9f\\x87\\xb3\\x17\\xff\"
+                                       #   encoded cbor data item
+                                       #     9f             # array(*)
+                                       #        64          #   text(4)
+                                       #           f09f87b3 #     \"\u{1f1f3}\"
+                                       #        17          #   unsigned(23)
+                                       #        ff          #   break
+            "),
+        }
+
+        encoded_cbor_invalid(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("ff").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!("
+                d8 18    # encoded cbor data item, tag(24)
+                   41    #   bytes(1)
+                      ff #     \"\\xff\"
+                         #   failed to parse encoded cbor data item
+                         #     Todos(\"Parsing error\")
+            "),
+        }
+
+        encoded_cbor_nested(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("d818489f64f09f87b317ff").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!("
+                d8 18                        # encoded cbor data item, tag(24)
+                   4b                        #   bytes(11)
+                      d818489f64f09f87b317ff #     \"\\xd8\\x18H\\x9fd\\xf0\\x9f\\x87\\xb3\\x17\\xff\"
+                                             #   encoded cbor data item
+                                             #     d8 18                  # encoded cbor data item, tag(24)
+                                             #        48                  #   bytes(8)
+                                             #           9f64f09f87b317ff #     \"\\x9fd\\xf0\\x9f\\x87\\xb3\\x17\\xff\"
+                                             #                            #   encoded cbor data item
+                                             #                            #     9f             # array(*)
+                                             #                            #        64          #   text(4)
+                                             #                            #           f09f87b3 #     \"\u{1f1f3}\"
+                                             #                            #        17          #   unsigned(23)
+                                             #                            #        ff          #   break
+            "),
         }
     }
 }
