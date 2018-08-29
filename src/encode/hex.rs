@@ -243,6 +243,42 @@ fn length_to_hex(
     Line::new(hex, comment)
 }
 
+fn bytes_to_hex<'a>(
+    encoding: Option<Encoding>,
+    data: &'a [u8],
+) -> impl Iterator<Item = Line> + 'a {
+    data.chunks(16).map(move |datum| {
+        let hex = hex::encode(datum);
+        let comment = match encoding {
+            Some(Encoding::Base64Url) => format!(
+                "b64'{}'",
+                Base64Display::with_config(
+                    &data,
+                    base64::URL_SAFE_NO_PAD
+                ).unwrap()
+            ),
+            Some(Encoding::Base64) => format!(
+                "b64'{}'",
+                Base64Display::with_config(
+                    &data,
+                    base64::STANDARD_NO_PAD
+                ).unwrap()
+            ),
+            Some(Encoding::Base16) => format!("h'{}'", hex),
+            None => {
+                let text: String = datum
+                    .iter()
+                    .cloned()
+                    .flat_map(ascii::escape_default)
+                    .map(char::from)
+                    .collect();
+                format!("\"{}\"", text)
+            }
+        };
+        Line::new(hex, comment)
+    })
+}
+
 fn definite_bytestring_to_hex(
     encoding: Option<Encoding>,
     bytestring: &ByteString,
@@ -254,36 +290,7 @@ fn definite_bytestring_to_hex(
     if data.is_empty() {
         line.sublines.push(Line::new("", "\"\""));
     } else {
-        for datum in data.chunks(16) {
-            let hex = hex::encode(datum);
-            let comment = match encoding {
-                Some(Encoding::Base64Url) => format!(
-                    "b64'{}'",
-                    Base64Display::with_config(
-                        &bytestring.data,
-                        base64::URL_SAFE_NO_PAD
-                    ).unwrap()
-                ),
-                Some(Encoding::Base64) => format!(
-                    "b64'{}'",
-                    Base64Display::with_config(
-                        &bytestring.data,
-                        base64::STANDARD_NO_PAD
-                    ).unwrap()
-                ),
-                Some(Encoding::Base16) => format!("h'{}'", hex),
-                None => {
-                    let text: String = datum
-                        .iter()
-                        .cloned()
-                        .flat_map(ascii::escape_default)
-                        .map(char::from)
-                        .collect();
-                    format!("\"{}\"", text)
-                }
-            };
-            line.sublines.push(Line::new(hex, comment));
-        }
+        line.sublines.extend(bytes_to_hex(encoding, data))
     }
 
     line
@@ -443,6 +450,8 @@ fn tagged_to_hex(
         Tag::DECIMAL_FRACTION => Some(decimal_fraction(value)),
         Tag::BIGFLOAT => Some(bigfloat(value)),
         Tag::URI => Some(uri(value)),
+        Tag::BASE64URL => Some(base64url(value)),
+        Tag::BASE64 => Some(base64(value)),
         Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
         _ => None,
     };
@@ -640,6 +649,43 @@ fn uri(value: &Value) -> Line {
     } else {
         Line::new("", "invalid type for uri")
     }
+}
+
+fn base64_base(value: &Value, config: base64::Config) -> Result<impl Iterator<Item = Line>, String> {
+    if let Value::TextString(TextString { data, .. }) = value {
+        base64::decode_config(data, config)
+            .map(|data| {
+                let mut line = Line::new("", "");
+                line.sublines.extend(bytes_to_hex(None, &data));
+                let merged = line.merge();
+                merged.lines().skip(1).map(|line| Line::new("", line.split_at(3).1.replace("#  ", "#"))).collect::<Vec<_>>().into_iter()
+            })
+            .map_err(|err| {
+                format!("{}", err)
+            })
+    } else {
+        Err("invalid type".into())
+    }
+}
+
+fn base64url(value: &Value) -> Line {
+    base64_base(value, base64::URL_SAFE_NO_PAD)
+        .map(|lines| {
+                let mut line = Line::new("", "base64url decoded");
+                line.sublines.extend(lines);
+                line
+        })
+        .unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
+}
+
+fn base64(value: &Value) -> Line {
+    base64_base(value, base64::STANDARD_NO_PAD)
+        .map(|lines| {
+                let mut line = Line::new("", "base64 decoded");
+                line.sublines.extend(lines);
+                line
+        })
+        .unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
 }
 
 fn encoded_cbor(value: &Value) -> Line {

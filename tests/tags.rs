@@ -418,6 +418,30 @@ testcases! {
             r#"32("foo")"#,
         }
 
+        base64url(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::BASE64URL,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::TextString(TextString {
+                    data: "aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            r#"33("aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2")"#,
+        }
+
+        base64(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::BASE64,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::TextString(TextString {
+                    data: "aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            r#"34("aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2")"#,
+        }
+
         self_describe_cbor(diag2value, value2diag) {
             Value::Tag {
                 tag: Tag::SELF_DESCRIBE_CBOR,
@@ -950,6 +974,46 @@ testcases! {
                    63        #   text(3)
                       666f6f #     "foo"
                              #   invalid uri
+            "#),
+        }
+
+        base64url(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::BASE64URL,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::TextString(TextString {
+                    data: "aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2".into(),
+                    bitwidth: IntegerWidth::Eight,
+                })),
+            },
+            indoc!(r#"
+                d8 21                                  # base64url encoded text, tag(33)
+                   78 20                               #   text(32)
+                      6148523063484d364c79396c65474674 #     "aHR0cHM6Ly9leGFt"
+                      6347786c4c6d4e7662535f776e354332 #     "cGxlLmNvbS_wn5C2"
+                                                       #   base64url decoded
+                                                       #     68747470733a2f2f6578616d706c652e # "https://example."
+                                                       #     636f6d2ff09f90b6                 # "com/\xf0\x9f\x90\xb6"
+            "#),
+        }
+
+        base64(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::BASE64,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::TextString(TextString {
+                    data: "aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2".into(),
+                    bitwidth: IntegerWidth::Eight,
+                })),
+            },
+            indoc!(r#"
+                d8 22                                  # base64 encoded text, tag(34)
+                   78 20                               #   text(32)
+                      6148523063484d364c79396c65474674 #     "aHR0cHM6Ly9leGFt"
+                      6347786c4c6d4e7662532f776e354332 #     "cGxlLmNvbS/wn5C2"
+                                                       #   base64 decoded
+                                                       #     68747470733a2f2f6578616d706c652e # "https://example."
+                                                       #     636f6d2ff09f90b6                 # "com/\xf0\x9f\x90\xb6"
             "#),
         }
 
