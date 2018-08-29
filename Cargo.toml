@@ -9,6 +9,7 @@ nom = "4.0.0"
 half = "1.1.2"
 chrono = "0.4.5"
 num = "0.2.0"
+base64 = "0.9.2"
 
 [dev-dependencies]
 indoc = "0.2.6"

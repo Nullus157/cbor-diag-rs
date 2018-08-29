@@ -167,7 +167,7 @@ testcases! {
                                     "000001ffffffffffffffffffffff0000000000000000000000"
                                 ).unwrap(),
                                 bitwidth: IntegerWidth::Unknown,
-                            }))
+                            })),
                         },
                     ],
                     bitwidth: Some(IntegerWidth::Unknown),
@@ -194,13 +194,138 @@ testcases! {
                                     "000001ffffffffffffffffffffff0000000000000000000000"
                                 ).unwrap(),
                                 bitwidth: IntegerWidth::Unknown,
-                            }))
+                            })),
                         },
                     ],
                     bitwidth: Some(IntegerWidth::Unknown),
                 })
             },
             "5([-1, 2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+        }
+
+        base64url_encoding(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            "21(b64'EjRWeJq83v_ty6mHZUM')",
+        }
+
+        base64url_encoding_nested(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ],
+                    bitwidth: None,
+                })
+            },
+            "21([_ b64'EjRWeJq83v_ty6mHZUM'])",
+        }
+
+        base64_encoding(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            "22(b64'EjRWeJq83v/ty6mHZUM')",
+        }
+
+        base64_encoding_nested(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ],
+                    bitwidth: None,
+                })
+            },
+            "22([_ b64'EjRWeJq83v/ty6mHZUM'])",
+        }
+
+        base16_encoding(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE16,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::ByteString(ByteString {
+                    data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            "23(h'123456789abcdeffedcba9876543')",
+        }
+
+        base16_encoding_nested(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE16,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ],
+                    bitwidth: None,
+                })
+            },
+            "23([_ h'123456789abcdeffedcba9876543'])",
+        }
+
+        multiple_encodings(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(Value::Array {
+                    data: vec![
+                        Value::ByteString(ByteString {
+                            data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                        Value::Tag {
+                            tag: Tag::ENCODED_BASE64,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::Array {
+                                data: vec![
+                                    Value::ByteString(ByteString {
+                                        data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                                        bitwidth: IntegerWidth::Unknown,
+                                    })
+                                ],
+                                bitwidth: None,
+                            })
+                        },
+                        Value::Tag {
+                            tag: Tag::ENCODED_BASE16,
+                            bitwidth: IntegerWidth::Zero,
+                            value: Box::new(Value::ByteString(ByteString {
+                                data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
+                                bitwidth: IntegerWidth::Unknown,
+                            })),
+                        },
+                    ],
+                    bitwidth: None,
+                })
+            },
+            "21([_ b64'EjRWeJq83v_ty6mHZUM', 22([_ b64'EjRWeJq83v/ty6mHZUM']), 23(h'123456789abcdeffedcba9876543')])",
         }
     }
 

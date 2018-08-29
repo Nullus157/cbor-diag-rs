@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate nom;
+extern crate base64;
 extern crate chrono;
 extern crate half;
 extern crate hex;

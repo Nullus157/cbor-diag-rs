@@ -1,8 +1,9 @@
 use std::f64;
 use std::str::FromStr;
 
+use base64;
 use hex;
-use nom::{self, digit, hex_digit0};
+use nom::{self, digit, hex_digit0, AsChar};
 
 use nom::Needed;
 
@@ -15,6 +16,28 @@ type NStr<'a> = nom::types::CompleteStr<'a>;
 
 fn parse<T: FromStr>(s: NStr) -> ::std::result::Result<T, T::Err> {
     T::from_str(s.0)
+}
+
+/// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, -, _
+fn base64url_digit0<T>(input: T) -> nom::IResult<T, T>
+where
+    T: nom::InputTakeAtPosition,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
+{
+    input.split_at_position(|item| {
+        !(item.is_alphanum() || item.as_char() == '-' || item.as_char() == '_')
+    })
+}
+
+/// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, +, /
+fn base64_digit0<T>(input: T) -> nom::IResult<T, T>
+where
+    T: nom::InputTakeAtPosition,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
+{
+    input.split_at_position(|item| {
+        !(item.is_alphanum() || item.as_char() == '+' || item.as_char() == '/')
+    })
 }
 
 named! {
@@ -68,9 +91,17 @@ named! {
 named! {
     definite_bytestring<NStr, ByteString>,
     map!(
-        map_res!(
-            preceded!(tag!("h"), delimited!(tag!("'"), hex_digit0, tag!("'"))),
-            |s: NStr| hex::decode(s.as_ref())),
+        alt_complete!(
+            map_res!(
+                preceded!(tag!("h"), delimited!(tag!("'"), hex_digit0, tag!("'"))),
+                |s: NStr| hex::decode(s.as_ref()))
+          | map_res!(
+                preceded!(tag!("b64"), delimited!(tag!("'"), base64url_digit0, tag!("'"))),
+                |s: NStr| base64::decode_config(s.as_ref(), base64::URL_SAFE_NO_PAD))
+          | map_res!(
+                preceded!(tag!("b64"), delimited!(tag!("'"), base64_digit0, tag!("'"))),
+                |s: NStr| base64::decode_config(s.as_ref(), base64::STANDARD_NO_PAD))
+        ),
         |data| ByteString { data, bitwidth: IntegerWidth::Unknown })
 }
 

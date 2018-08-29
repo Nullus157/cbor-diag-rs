@@ -113,8 +113,7 @@ impl Line {
                     } else {
                         subwidth + 3
                     }
-                })
-                .max()
+                }).max()
                 .unwrap_or(0),
         )
     }
@@ -559,8 +558,7 @@ fn decimal_fraction(value: &Value) -> Line {
     extract_fraction(value, 10)
         .map(|fraction| {
             Line::new("", format!("decimal fraction({})", fraction))
-        })
-        .unwrap_or_else(|err| {
+        }).unwrap_or_else(|err| {
             Line::new("", format!("{} for decimal fraction", err))
         })
 }
@@ -587,7 +585,7 @@ fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
     };
 
     let mut comment = "float(".to_owned();
-    diag::float_to_diag(value, FloatWidth::Unknown, &mut comment);
+    diag::Context::new(&mut comment).float_to_diag(value, FloatWidth::Unknown);
     comment.push(')');
 
     Line::new(hex, comment)
