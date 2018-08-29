@@ -382,6 +382,42 @@ testcases! {
             "24(h'd818489f64f09f87b317ff')",
         }
 
+        uri(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::URI,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::TextString(TextString {
+                    data: "https://example.com".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            r#"32("https://example.com")"#,
+        }
+
+        uri_non_http(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::URI,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::TextString(TextString {
+                    data: "urn:oasis:names:specification:docbook:dtd:xml:4.1.2".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            r#"32("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")"#,
+        }
+
+        uri_invalid(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::URI,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::TextString(TextString {
+                    data: "foo".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            r#"32("foo")"#,
+        }
+
         self_describe_cbor(diag2value, value2diag) {
             Value::Tag {
                 tag: Tag::SELF_DESCRIBE_CBOR,
@@ -854,13 +890,67 @@ testcases! {
                     bitwidth: IntegerWidth::Zero,
                 })),
             },
-            indoc!("
+            indoc!(r#"
                 d8 18    # encoded cbor data item, tag(24)
                    41    #   bytes(1)
-                      ff #     \"\\xff\"
+                      ff #     "\xff"
                          #   failed to parse encoded cbor data item
-                         #     Todos(\"Parsing error\")
-            "),
+                         #     Todos("Parsing error")
+            "#),
+        }
+
+        uri(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::URI,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::TextString(TextString {
+                    data: "https://example.com".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 20                                        # uri, tag(32)
+                   73                                        #   text(19)
+                      68747470733a2f2f6578616d706c652e636f6d #     "https://example.com"
+                                                             #   valid uri
+            "#),
+        }
+
+        uri_non_http(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::URI,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::TextString(TextString {
+                    data: "urn:oasis:names:specification:docbook:dtd:xml:4.1.2".into(),
+                    bitwidth: IntegerWidth::Eight,
+                })),
+            },
+            indoc!(r#"
+                d8 20                                  # uri, tag(32)
+                   78 33                               #   text(51)
+                      75726e3a6f617369733a6e616d65733a #     "urn:oasis:names:"
+                      73706563696669636174696f6e3a646f #     "specification:do"
+                      63626f6f6b3a6474643a786d6c3a342e #     "cbook:dtd:xml:4."
+                      312e32                           #     "1.2"
+                                                       #   valid uri
+            "#),
+        }
+
+        uri_invalid(hex2value, value2hex) {
+            Value::Tag {
+                tag: Tag::URI,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(Value::TextString(TextString {
+                    data: "foo".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 20        # uri, tag(32)
+                   63        #   text(3)
+                      666f6f #     "foo"
+                             #   invalid uri
+            "#),
         }
 
         encoded_cbor_nested(hex2value, value2hex) {

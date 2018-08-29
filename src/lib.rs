@@ -5,6 +5,7 @@ extern crate chrono;
 extern crate half;
 extern crate hex;
 extern crate num;
+extern crate uri;
 
 mod encode;
 mod error;

@@ -8,6 +8,7 @@ use hex;
 use num::{
     bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
 };
+use uri::is_uri;
 
 use {
     parse_bytes, ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString,
@@ -441,6 +442,7 @@ fn tagged_to_hex(
         Tag::NEGATIVE_BIGNUM => Some(negative_bignum(value)),
         Tag::DECIMAL_FRACTION => Some(decimal_fraction(value)),
         Tag::BIGFLOAT => Some(bigfloat(value)),
+        Tag::URI => Some(uri(value)),
         Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
         _ => None,
     };
@@ -623,6 +625,21 @@ fn bigfloat(value: &Value) -> Line {
     extract_fraction(value, 2)
         .map(|fraction| Line::new("", format!("bigfloat({})", fraction)))
         .unwrap_or_else(|err| Line::new("", format!("{} for bigfloat", err)))
+}
+
+fn uri(value: &Value) -> Line {
+    if let Value::TextString(TextString { data, .. }) = value {
+        Line::new(
+            "",
+            if is_uri(data) {
+                "valid uri"
+            } else {
+                "invalid uri"
+            },
+        )
+    } else {
+        Line::new("", "invalid type for uri")
+    }
 }
 
 fn encoded_cbor(value: &Value) -> Line {
