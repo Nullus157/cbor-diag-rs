@@ -12,6 +12,24 @@ use cbor_diag::{ByteString, FloatWidth, IntegerWidth, Tag, TextString, Value};
 mod utils;
 
 testcases! {
+    mod both {
+        self_describe_cbor {
+            Value::Tag {
+                tag: Tag::SELF_DESCRIBE_CBOR,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(Value::Integer {
+                    value: 0,
+                    bitwidth: IntegerWidth::Zero,
+                }),
+            },
+            "55799_1(0)",
+            indoc!("
+                d9 d9f7 # self describe cbor, tag(55799)
+                   00   #   unsigned(0)
+            "),
+        }
+    }
+
     mod diag {
         date_time(diag2value, value2diag) {
             Value::Array {
@@ -362,6 +380,18 @@ testcases! {
                 })),
             },
             "24(h'd818489f64f09f87b317ff')",
+        }
+
+        self_describe_cbor(diag2value, value2diag) {
+            Value::Tag {
+                tag: Tag::SELF_DESCRIBE_CBOR,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(Value::Integer {
+                    value: 0,
+                    bitwidth: IntegerWidth::Zero,
+                }),
+            },
+            "55799(0)",
         }
     }
 

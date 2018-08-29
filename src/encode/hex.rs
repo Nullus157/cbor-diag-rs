@@ -430,7 +430,7 @@ fn tagged_to_hex(
         Tag::BASE64 => Some("base64 encoded text"),
         Tag::REGEX => Some("regex"),
         Tag::MIME => Some("mime message"),
-        Tag::SELF_DESCRIBE_CBOR => Some("positive bignum"),
+        Tag::SELF_DESCRIBE_CBOR => Some("self describe cbor"),
         _ => None,
     };
 
