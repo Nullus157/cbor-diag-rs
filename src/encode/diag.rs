@@ -200,7 +200,7 @@ impl<'a> Context<'a> {
         self.output.push(')');
     }
 
-    pub fn float_to_diag(&mut self, value: f64, bitwidth: FloatWidth) {
+    fn float_to_diag(&mut self, value: f64, bitwidth: FloatWidth) {
         if value.is_nan() {
             self.output.push_str("NaN");
         } else if value.is_infinite() {

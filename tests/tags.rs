@@ -536,13 +536,13 @@ testcases! {
             indoc!(r#"
                 83                        # array(3)
                    c1                     #   epoch datetime value, tag(1)
-                      1a 5b634b3a         #     unsigned(1533233978)
+                      1a 5b634b3a         #     unsigned(1,533,233,978)
                                           #     datetime(2018-08-02T18:19:38Z)
                    c1                     #   epoch datetime value, tag(1)
-                      3a 5b634b3a         #     negative(1533233978)
+                      3a 5b634b3a         #     negative(-1,533,233,979)
                                           #     datetime(1921-06-01T05:40:21Z)
                    c1                     #   epoch datetime value, tag(1)
-                      fb 41d6d8d2ce880000 #     float(1533233978.125)
+                      fb 41d6d8d2ce880000 #     float(1,533,233,978.125)
                                           #     datetime(2018-08-02T18:19:38.125Z)
             "#),
         }
@@ -607,8 +607,8 @@ testcases! {
             indoc!(r#"
                 c4            # decimal fraction, tag(4)
                    82         #   array(2)
-                      21      #     negative(1)
-                      19 6ab3 #     unsigned(27315)
+                      21      #     negative(-2)
+                      19 6ab3 #     unsigned(27,315)
                               #   decimal fraction(5463/20)
             "#),
         }
@@ -634,7 +634,7 @@ testcases! {
             indoc!(r#"
                 c5       # bigfloat, tag(5)
                    82    #   array(2)
-                      20 #     negative(0)
+                      20 #     negative(-1)
                       03 #     unsigned(3)
                          #   bigfloat(3/2)
             "#),
@@ -667,7 +667,7 @@ testcases! {
             indoc!(r#"
                 c4                                           # decimal fraction, tag(4)
                    82                                        #   array(2)
-                      38 34                                  #     negative(52)
+                      38 34                                  #     negative(-53)
                       c2                                     #     positive bignum, tag(2)
                          58 19                               #       bytes(25)
                             000001ffffffffffffffffffffff0000 #         "\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00"
@@ -704,7 +704,7 @@ testcases! {
             indoc!(r#"
                 c5                                           # bigfloat, tag(5)
                    82                                        #   array(2)
-                      38 af                                  #     negative(175)
+                      38 af                                  #     negative(-176)
                       c2                                     #     positive bignum, tag(2)
                          58 19                               #       bytes(25)
                             000001ffffffffffffffffffffff0000 #         "\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x00\x00"

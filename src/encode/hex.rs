@@ -1,6 +1,6 @@
 use std::{ascii, cmp, i64, iter};
 
-use super::{diag, Encoding};
+use super::Encoding;
 use base64::{self, display::Base64Display};
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
@@ -8,6 +8,7 @@ use hex;
 use num::{
     bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
 };
+use separator::Separatable;
 use uri::is_uri;
 
 use {
@@ -154,7 +155,7 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
         IntegerWidth::SixtyFour => format!("1b {:016x}", value),
     };
 
-    let comment = format!("unsigned({})", value);
+    let comment = format!("unsigned({})", value.separated_string());
 
     Line::new(hex, comment)
 }
@@ -183,7 +184,8 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
         IntegerWidth::SixtyFour => format!("3b {:016x}", value),
     };
 
-    let comment = format!("negative({})", value);
+    let comment =
+        format!("negative({})", (-1 - value as i128).separated_string());
 
     Line::new(hex, comment)
 }
@@ -724,9 +726,20 @@ fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
         FloatWidth::SixtyFour => format!("fb {:016x}", value.to_bits()),
     };
 
-    let mut comment = "float(".to_owned();
-    diag::Context::new(&mut comment).float_to_diag(value, FloatWidth::Unknown);
-    comment.push(')');
+    let comment = format!(
+        "float({})",
+        if value.is_nan() {
+            "NaN".to_owned()
+        } else if value.is_infinite() {
+            if value.is_sign_negative() {
+                "-Infinity".to_owned()
+            } else {
+                "Infinity".to_owned()
+            }
+        } else {
+            value.separated_string()
+        }
+    );
 
     Line::new(hex, comment)
 }

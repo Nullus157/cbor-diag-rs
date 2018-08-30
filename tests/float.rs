@@ -71,7 +71,7 @@ testcases! {
             },
             "0.0_1",
             indoc!("
-                f9 0000 # float(0.0)
+                f9 0000 # float(0)
             ")
         }
 
@@ -82,7 +82,7 @@ testcases! {
             },
             "1.0_1",
             indoc!("
-                f9 3c00 # float(1.0)
+                f9 3c00 # float(1)
             ")
         }
 
@@ -139,7 +139,7 @@ testcases! {
             },
             "0.0_2",
             indoc!("
-                fa 00000000 # float(0.0)
+                fa 00000000 # float(0)
             ")
         }
 
@@ -150,7 +150,7 @@ testcases! {
             },
             "1.0_2",
             indoc!("
-                fa 3f800000 # float(1.0)
+                fa 3f800000 # float(1)
             ")
         }
 
@@ -207,7 +207,7 @@ testcases! {
             },
             "0.0_3",
             indoc!("
-                fb 0000000000000000 # float(0.0)
+                fb 0000000000000000 # float(0)
             ")
         }
 
@@ -218,7 +218,7 @@ testcases! {
             },
             "1.0_3",
             indoc!("
-                fb 3ff0000000000000 # float(1.0)
+                fb 3ff0000000000000 # float(1)
             ")
         }
 

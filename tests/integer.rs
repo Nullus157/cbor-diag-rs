@@ -194,7 +194,7 @@ testcases! {
             },
             "-1",
             indoc!("
-                20 # negative(0)
+                20 # negative(-1)
             ")
         }
 
@@ -205,7 +205,7 @@ testcases! {
             },
             "-24",
             indoc!("
-                37 # negative(23)
+                37 # negative(-24)
             ")
         }
     }
@@ -218,7 +218,7 @@ testcases! {
             },
             "-1_0",
             indoc!("
-                38 00 # negative(0)
+                38 00 # negative(-1)
             ")
         }
 
@@ -229,7 +229,7 @@ testcases! {
             },
             "-25_0",
             indoc!("
-                38 18 # negative(24)
+                38 18 # negative(-25)
             ")
         }
     }
@@ -242,7 +242,7 @@ testcases! {
             },
             "-1_1",
             indoc!("
-                39 0000 # negative(0)
+                39 0000 # negative(-1)
             ")
         }
 
@@ -253,7 +253,7 @@ testcases! {
             },
             "-25_1",
             indoc!("
-                39 0018 # negative(24)
+                39 0018 # negative(-25)
             ")
         }
     }
@@ -266,7 +266,7 @@ testcases! {
             },
             "-1_2",
             indoc!("
-                3a 00000000 # negative(0)
+                3a 00000000 # negative(-1)
             ")
         }
 
@@ -277,7 +277,7 @@ testcases! {
             },
             "-25_2",
             indoc!("
-                3a 00000018 # negative(24)
+                3a 00000018 # negative(-25)
             ")
         }
     }
@@ -290,7 +290,7 @@ testcases! {
             },
             "-1_3",
             indoc!("
-                3b 0000000000000000 # negative(0)
+                3b 0000000000000000 # negative(-1)
             ")
         }
 
@@ -301,7 +301,7 @@ testcases! {
             },
             "-25_3",
             indoc!("
-                3b 0000000000000018 # negative(24)
+                3b 0000000000000018 # negative(-25)
             ")
         }
     }
