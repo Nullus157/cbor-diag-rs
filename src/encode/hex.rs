@@ -252,17 +252,13 @@ fn bytes_to_hex<'a>(
         let comment = match encoding {
             Some(Encoding::Base64Url) => format!(
                 "b64'{}'",
-                Base64Display::with_config(
-                    &data,
-                    base64::URL_SAFE_NO_PAD
-                ).unwrap()
+                Base64Display::with_config(&data, base64::URL_SAFE_NO_PAD)
+                    .unwrap()
             ),
             Some(Encoding::Base64) => format!(
                 "b64'{}'",
-                Base64Display::with_config(
-                    &data,
-                    base64::STANDARD_NO_PAD
-                ).unwrap()
+                Base64Display::with_config(&data, base64::STANDARD_NO_PAD)
+                    .unwrap()
             ),
             Some(Encoding::Base16) => format!("h'{}'", hex),
             None => {
@@ -651,18 +647,24 @@ fn uri(value: &Value) -> Line {
     }
 }
 
-fn base64_base(value: &Value, config: base64::Config) -> Result<impl Iterator<Item = Line>, String> {
+fn base64_base(
+    value: &Value,
+    config: base64::Config,
+) -> Result<impl Iterator<Item = Line>, String> {
     if let Value::TextString(TextString { data, .. }) = value {
         base64::decode_config(data, config)
             .map(|data| {
                 let mut line = Line::new("", "");
                 line.sublines.extend(bytes_to_hex(None, &data));
                 let merged = line.merge();
-                merged.lines().skip(1).map(|line| Line::new("", line.split_at(3).1.replace("#  ", "#"))).collect::<Vec<_>>().into_iter()
-            })
-            .map_err(|err| {
-                format!("{}", err)
-            })
+                merged
+                    .lines()
+                    .skip(1)
+                    .map(|line| {
+                        Line::new("", line.split_at(3).1.replace("#  ", "#"))
+                    }).collect::<Vec<_>>()
+                    .into_iter()
+            }).map_err(|err| format!("{}", err))
     } else {
         Err("invalid type".into())
     }
@@ -671,21 +673,19 @@ fn base64_base(value: &Value, config: base64::Config) -> Result<impl Iterator<It
 fn base64url(value: &Value) -> Line {
     base64_base(value, base64::URL_SAFE_NO_PAD)
         .map(|lines| {
-                let mut line = Line::new("", "base64url decoded");
-                line.sublines.extend(lines);
-                line
-        })
-        .unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
+            let mut line = Line::new("", "base64url decoded");
+            line.sublines.extend(lines);
+            line
+        }).unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
 }
 
 fn base64(value: &Value) -> Line {
     base64_base(value, base64::STANDARD_NO_PAD)
         .map(|lines| {
-                let mut line = Line::new("", "base64 decoded");
-                line.sublines.extend(lines);
-                line
-        })
-        .unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
+            let mut line = Line::new("", "base64 decoded");
+            line.sublines.extend(lines);
+            line
+        }).unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
 }
 
 fn encoded_cbor(value: &Value) -> Line {
