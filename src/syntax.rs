@@ -1,32 +1,57 @@
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+/// How many additional bytes are used to encode this integer (in bits).
+///
+/// See (RFC 7049 § 2)[https://tools.ietf.org/html/rfc7049#section-2]
 pub enum IntegerWidth {
-    /// When parsed from CBOR diagnostic notation without an encoding indicator.
+    /// Parsed from CBOR diagnostic notation without an encoding indicator
     Unknown,
-    /// For values <24 encoded in the additional data
+    /// For values <24 encoded directly in the additional data of the first byte
     Zero,
+    /// One additional byte
     Eight,
+    /// Two additional bytes
     Sixteen,
+    /// Four additional bytes
     ThirtyTwo,
+    /// Eight additional bytes
     SixtyFour,
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+/// How many additional bytes are used to encode this float (in bits).
+///
+/// See [RFC 7049 § 2](https://tools.ietf.org/html/rfc7049#section-2)
 pub enum FloatWidth {
-    /// When parsed from CBOR diagnostic notation without an encoding indicator.
+    /// Parsed from CBOR diagnostic notation without an encoding indicator
     Unknown,
+    /// Two additional bytes
     Sixteen,
+    /// Four additional bytes
     ThirtyTwo,
+    /// Eight additional bytes
     SixtyFour,
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+/// A semantic tag for a CBOR data item.
+///
+/// See [RFC 7049 § 2.4: Table 3](https://tools.ietf.org/html/rfc7049#section-2.4)
 pub struct Tag(pub u64);
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+/// A "simple value" data item.
+///
+/// See [RFC 7049 § 2.3: Table 2](https://tools.ietf.org/html/rfc7049#section-2.3)
 pub struct Simple(pub u8);
 
 #[derive(Debug, PartialEq, Clone)]
+/// A string of raw bytes with no direct attached meaning.
+///
+/// May be assigned a meaning by being enclosed in a semantic tag.
+///
+/// See [RFC 7049 § 2.1: Major type 2](https://tools.ietf.org/html/rfc7049#section-2.1)
 pub struct ByteString {
+    /// The raw binary data in this byte string
     pub data: Vec<u8>,
     /// The bitwidth used for encoding the length
     pub bitwidth: IntegerWidth,

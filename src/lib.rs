@@ -11,7 +11,7 @@ extern crate uri;
 mod encode;
 mod error;
 mod parse;
-pub mod syntax;
+mod syntax;
 
 pub use syntax::{
     ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value,
