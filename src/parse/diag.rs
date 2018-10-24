@@ -315,6 +315,40 @@ named! {
     ))
 }
 
+/// Parse a string containing a diagnostic notation encoded CBOR data item.
+///
+/// ⚠️ Take special note of the warning from [RFC 7049 § 6][RFC 6]:
+///
+/// > Note that this truly is a diagnostic format; it is not meant to be parsed.
+///
+/// That means that this parser does not guarantee anything. Where possible it
+/// attempts to preserve round-tripping support, but will certainly fail to
+/// parse output from other tools that generate diagnostic notation. You should
+/// always prefer to pass around binary or hex-encoded CBOR data items and
+/// generate the diagnostic notation from them.
+///
+/// This lack of guarantee also extends to semantic versioning of this crate. On
+/// any update this parser can completely change what it parses with no prior
+/// warning.
+///
+/// [RFC 6]: https://tools.ietf.org/html/rfc7049#section-6
+///
+/// # Examples
+///
+/// ```rust
+/// use cbor_diag::{DataItem, IntegerWidth, Tag, TextString};
+///
+/// assert_eq!(
+///     cbor_diag::parse_diag(r#"32("https://example.com")"#).unwrap(),
+///     DataItem::Tag {
+///         tag: Tag::URI,
+///         bitwidth: IntegerWidth::Unknown,
+///         value: Box::new(DataItem::TextString(TextString {
+///             data: "https://example.com".into(),
+///             bitwidth: IntegerWidth::Unknown,
+///         })),
+///     });
+/// ```
 pub fn parse_diag(text: impl AsRef<str>) -> Result<DataItem> {
     let text = nom::types::CompleteStr(text.as_ref());
     let (remaining, parsed) = data_item(text).map_err(|e| {

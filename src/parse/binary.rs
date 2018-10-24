@@ -221,6 +221,27 @@ named! {
     ))
 }
 
+/// Parse a string containing a binary encoded CBOR data item.
+///
+/// # Examples
+///
+/// ```rust
+/// use cbor_diag::{DataItem, IntegerWidth, Tag, TextString};
+///
+/// assert_eq!(
+///     cbor_diag::parse_bytes(&b"\
+///         \xd8\x20\x73\x68\x74\x74\x70\x73\x3a\x2f\x2f\x65\x78\x61\x6d\x70\
+///         \x6c\x65\x2e\x63\x6f\x6d\
+///     "[..]).unwrap(),
+///     DataItem::Tag {
+///         tag: Tag::URI,
+///         bitwidth: IntegerWidth::Eight,
+///         value: Box::new(DataItem::TextString(TextString {
+///             data: "https://example.com".into(),
+///             bitwidth: IntegerWidth::Zero,
+///         })),
+///     });
+/// ```
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
     let (remaining, parsed) = data_item(bytes.as_ref()).map_err(|e| {
         println!("{}: {:?}", e, e);
