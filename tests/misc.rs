@@ -5,14 +5,14 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{Simple, Value};
+use cbor_diag::{DataItem, Simple};
 
 #[macro_use]
 mod utils;
 
 testcases! {
     false_ {
-        Value::Simple(Simple::FALSE),
+        DataItem::Simple(Simple::FALSE),
         "false",
         indoc!("
             f4 # false, simple(20)
@@ -20,7 +20,7 @@ testcases! {
     }
 
     true_ {
-        Value::Simple(Simple::TRUE),
+        DataItem::Simple(Simple::TRUE),
         "true",
         indoc!("
             f5 # true, simple(21)
@@ -28,7 +28,7 @@ testcases! {
     }
 
     null {
-        Value::Simple(Simple::NULL),
+        DataItem::Simple(Simple::NULL),
         "null",
         indoc!("
             f6 # null, simple(22)
@@ -36,7 +36,7 @@ testcases! {
     }
 
     undefined {
-        Value::Simple(Simple::UNDEFINED),
+        DataItem::Simple(Simple::UNDEFINED),
         "undefined",
         indoc!("
             f7 # undefined, simple(23)
@@ -44,7 +44,7 @@ testcases! {
     }
 
     simple_16 {
-        Value::Simple(Simple(16)),
+        DataItem::Simple(Simple(16)),
         "simple(16)",
         indoc!("
             f0 # unassigned, simple(16)
@@ -52,7 +52,7 @@ testcases! {
     }
 
     simple_24 {
-        Value::Simple(Simple(24)),
+        DataItem::Simple(Simple(24)),
         "simple(24)",
         indoc!("
             f8 18 # reserved, simple(24)
@@ -60,7 +60,7 @@ testcases! {
     }
 
     simple_255 {
-        Value::Simple(Simple(255)),
+        DataItem::Simple(Simple(255)),
         "simple(255)",
         indoc!("
             f8 ff # unassigned, simple(255)

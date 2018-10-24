@@ -1,5 +1,5 @@
 use hex;
-use {Result, Value};
+use {DataItem, Result};
 
 mod binary;
 mod diag;
@@ -14,7 +14,7 @@ fn remove_comments(hex: impl AsRef<str>) -> String {
         .collect()
 }
 
-pub fn parse_hex(hex: impl AsRef<str>) -> Result<Value> {
+pub fn parse_hex(hex: impl AsRef<str>) -> Result<DataItem> {
     let hex = remove_comments(hex);
     let bytes = hex::decode(hex)?;
     parse_bytes(bytes)

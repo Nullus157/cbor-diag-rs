@@ -8,8 +8,8 @@ use nom::{self, digit, hex_digit0, AsChar};
 use nom::Needed;
 
 use {
-    ByteString, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
-    TextString, Value,
+    ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
+    TextString,
 };
 
 type NStr<'a> = nom::types::CompleteStr<'a>;
@@ -46,11 +46,11 @@ named! {
 }
 
 named! {
-    positive<NStr, Value>,
+    positive<NStr, DataItem>,
     do_parse!(
         value: map_res!(digit, parse::<u64>) >>
         encoding: opt!(encoding) >>
-        (Value::Integer {
+        (DataItem::Integer {
             value,
             bitwidth: match (encoding, value) {
                 (None, 0...23) => IntegerWidth::Zero,
@@ -66,13 +66,13 @@ named! {
 }
 
 named! {
-    negative<NStr, Value>,
+    negative<NStr, DataItem>,
     preceded!(
         tag!("-"),
         do_parse!(
             value: map_res!(digit, parse::<u64>) >>
             encoding: opt!(encoding) >>
-            (Value::Negative {
+            (DataItem::Negative {
                 value: value - 1,
                 bitwidth: match (encoding, value) {
                     (None, 0...24) => IntegerWidth::Zero,
@@ -106,19 +106,19 @@ named! {
 }
 
 named! {
-    indefinite_bytestring<NStr, Value>,
+    indefinite_bytestring<NStr, DataItem>,
     map!(
         delimited!(
             tag!("(_ "),
             separated_list_complete!(tag!(", "), definite_bytestring),
             tag!(")")),
-        Value::IndefiniteByteString)
+        DataItem::IndefiniteByteString)
 }
 
 named! {
-    bytestring<NStr, Value>,
+    bytestring<NStr, DataItem>,
     alt_complete!(
-        definite_bytestring => { Value::ByteString }
+        definite_bytestring => { DataItem::ByteString }
       | indefinite_bytestring
     )
 }
@@ -140,80 +140,80 @@ named! {
 }
 
 named! {
-    indefinite_textstring<NStr, Value>,
+    indefinite_textstring<NStr, DataItem>,
     map!(
         delimited!(
             tag!("(_ "),
             separated_list_complete!(tag!(", "), definite_textstring),
             tag!(")")),
-        Value::IndefiniteTextString)
+        DataItem::IndefiniteTextString)
 }
 
 named! {
-    textstring<NStr, Value>,
+    textstring<NStr, DataItem>,
     alt_complete!(
-        definite_textstring => { Value::TextString }
+        definite_textstring => { DataItem::TextString }
       | indefinite_textstring
     )
 }
 
 named! {
-    definite_array<NStr, Value>,
+    definite_array<NStr, DataItem>,
     map!(
         delimited!(
             tag!("["),
-            separated_list_complete!(tag!(", "), value),
+            separated_list_complete!(tag!(", "), data_item),
             tag!("]")),
-        |data| Value::Array { data, bitwidth: Some(IntegerWidth::Unknown) })
+        |data| DataItem::Array { data, bitwidth: Some(IntegerWidth::Unknown) })
 }
 
 named! {
-    indefinite_array<NStr, Value>,
+    indefinite_array<NStr, DataItem>,
     map!(
         delimited!(
             tag!("[_ "),
-            separated_list_complete!(tag!(", "), value),
+            separated_list_complete!(tag!(", "), data_item),
             tag!("]")),
-        |data| Value::Array { data, bitwidth: None })
+        |data| DataItem::Array { data, bitwidth: None })
 }
 
 named! {
-    array<NStr, Value>,
+    array<NStr, DataItem>,
     alt_complete!(definite_array | indefinite_array)
 }
 
 named! {
-    definite_map<NStr, Value>,
+    definite_map<NStr, DataItem>,
     map!(
         delimited!(
             tag!("{"),
-            separated_list_complete!(tag!(","), separated_pair!(value, tag!(":"), value)),
+            separated_list_complete!(tag!(","), separated_pair!(data_item, tag!(":"), data_item)),
             tag!("}")),
-        |data| Value::Map { data, bitwidth: Some(IntegerWidth::Unknown) })
+        |data| DataItem::Map { data, bitwidth: Some(IntegerWidth::Unknown) })
 }
 
 named! {
-    indefinite_map<NStr, Value>,
+    indefinite_map<NStr, DataItem>,
     map!(
         ws!(delimited!(
             tag!("{_"),
-            separated_list_complete!(tag!(","), separated_pair!(value, tag!(":"), value)),
+            separated_list_complete!(tag!(","), separated_pair!(data_item, tag!(":"), data_item)),
             tag!("}"))),
-        |data| Value::Map { data, bitwidth: None })
+        |data| DataItem::Map { data, bitwidth: None })
 }
 
 named! {
-    map<NStr, Value>,
+    map<NStr, DataItem>,
     alt_complete!(definite_map | indefinite_map)
 }
 
 named! {
-    tagged<NStr, Value>,
+    tagged<NStr, DataItem>,
     do_parse!(
         tag: map_res!(digit, parse::<u64>) >>
         encoding: opt!(encoding) >>
-        value: delimited!(tag!("("), value, tag!(")")) >>
-        (Value::Tag {
+        value: delimited!(tag!("("), data_item, tag!(")")) >>
+        (DataItem::Tag {
             tag: Tag(tag),
             bitwidth: match (encoding, tag) {
                 (None, 0...23) => IntegerWidth::Zero,
@@ -268,11 +268,11 @@ named! {
 }
 
 named! {
-    float<NStr, Value>,
+    float<NStr, DataItem>,
     do_parse!(
         value: float_value >>
         encoding: opt!(verify!(encoding, |e| e > 0)) >>
-        (Value::Float {
+        (DataItem::Float {
             value,
             bitwidth: match encoding {
                 Some(1) => FloatWidth::Sixteen,
@@ -286,7 +286,7 @@ named! {
 }
 
 named! {
-    simple<NStr, Value>,
+    simple<NStr, DataItem>,
     map!(
         alt_complete!(
             value!(Simple::FALSE, tag!("false"))
@@ -297,11 +297,11 @@ named! {
                 map_res!(delimited!(tag!("("), digit, tag!(")")), parse::<u8>)),
                 Simple)
         ),
-        Value::Simple)
+        DataItem::Simple)
 }
 
 named! {
-    value<NStr, Value>,
+    data_item<NStr, DataItem>,
     ws!(alt_complete!(
         float
       | tagged
@@ -315,9 +315,9 @@ named! {
     ))
 }
 
-pub fn parse_diag(text: impl AsRef<str>) -> Result<Value> {
+pub fn parse_diag(text: impl AsRef<str>) -> Result<DataItem> {
     let text = nom::types::CompleteStr(text.as_ref());
-    let (remaining, parsed) = value(text).map_err(|e| {
+    let (remaining, parsed) = data_item(text).map_err(|e| {
         println!("{}: {:?}", e, e);
         Error::Todos("Parsing error")
     })?;

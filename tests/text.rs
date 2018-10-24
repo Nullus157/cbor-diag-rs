@@ -5,7 +5,7 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{IntegerWidth, TextString, Value};
+use cbor_diag::{DataItem, IntegerWidth, TextString};
 
 #[macro_use]
 mod utils;
@@ -19,7 +19,7 @@ mod utils;
 testcases! {
     mod diag {
         empty(diag2value, value2diag) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -27,7 +27,7 @@ testcases! {
         }
 
         hello(diag2value, value2diag) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "hello".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -35,7 +35,7 @@ testcases! {
         }
 
         alpha(diag2value, value2diag) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -43,7 +43,7 @@ testcases! {
         }
 
         non_alpha(diag2value, value2diag) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "\u{1f1f3}\u{1f1ff}".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -51,7 +51,7 @@ testcases! {
         }
 
         escaped(diag2value, value2diag) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "\\\"".into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -61,7 +61,7 @@ testcases! {
 
     mod tiny {
         empty(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "".into(),
                 bitwidth: IntegerWidth::Zero,
             }),
@@ -72,7 +72,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "hello".into(),
                 bitwidth: IntegerWidth::Zero,
             }),
@@ -83,7 +83,7 @@ testcases! {
         }
 
         escaped(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "\\\"".into(),
                 bitwidth: IntegerWidth::Zero,
             }),
@@ -96,7 +96,7 @@ testcases! {
 
     mod u8 {
         empty(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -107,7 +107,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "hello".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -118,7 +118,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -130,7 +130,7 @@ testcases! {
         }
 
         non_alpha(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "\u{1f1f3}\u{1f1ff}".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -141,7 +141,7 @@ testcases! {
         }
 
         non_alpha_across_break(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "0123456789ab\u{1f1f3}\u{1f1ff}12345".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -153,7 +153,7 @@ testcases! {
         }
 
         non_alpha_not_quite_at_break(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "0123456789abc\u{1f1f3}\u{1f1ff}1234".into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -167,7 +167,7 @@ testcases! {
 
     mod u16 {
         empty(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "".into(),
                 bitwidth: IntegerWidth::Sixteen,
             }),
@@ -178,7 +178,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "hello".into(),
                 bitwidth: IntegerWidth::Sixteen,
             }),
@@ -189,7 +189,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: IntegerWidth::Sixteen,
             }),
@@ -203,7 +203,7 @@ testcases! {
 
     mod u32 {
         empty(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "".into(),
                 bitwidth: IntegerWidth::ThirtyTwo,
             }),
@@ -214,7 +214,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "hello".into(),
                 bitwidth: IntegerWidth::ThirtyTwo,
             }),
@@ -225,7 +225,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: IntegerWidth::ThirtyTwo,
             }),
@@ -239,7 +239,7 @@ testcases! {
 
     mod u64 {
         empty(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "".into(),
                 bitwidth: IntegerWidth::SixtyFour,
             }),
@@ -250,7 +250,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "hello".into(),
                 bitwidth: IntegerWidth::SixtyFour,
             }),
@@ -261,7 +261,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::TextString(TextString {
+            DataItem::TextString(TextString {
                 data: "abcdefghijklmnopqrstuvwxyz".into(),
                 bitwidth: IntegerWidth::SixtyFour,
             }),
@@ -276,12 +276,12 @@ testcases! {
     mod indefinite {
         mod diag {
             empty(value2diag) {
-                Value::IndefiniteTextString(vec![]),
+                DataItem::IndefiniteTextString(vec![]),
                 "(_ )",
             }
 
             one_empty(diag2value, value2diag) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "".into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -291,7 +291,7 @@ testcases! {
             }
 
             some_empty(diag2value, value2diag) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "".into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -305,7 +305,7 @@ testcases! {
             }
 
             hello_world(diag2value, value2diag) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "hello".into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -319,7 +319,7 @@ testcases! {
             }
 
             alpha(diag2value, value2diag) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "abc".into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -341,7 +341,7 @@ testcases! {
             }
 
             non_alpha(diag2value, value2diag) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -355,7 +355,7 @@ testcases! {
             }
 
             escaped(diag2value, value2diag) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "\\".into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -371,7 +371,7 @@ testcases! {
 
         mod hex {
             empty(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![]),
+                DataItem::IndefiniteTextString(vec![]),
                 indoc!(r#"
                     7f    # text(*)
                        ff #   break
@@ -379,7 +379,7 @@ testcases! {
             }
 
             one_empty(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -394,7 +394,7 @@ testcases! {
             }
 
             some_empty(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -415,7 +415,7 @@ testcases! {
             }
 
             hello_world(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "hello".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -436,7 +436,7 @@ testcases! {
             }
 
             alpha(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "abc".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -469,7 +469,7 @@ testcases! {
             }
 
             non_alpha(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -490,7 +490,7 @@ testcases! {
             }
 
             escaped(hex2value, value2hex) {
-                Value::IndefiniteTextString(vec![
+                DataItem::IndefiniteTextString(vec![
                     TextString {
                         data: "\\".into(),
                         bitwidth: IntegerWidth::Zero,

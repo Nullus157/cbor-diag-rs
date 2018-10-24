@@ -5,7 +5,7 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{IntegerWidth, Value};
+use cbor_diag::{DataItem, IntegerWidth};
 
 #[macro_use]
 mod utils;
@@ -13,7 +13,7 @@ mod utils;
 testcases! {
     mod utiny {
         zero {
-            Value::Integer {
+            DataItem::Integer {
                 value: 0,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -24,7 +24,7 @@ testcases! {
         }
 
         one {
-            Value::Integer {
+            DataItem::Integer {
                 value: 1,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -35,7 +35,7 @@ testcases! {
         }
 
         twenty_three {
-            Value::Integer {
+            DataItem::Integer {
                 value: 23,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -48,7 +48,7 @@ testcases! {
 
     mod u8 {
         zero {
-            Value::Integer {
+            DataItem::Integer {
                 value: 0,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -59,7 +59,7 @@ testcases! {
         }
 
         one {
-            Value::Integer {
+            DataItem::Integer {
                 value: 1,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -70,7 +70,7 @@ testcases! {
         }
 
         twenty_four {
-            Value::Integer {
+            DataItem::Integer {
                 value: 24,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -83,7 +83,7 @@ testcases! {
 
     mod u16 {
         zero {
-            Value::Integer {
+            DataItem::Integer {
                 value: 0,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -94,7 +94,7 @@ testcases! {
         }
 
         one {
-            Value::Integer {
+            DataItem::Integer {
                 value: 1,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -105,7 +105,7 @@ testcases! {
         }
 
         twenty_four {
-            Value::Integer {
+            DataItem::Integer {
                 value: 24,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -118,7 +118,7 @@ testcases! {
 
     mod u32 {
         zero {
-            Value::Integer {
+            DataItem::Integer {
                 value: 0,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -129,7 +129,7 @@ testcases! {
         }
 
         one {
-            Value::Integer {
+            DataItem::Integer {
                 value: 1,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -140,7 +140,7 @@ testcases! {
         }
 
         twenty_four {
-            Value::Integer {
+            DataItem::Integer {
                 value: 24,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -153,7 +153,7 @@ testcases! {
 
     mod u64 {
         zero {
-            Value::Integer {
+            DataItem::Integer {
                 value: 0,
                 bitwidth: IntegerWidth::SixtyFour,
             },
@@ -164,7 +164,7 @@ testcases! {
         }
 
         one {
-            Value::Integer {
+            DataItem::Integer {
                 value: 1,
                 bitwidth: IntegerWidth::SixtyFour,
             },
@@ -175,7 +175,7 @@ testcases! {
         }
 
         twenty_four {
-            Value::Integer {
+            DataItem::Integer {
                 value: 24,
                 bitwidth: IntegerWidth::SixtyFour,
             },
@@ -188,7 +188,7 @@ testcases! {
 
     mod negative_utiny {
         one {
-            Value::Negative {
+            DataItem::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -199,7 +199,7 @@ testcases! {
         }
 
         twenty_four {
-            Value::Negative {
+            DataItem::Negative {
                 value: 23,
                 bitwidth: IntegerWidth::Zero,
             },
@@ -212,7 +212,7 @@ testcases! {
 
     mod negative_u8 {
         one {
-            Value::Negative {
+            DataItem::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -223,7 +223,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::Negative {
+            DataItem::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::Eight,
             },
@@ -236,7 +236,7 @@ testcases! {
 
     mod negative_u16 {
         one {
-            Value::Negative {
+            DataItem::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -247,7 +247,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::Negative {
+            DataItem::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::Sixteen,
             },
@@ -260,7 +260,7 @@ testcases! {
 
     mod negative_u32 {
         one {
-            Value::Negative {
+            DataItem::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -271,7 +271,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::Negative {
+            DataItem::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::ThirtyTwo,
             },
@@ -284,7 +284,7 @@ testcases! {
 
     mod negative_u64 {
         one {
-            Value::Negative {
+            DataItem::Negative {
                 value: 0,
                 bitwidth: IntegerWidth::SixtyFour,
             },
@@ -295,7 +295,7 @@ testcases! {
         }
 
         twenty_five {
-            Value::Negative {
+            DataItem::Negative {
                 value: 24,
                 bitwidth: IntegerWidth::SixtyFour,
             },

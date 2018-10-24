@@ -12,8 +12,8 @@ use separator::Separatable;
 use uri::is_uri;
 
 use {
-    parse_bytes, ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString,
-    Value,
+    parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag,
+    TextString,
 };
 
 struct Line {
@@ -31,18 +31,18 @@ impl Line {
         }
     }
 
-    fn from_value(encoding: Option<Encoding>, value: &Value) -> Line {
+    fn from_value(encoding: Option<Encoding>, value: &DataItem) -> Line {
         match *value {
-            Value::Integer { value, bitwidth } => {
+            DataItem::Integer { value, bitwidth } => {
                 integer_to_hex(value, bitwidth)
             }
-            Value::Negative { value, bitwidth } => {
+            DataItem::Negative { value, bitwidth } => {
                 negative_to_hex(value, bitwidth)
             }
-            Value::ByteString(ref bytestring) => {
+            DataItem::ByteString(ref bytestring) => {
                 definite_bytestring_to_hex(encoding, bytestring)
             }
-            Value::IndefiniteByteString(ref bytestrings) => {
+            DataItem::IndefiniteByteString(ref bytestrings) => {
                 indefinite_string_to_hex(
                     0x02,
                     "bytes",
@@ -52,10 +52,10 @@ impl Line {
                     },
                 )
             }
-            Value::TextString(ref textstring) => {
+            DataItem::TextString(ref textstring) => {
                 definite_textstring_to_hex(textstring)
             }
-            Value::IndefiniteTextString(ref textstrings) => {
+            DataItem::IndefiniteTextString(ref textstrings) => {
                 indefinite_string_to_hex(
                     0x03,
                     "text",
@@ -63,19 +63,21 @@ impl Line {
                     definite_textstring_to_hex,
                 )
             }
-            Value::Array { ref data, bitwidth } => {
+            DataItem::Array { ref data, bitwidth } => {
                 array_to_hex(encoding, data, bitwidth)
             }
-            Value::Map { ref data, bitwidth } => {
+            DataItem::Map { ref data, bitwidth } => {
                 map_to_hex(encoding, data, bitwidth)
             }
-            Value::Tag {
+            DataItem::Tag {
                 tag,
                 bitwidth,
                 ref value,
             } => tagged_to_hex(encoding, tag, bitwidth, &*value),
-            Value::Float { value, bitwidth } => float_to_hex(value, bitwidth),
-            Value::Simple(simple) => simple_to_hex(simple),
+            DataItem::Float { value, bitwidth } => {
+                float_to_hex(value, bitwidth)
+            }
+            DataItem::Simple(simple) => simple_to_hex(simple),
         }
     }
 
@@ -355,7 +357,7 @@ fn indefinite_string_to_hex<T>(
 
 fn array_to_hex(
     encoding: Option<Encoding>,
-    array: &[Value],
+    array: &[DataItem],
     bitwidth: Option<IntegerWidth>,
 ) -> Line {
     let mut line = length_to_hex(Some(array.len()), bitwidth, 4, "array");
@@ -372,7 +374,7 @@ fn array_to_hex(
 
 fn map_to_hex(
     encoding: Option<Encoding>,
-    values: &[(Value, Value)],
+    values: &[(DataItem, DataItem)],
     bitwidth: Option<IntegerWidth>,
 ) -> Line {
     let mut line = length_to_hex(Some(values.len()), bitwidth, 5, "map");
@@ -395,7 +397,7 @@ fn tagged_to_hex(
     encoding: Option<Encoding>,
     tag: Tag,
     mut bitwidth: IntegerWidth,
-    value: &Value,
+    value: &DataItem,
 ) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if tag.0 < 24 {
@@ -476,8 +478,8 @@ fn tagged_to_hex(
     }
 }
 
-fn datetime_epoch(value: &Value) -> Line {
-    let date = if let Value::TextString(TextString { data, .. }) = value {
+fn datetime_epoch(value: &DataItem) -> Line {
+    let date = if let DataItem::TextString(TextString { data, .. }) = value {
         match DateTime::parse_from_rfc3339(data) {
             Ok(value) => value,
             Err(err) => {
@@ -491,15 +493,15 @@ fn datetime_epoch(value: &Value) -> Line {
     Line::new("", format!("epoch({})", date.format("%s%.f")))
 }
 
-fn epoch_datetime(value: &Value) -> Line {
+fn epoch_datetime(value: &DataItem) -> Line {
     let date = match *value {
-        Value::Integer { value, .. } => {
+        DataItem::Integer { value, .. } => {
             if value >= (i64::max_value() as u64) {
                 return Line::new("", "offset is too large");
             }
             NaiveDateTime::from_timestamp(value as i64, 0)
         }
-        Value::Negative { value, .. } => {
+        DataItem::Negative { value, .. } => {
             if value >= (i64::max_value() as u64) {
                 return Line::new("", "offset is too large");
             }
@@ -509,19 +511,19 @@ fn epoch_datetime(value: &Value) -> Line {
                 return Line::new("", "offset is too large");
             }
         }
-        Value::Float { value, .. } => NaiveDateTime::from_timestamp(
+        DataItem::Float { value, .. } => NaiveDateTime::from_timestamp(
             value.abs() as i64,
             (value.fract() * 1_000_000_000.0) as u32,
         ),
 
-        Value::ByteString(..)
-        | Value::IndefiniteByteString(..)
-        | Value::TextString(..)
-        | Value::IndefiniteTextString(..)
-        | Value::Array { .. }
-        | Value::Map { .. }
-        | Value::Tag { .. }
-        | Value::Simple(..) => {
+        DataItem::ByteString(..)
+        | DataItem::IndefiniteByteString(..)
+        | DataItem::TextString(..)
+        | DataItem::IndefiniteTextString(..)
+        | DataItem::Array { .. }
+        | DataItem::Map { .. }
+        | DataItem::Tag { .. }
+        | DataItem::Simple(..) => {
             return Line::new("", "invalid type for epoch datetime");
         }
     };
@@ -529,52 +531,52 @@ fn epoch_datetime(value: &Value) -> Line {
     Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
 }
 
-fn extract_positive_bignum(value: &Value) -> Option<BigUint> {
-    if let Value::ByteString(ByteString { data, .. }) = value {
+fn extract_positive_bignum(value: &DataItem) -> Option<BigUint> {
+    if let DataItem::ByteString(ByteString { data, .. }) = value {
         Some(BigUint::from_bytes_be(data))
     } else {
         None
     }
 }
 
-fn positive_bignum(value: &Value) -> Line {
+fn positive_bignum(value: &DataItem) -> Line {
     extract_positive_bignum(value)
         .map(|num| Line::new("", format!("bignum({})", num)))
         .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
 }
 
-fn extract_negative_bignum(value: &Value) -> Option<BigInt> {
-    if let Value::ByteString(ByteString { data, .. }) = value {
+fn extract_negative_bignum(value: &DataItem) -> Option<BigInt> {
+    if let DataItem::ByteString(ByteString { data, .. }) = value {
         Some(BigInt::from(-1) - BigInt::from_bytes_be(Sign::Plus, data))
     } else {
         None
     }
 }
 
-fn negative_bignum(value: &Value) -> Line {
+fn negative_bignum(value: &DataItem) -> Line {
     extract_negative_bignum(value)
         .map(|num| Line::new("", format!("bignum({})", num)))
         .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
 }
 
 fn extract_fraction(
-    value: &Value,
+    value: &DataItem,
     base: usize,
 ) -> Result<BigRational, &'static str> {
     Ok(match value {
-        Value::Array { data, .. } => {
+        DataItem::Array { data, .. } => {
             if data.len() != 2 {
                 return Err("invalid type");
             }
             let (exponent, positive_exponent) = match data[0] {
-                Value::Integer { value, .. } => {
+                DataItem::Integer { value, .. } => {
                     if value <= usize::max_value() as u64 {
                         (value as usize, true)
                     } else {
                         return Err("exponent is too large");
                     }
                 }
-                Value::Negative { value, .. } => {
+                DataItem::Negative { value, .. } => {
                     if value < usize::max_value() as u64 {
                         (value as usize + 1, false)
                     } else {
@@ -584,11 +586,11 @@ fn extract_fraction(
                 _ => return Err("invalid type"),
             };
             let mantissa = match data[1] {
-                Value::Integer { value, .. } => BigInt::from(value),
-                Value::Negative { value, .. } => {
+                DataItem::Integer { value, .. } => BigInt::from(value),
+                DataItem::Negative { value, .. } => {
                     BigInt::from(-1) - BigInt::from(value)
                 }
-                Value::Tag {
+                DataItem::Tag {
                     tag: Tag::POSITIVE_BIGNUM,
                     ref value,
                     ..
@@ -596,7 +598,7 @@ fn extract_fraction(
                     Some(value) => BigInt::from_biguint(Sign::Plus, value),
                     _ => return Err("invalid type"),
                 },
-                Value::Tag {
+                DataItem::Tag {
                     tag: Tag::NEGATIVE_BIGNUM,
                     ref value,
                     ..
@@ -617,7 +619,7 @@ fn extract_fraction(
     })
 }
 
-fn decimal_fraction(value: &Value) -> Line {
+fn decimal_fraction(value: &DataItem) -> Line {
     // TODO: https://github.com/rust-num/num-rational/issues/10
     extract_fraction(value, 10)
         .map(|fraction| {
@@ -627,15 +629,15 @@ fn decimal_fraction(value: &Value) -> Line {
         })
 }
 
-fn bigfloat(value: &Value) -> Line {
+fn bigfloat(value: &DataItem) -> Line {
     // TODO: https://github.com/rust-num/num-rational/issues/10
     extract_fraction(value, 2)
         .map(|fraction| Line::new("", format!("bigfloat({})", fraction)))
         .unwrap_or_else(|err| Line::new("", format!("{} for bigfloat", err)))
 }
 
-fn uri(value: &Value) -> Line {
-    if let Value::TextString(TextString { data, .. }) = value {
+fn uri(value: &DataItem) -> Line {
+    if let DataItem::TextString(TextString { data, .. }) = value {
         Line::new(
             "",
             if is_uri(data) {
@@ -650,10 +652,10 @@ fn uri(value: &Value) -> Line {
 }
 
 fn base64_base(
-    value: &Value,
+    value: &DataItem,
     config: base64::Config,
 ) -> Result<impl Iterator<Item = Line>, String> {
-    if let Value::TextString(TextString { data, .. }) = value {
+    if let DataItem::TextString(TextString { data, .. }) = value {
         base64::decode_config(data, config)
             .map(|data| {
                 let mut line = Line::new("", "");
@@ -672,7 +674,7 @@ fn base64_base(
     }
 }
 
-fn base64url(value: &Value) -> Line {
+fn base64url(value: &DataItem) -> Line {
     base64_base(value, base64::URL_SAFE_NO_PAD)
         .map(|lines| {
             let mut line = Line::new("", "base64url decoded");
@@ -681,7 +683,7 @@ fn base64url(value: &Value) -> Line {
         }).unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
 }
 
-fn base64(value: &Value) -> Line {
+fn base64(value: &DataItem) -> Line {
     base64_base(value, base64::STANDARD_NO_PAD)
         .map(|lines| {
             let mut line = Line::new("", "base64 decoded");
@@ -690,8 +692,8 @@ fn base64(value: &Value) -> Line {
         }).unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
 }
 
-fn encoded_cbor(value: &Value) -> Line {
-    if let Value::ByteString(ByteString { data, .. }) = value {
+fn encoded_cbor(value: &DataItem) -> Line {
+    if let DataItem::ByteString(ByteString { data, .. }) = value {
         match parse_bytes(data) {
             Ok(value) => {
                 let mut line = Line::new("", "encoded cbor data item");
@@ -767,7 +769,7 @@ fn simple_to_hex(simple: Simple) -> Line {
     Line::new(hex, comment)
 }
 
-impl Value {
+impl DataItem {
     pub fn to_hex(&self) -> String {
         Line::from_value(None, self).merge()
     }

@@ -5,8 +5,8 @@ use half::f16;
 use nom::{be_f32, be_f64, be_u16, Context};
 
 use {
-    ByteString, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
-    TextString, Value,
+    ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
+    TextString,
 };
 
 named! {
@@ -31,17 +31,23 @@ named! {
 }
 
 named! {
-    positive<(&[u8], usize), Value>,
+    positive<(&[u8], usize), DataItem>,
     preceded!(
         tag_bits!(u8, 3, 0),
-        map!(integer, |(value, bitwidth)| Value::Integer { value, bitwidth }))
+        map!(integer, |(value, bitwidth)| DataItem::Integer {
+            value,
+            bitwidth,
+        }))
 }
 
 named! {
-    negative<(&[u8], usize), Value>,
+    negative<(&[u8], usize), DataItem>,
     preceded!(
         tag_bits!(u8, 3, 1),
-        map!(integer, |(value, bitwidth)| Value::Negative { value, bitwidth }))
+        map!(integer, |(value, bitwidth)| DataItem::Negative {
+            value,
+            bitwidth,
+        }))
 }
 
 named! {
@@ -54,18 +60,18 @@ named! {
 }
 
 named! {
-    indefinite_bytestring<(&[u8], usize), Value>,
+    indefinite_bytestring<(&[u8], usize), DataItem>,
     preceded!(
         pair!(tag_bits!(u8, 3, 2), tag_bits!(u8, 5, 31)),
         map!(
             many_till!(definite_bytestring, stop_code),
-            |(strings, _)| Value::IndefiniteByteString(strings)))
+            |(strings, _)| DataItem::IndefiniteByteString(strings)))
 }
 
 named! {
-    bytestring<(&[u8], usize), Value>,
+    bytestring<(&[u8], usize), DataItem>,
     alt_complete!(
-        definite_bytestring => { Value::ByteString }
+        definite_bytestring => { DataItem::ByteString }
       | indefinite_bytestring
     )
 }
@@ -80,80 +86,84 @@ named! {
 }
 
 named! {
-    indefinite_textstring<(&[u8], usize), Value>,
+    indefinite_textstring<(&[u8], usize), DataItem>,
     preceded!(
         pair!(tag_bits!(u8, 3, 3), tag_bits!(u8, 5, 31)),
         map!(
             many_till!(definite_textstring, stop_code),
-            |(strings, _)| Value::IndefiniteTextString(strings)))
+            |(strings, _)| DataItem::IndefiniteTextString(strings)))
 }
 
 named! {
-    textstring<(&[u8], usize), Value>,
+    textstring<(&[u8], usize), DataItem>,
     alt_complete!(
-        definite_textstring => { Value::TextString }
+        definite_textstring => { DataItem::TextString }
       | indefinite_textstring
     )
 }
 
 named! {
-    definite_array<(&[u8], usize), Value>,
+    definite_array<(&[u8], usize), DataItem>,
     do_parse!(
         tag_bits!(u8, 3, 4) >>
         length: integer >>
-        data: bytes!(count!(value, length.0 as usize)) >>
-        (Value::Array { data, bitwidth: Some(length.1) }))
+        data: bytes!(count!(data_item, length.0 as usize)) >>
+        (DataItem::Array { data, bitwidth: Some(length.1) }))
 }
 
 named! {
-    indefinite_array<(&[u8], usize), Value>,
+    indefinite_array<(&[u8], usize), DataItem>,
     preceded!(
         pair!(tag_bits!(u8, 3, 4), tag_bits!(u8, 5, 31)),
         map!(
-            many_till!(bytes!(value), stop_code),
-            |(data, _)| Value::Array { data, bitwidth: None }))
+            many_till!(bytes!(data_item), stop_code),
+            |(data, _)| DataItem::Array { data, bitwidth: None }))
 }
 
 named! {
-    array<(&[u8], usize), Value>,
+    array<(&[u8], usize), DataItem>,
     alt_complete!(definite_array | indefinite_array)
 }
 
 named! {
-    definite_map<(&[u8], usize), Value>,
+    definite_map<(&[u8], usize), DataItem>,
     do_parse!(
         tag_bits!(u8, 3, 5) >>
         length: integer >>
-        data: bytes!(count!(pair!(value, value), length.0 as usize)) >>
-        (Value::Map { data, bitwidth: Some(length.1) }))
+        data: bytes!(count!(pair!(data_item, data_item), length.0 as usize)) >>
+        (DataItem::Map { data, bitwidth: Some(length.1) }))
 }
 
 named! {
-    indefinite_map<(&[u8], usize), Value>,
+    indefinite_map<(&[u8], usize), DataItem>,
     preceded!(
         pair!(tag_bits!(u8, 3, 5), tag_bits!(u8, 5, 31)),
         map!(
-            many_till!(bytes!(pair!(value, value)), stop_code),
-            |(data, _)| Value::Map { data, bitwidth: None }))
+            many_till!(bytes!(pair!(data_item, data_item)), stop_code),
+            |(data, _)| DataItem::Map { data, bitwidth: None }))
 }
 
 named! {
-    map<(&[u8], usize), Value>,
+    map<(&[u8], usize), DataItem>,
     alt_complete!(definite_map | indefinite_map)
 }
 
 named! {
-    tagged<(&[u8], usize), Value>,
+    tagged<(&[u8], usize), DataItem>,
     do_parse!(
         tag_bits!(u8, 3, 6) >>
         tag: integer >>
-        value: bytes!(value) >>
-        (Value::Tag { tag: Tag(tag.0), bitwidth: tag.1, value: Box::new(value) })
+        value: bytes!(data_item) >>
+        (DataItem::Tag {
+            tag: Tag(tag.0),
+            bitwidth: tag.1,
+            value: Box::new(value),
+        })
     )
 }
 
 named! {
-    float<(&[u8], usize), Value>,
+    float<(&[u8], usize), DataItem>,
     preceded!(
         tag_bits!(u8, 3, 7),
         map!(
@@ -172,11 +182,11 @@ named! {
                     preceded!(tag_bits!(u8, 5, 27), bytes!(be_f64)),
                     value!(FloatWidth::SixtyFour))
             ),
-            |(value, bitwidth)| Value::Float { value, bitwidth }))
+            |(value, bitwidth)| DataItem::Float { value, bitwidth }))
 }
 
 named! {
-    simple<(&[u8], usize), Value>,
+    simple<(&[u8], usize), DataItem>,
     preceded!(
         tag_bits!(u8, 3, 7),
         map!(
@@ -184,20 +194,20 @@ named! {
                 verify!(take_bits!(u8, 5), |v| v < 24)
               | preceded!(tag_bits!(u8, 5, 24), take_bits!(u8, 8))
             ),
-            |value| Value::Simple(Simple(value))
+            |value| DataItem::Simple(Simple(value))
         )
     )
 }
 
 named! {
-    stop_code<(&[u8], usize), Value>,
+    stop_code<(&[u8], usize), DataItem>,
     preceded!(
         tag_bits!(u8, 3, 7),
-        map!(tag_bits!(u8, 5, 31), |value| Value::Simple(Simple(value))))
+        map!(tag_bits!(u8, 5, 31), |value| DataItem::Simple(Simple(value))))
 }
 
 named! {
-    value<&[u8], Value>,
+    data_item<&[u8], DataItem>,
     bits!(alt_complete!(
         positive
       | negative
@@ -211,8 +221,8 @@ named! {
     ))
 }
 
-pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<Value> {
-    let (remaining, parsed) = value(bytes.as_ref()).map_err(|e| {
+pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
+    let (remaining, parsed) = data_item(bytes.as_ref()).map_err(|e| {
         println!("{}: {:?}", e, e);
         Error::Todos("Parsing error")
     })?;

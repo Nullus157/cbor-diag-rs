@@ -3,7 +3,7 @@ use half::f16;
 use hex;
 
 use super::Encoding;
-use {ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value};
+use {ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
 pub(crate) struct Context<'a> {
     encoding: Encoding,
@@ -119,7 +119,7 @@ impl<'a> Context<'a> {
         self.output.push(')');
     }
 
-    fn array_to_diag(&mut self, array: &[Value], definite: bool) {
+    fn array_to_diag(&mut self, array: &[DataItem], definite: bool) {
         self.output.push('[');
         if !definite {
             self.output.push('_');
@@ -139,7 +139,7 @@ impl<'a> Context<'a> {
         self.output.push(']');
     }
 
-    fn map_to_diag(&mut self, values: &[(Value, Value)], definite: bool) {
+    fn map_to_diag(&mut self, values: &[(DataItem, DataItem)], definite: bool) {
         self.output.push('{');
         if !definite {
             self.output.push('_');
@@ -166,7 +166,7 @@ impl<'a> Context<'a> {
         &mut self,
         tag: Tag,
         bitwidth: IntegerWidth,
-        value: &Value,
+        value: &DataItem,
     ) {
         if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
             self.output.push_str(&tag.0.to_string());
@@ -241,62 +241,62 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn value_to_diag(&mut self, value: &Value) {
+    fn value_to_diag(&mut self, value: &DataItem) {
         match *value {
-            Value::Integer { value, bitwidth } => {
+            DataItem::Integer { value, bitwidth } => {
                 self.integer_to_diag(value, bitwidth);
             }
-            Value::Negative { value, bitwidth } => {
+            DataItem::Negative { value, bitwidth } => {
                 self.negative_to_diag(value, bitwidth);
             }
-            Value::ByteString(ref bytestring) => {
+            DataItem::ByteString(ref bytestring) => {
                 self.definite_bytestring_to_diag(bytestring);
             }
-            Value::IndefiniteByteString(ref bytestrings) => {
+            DataItem::IndefiniteByteString(ref bytestrings) => {
                 self.indefinite_string_to_diag(
                     bytestrings,
                     Self::definite_bytestring_to_diag,
                 );
             }
-            Value::TextString(ref textstring) => {
+            DataItem::TextString(ref textstring) => {
                 self.definite_textstring_to_diag(textstring);
             }
-            Value::IndefiniteTextString(ref textstrings) => {
+            DataItem::IndefiniteTextString(ref textstrings) => {
                 self.indefinite_string_to_diag(
                     textstrings,
                     Self::definite_textstring_to_diag,
                 );
             }
-            Value::Array {
+            DataItem::Array {
                 ref data,
                 ref bitwidth,
             } => {
                 self.array_to_diag(data, bitwidth.is_some());
             }
-            Value::Map {
+            DataItem::Map {
                 ref data,
                 ref bitwidth,
             } => {
                 self.map_to_diag(data, bitwidth.is_some());
             }
-            Value::Tag {
+            DataItem::Tag {
                 tag,
                 bitwidth,
                 ref value,
             } => {
                 self.tagged_to_diag(tag, bitwidth, &*value);
             }
-            Value::Float { value, bitwidth } => {
+            DataItem::Float { value, bitwidth } => {
                 self.float_to_diag(value, bitwidth);
             }
-            Value::Simple(simple) => {
+            DataItem::Simple(simple) => {
                 self.simple_to_diag(simple);
             }
         }
     }
 }
 
-impl Value {
+impl DataItem {
     pub fn to_diag(&self) -> String {
         let mut s = String::with_capacity(128);
         Context::new(&mut s).value_to_diag(self);
