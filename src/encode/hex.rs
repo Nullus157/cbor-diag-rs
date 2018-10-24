@@ -127,7 +127,8 @@ impl Line {
                     } else {
                         subwidth + 3
                     }
-                }).max()
+                })
+                .max()
                 .unwrap_or(0),
         )
     }
@@ -624,7 +625,8 @@ fn decimal_fraction(value: &DataItem) -> Line {
     extract_fraction(value, 10)
         .map(|fraction| {
             Line::new("", format!("decimal fraction({})", fraction))
-        }).unwrap_or_else(|err| {
+        })
+        .unwrap_or_else(|err| {
             Line::new("", format!("{} for decimal fraction", err))
         })
 }
@@ -666,9 +668,11 @@ fn base64_base(
                     .skip(1)
                     .map(|line| {
                         Line::new("", line.split_at(3).1.replace("#  ", "#"))
-                    }).collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>()
                     .into_iter()
-            }).map_err(|err| format!("{}", err))
+            })
+            .map_err(|err| format!("{}", err))
     } else {
         Err("invalid type".into())
     }
@@ -680,7 +684,8 @@ fn base64url(value: &DataItem) -> Line {
             let mut line = Line::new("", "base64url decoded");
             line.sublines.extend(lines);
             line
-        }).unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
+        })
+        .unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
 }
 
 fn base64(value: &DataItem) -> Line {
@@ -689,7 +694,8 @@ fn base64(value: &DataItem) -> Line {
             let mut line = Line::new("", "base64 decoded");
             line.sublines.extend(lines);
             line
-        }).unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
+        })
+        .unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
 }
 
 fn encoded_cbor(value: &DataItem) -> Line {
