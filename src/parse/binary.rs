@@ -5,7 +5,8 @@ use half::f16;
 use nom::{be_f32, be_f64, be_u16, Context};
 
 use {
-    ByteString, Error, FloatWidth, IntegerWidth, Result, Tag, TextString, Value,
+    ByteString, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
+    TextString, Value,
 };
 
 named! {
@@ -183,7 +184,7 @@ named! {
                 verify!(take_bits!(u8, 5), |v| v < 24)
               | preceded!(tag_bits!(u8, 5, 24), take_bits!(u8, 8))
             ),
-            Value::simple
+            |value| Value::Simple(Simple(value))
         )
     )
 }
@@ -192,7 +193,7 @@ named! {
     stop_code<(&[u8], usize), Value>,
     preceded!(
         tag_bits!(u8, 3, 7),
-        map!(tag_bits!(u8, 5, 31), Value::simple))
+        map!(tag_bits!(u8, 5, 31), |value| Value::Simple(Simple(value))))
 }
 
 named! {
