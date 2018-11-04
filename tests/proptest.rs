@@ -8,13 +8,14 @@ extern crate hex;
 
 use cbor_diag::{
     parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth,
-    IntegerWidth, Tag, TextString,
+    IntegerWidth, Simple, Tag, TextString,
 };
 use half::f16;
 use proptest::{
     arbitrary::any,
     collection::{self, SizeRange},
     option,
+    sample::select,
     strategy::{Just, Strategy},
 };
 use std::cmp;
@@ -154,6 +155,12 @@ fn arb_float() -> impl Strategy<Value = DataItem> {
     })
 }
 
+fn arb_simple() -> impl Strategy<Value = DataItem> {
+    select((0..24).chain(32..=255).collect::<Vec<u8>>())
+        .prop_map(Simple)
+        .prop_map(DataItem::Simple)
+}
+
 fn arb_data_item_leaf() -> impl Strategy<Value = DataItem> {
     prop_oneof![
         arb_integer(),
@@ -163,6 +170,7 @@ fn arb_data_item_leaf() -> impl Strategy<Value = DataItem> {
         arb_definite_textstring(),
         arb_indefinite_textstring(),
         arb_float(),
+        arb_simple(),
     ]
 }
 
