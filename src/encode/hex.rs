@@ -310,7 +310,7 @@ fn definite_textstring_to_hex(textstring: &TextString) -> Line {
             let mut comment = String::with_capacity(datum.len());
             comment.push('"');
             for c in datum.chars() {
-                if c == '\"' || c == '\\' {
+                if c == '\"' || c == '\\' || c.is_control() {
                     for c in c.escape_default() {
                         comment.push(c);
                     }

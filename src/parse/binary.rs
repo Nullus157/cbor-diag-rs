@@ -54,7 +54,8 @@ named! {
     definite_bytestring<(&[u8], usize), ByteString>,
     do_parse!(
         tag_bits!(u8, 3, 2) >>
-        length: integer >>
+        // TODO: verify is workaround for https://github.com/Geal/nom/issues/848
+        length: verify!(integer, |(l, _)| l < 0x2000000000000000) >>
         data: bytes!(take!(length.0)) >>
         (ByteString { data: data.into(), bitwidth: length.1 }))
 }
@@ -80,7 +81,8 @@ named! {
     definite_textstring<(&[u8], usize), TextString>,
     do_parse!(
         tag_bits!(u8, 3, 3) >>
-        length: integer >>
+        // TODO: verify is workaround for https://github.com/Geal/nom/issues/848
+        length: verify!(integer, |(l, _)| l < 0x2000000000000000) >>
         data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
         (TextString { data: data.to_owned(), bitwidth: length.1 }))
 }
