@@ -5,3 +5,4 @@
 # It is recommended to check this file in to source control so that
 # everyone who runs the test benefits from these saved cases.
 xs 397916044 674906829 933830602 3112153663 # shrinks to ref s = "{¡AA🌀"
+xs 1703554762 1256865383 2646184683 1490419033 # shrinks to item = Array { data: [Tag { tag: Tag(1), bitwidth: Zero, value: Negative { value: 8334632851200, bitwidth: SixtyFour } }], bitwidth: None }

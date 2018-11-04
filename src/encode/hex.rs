@@ -498,24 +498,38 @@ fn epoch_datetime(value: &DataItem) -> Line {
     let date = match *value {
         DataItem::Integer { value, .. } => {
             if value >= (i64::max_value() as u64) {
-                return Line::new("", "offset is too large");
+                None
+            } else {
+                NaiveDateTime::from_timestamp_opt(value as i64, 0)
             }
-            NaiveDateTime::from_timestamp(value as i64, 0)
         }
+
         DataItem::Negative { value, .. } => {
             if value >= (i64::max_value() as u64) {
-                return Line::new("", "offset is too large");
-            }
-            if let Some(value) = (-1i64).checked_sub(value as i64) {
-                NaiveDateTime::from_timestamp(value, 0)
+                None
             } else {
-                return Line::new("", "offset is too large");
+                if let Some(value) = (-1i64).checked_sub(value as i64) {
+                    NaiveDateTime::from_timestamp_opt(value, 0)
+                } else {
+                    None
+                }
             }
         }
-        DataItem::Float { value, .. } => NaiveDateTime::from_timestamp(
-            value.abs() as i64,
-            (value.fract() * 1_000_000_000.0) as u32,
-        ),
+
+        DataItem::Float { value, .. } => {
+            if value - 1.0 <= (i64::min_value() as f64)
+                || value >= (i64::max_value() as f64)
+            {
+                None
+            } else {
+                let (value, fract) = if value < 0.0 {
+                    (value - 1.0, (1.0 + value.fract()) * 1_000_000_000.0)
+                } else {
+                    (value, value.fract() * 1_000_000_000.0)
+                };
+                NaiveDateTime::from_timestamp_opt(value as i64, fract as u32)
+            }
+        }
 
         DataItem::ByteString(..)
         | DataItem::IndefiniteByteString(..)
@@ -529,7 +543,11 @@ fn epoch_datetime(value: &DataItem) -> Line {
         }
     };
 
-    Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+    if let Some(date) = date {
+        Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+    } else {
+        return Line::new("", "offset is too large");
+    }
 }
 
 fn extract_positive_bignum(value: &DataItem) -> Option<BigUint> {
