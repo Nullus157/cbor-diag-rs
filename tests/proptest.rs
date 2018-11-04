@@ -3,6 +3,9 @@ extern crate proptest;
 extern crate cbor_diag;
 extern crate hex;
 
+#[macro_use]
+extern crate pretty_assertions;
+
 use cbor_diag::{parse_bytes, parse_diag, parse_hex, DataItem, IntegerWidth};
 
 use proptest::{
@@ -14,6 +17,7 @@ use proptest::{
 
 fn arb_integer_width() -> impl Strategy<Value = IntegerWidth> {
     prop_oneof![
+        Just(IntegerWidth::Zero),
         Just(IntegerWidth::Eight),
         Just(IntegerWidth::Sixteen),
         Just(IntegerWidth::ThirtyTwo),
