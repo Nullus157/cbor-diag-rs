@@ -6,7 +6,7 @@ extern crate pretty_assertions;
 extern crate cbor_diag;
 extern crate half;
 
-use cbor_diag::{FloatWidth, Value};
+use cbor_diag::{DataItem, FloatWidth};
 use std::f64::{INFINITY, NAN, NEG_INFINITY};
 
 #[macro_use]
@@ -15,7 +15,7 @@ mod utils;
 testcases! {
     mod unknown {
         zero(diag2value, value2diag) {
-            Value::Float {
+            DataItem::Float {
                 value: 0.0,
                 bitwidth: FloatWidth::Unknown,
             },
@@ -23,7 +23,7 @@ testcases! {
         }
 
         one(diag2value, value2diag) {
-            Value::Float {
+            DataItem::Float {
                 value: 1.0,
                 bitwidth: FloatWidth::Unknown,
             },
@@ -31,7 +31,7 @@ testcases! {
         }
 
         half(diag2value, value2diag) {
-            Value::Float {
+            DataItem::Float {
                 value: 0.5,
                 bitwidth: FloatWidth::Unknown,
             },
@@ -39,7 +39,7 @@ testcases! {
         }
 
         infinity(diag2value, value2diag) {
-            Value::Float {
+            DataItem::Float {
                 value: INFINITY,
                 bitwidth: FloatWidth::Unknown,
             },
@@ -47,7 +47,7 @@ testcases! {
         }
 
         neg_infinity(diag2value, value2diag) {
-            Value::Float {
+            DataItem::Float {
                 value: NEG_INFINITY,
                 bitwidth: FloatWidth::Unknown,
             },
@@ -55,7 +55,7 @@ testcases! {
         }
 
         nan(value2diag) {
-            Value::Float {
+            DataItem::Float {
                 value: NAN,
                 bitwidth: FloatWidth::Unknown,
             },
@@ -65,7 +65,7 @@ testcases! {
 
     mod f16 {
         zero {
-            Value::Float {
+            DataItem::Float {
                 value: 0.0,
                 bitwidth: FloatWidth::Sixteen,
             },
@@ -76,7 +76,7 @@ testcases! {
         }
 
         one {
-            Value::Float {
+            DataItem::Float {
                 value: 1.0,
                 bitwidth: FloatWidth::Sixteen,
             },
@@ -87,7 +87,7 @@ testcases! {
         }
 
         half {
-            Value::Float {
+            DataItem::Float {
                 value: 0.5,
                 bitwidth: FloatWidth::Sixteen,
             },
@@ -98,7 +98,7 @@ testcases! {
         }
 
         infinity {
-            Value::Float {
+            DataItem::Float {
                 value: INFINITY,
                 bitwidth: FloatWidth::Sixteen,
             },
@@ -109,7 +109,7 @@ testcases! {
         }
 
         neg_infinity {
-            Value::Float {
+            DataItem::Float {
                 value: NEG_INFINITY,
                 bitwidth: FloatWidth::Sixteen,
             },
@@ -120,7 +120,7 @@ testcases! {
         }
 
         nan(value2diag, value2hex) {
-            Value::Float {
+            DataItem::Float {
                 value: NAN,
                 bitwidth: FloatWidth::Sixteen,
             },
@@ -133,7 +133,7 @@ testcases! {
 
     mod f32 {
         zero {
-            Value::Float {
+            DataItem::Float {
                 value: 0.0,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
@@ -144,7 +144,7 @@ testcases! {
         }
 
         one {
-            Value::Float {
+            DataItem::Float {
                 value: 1.0,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
@@ -155,7 +155,7 @@ testcases! {
         }
 
         half {
-            Value::Float {
+            DataItem::Float {
                 value: 0.5,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
@@ -166,7 +166,7 @@ testcases! {
         }
 
         infinity {
-            Value::Float {
+            DataItem::Float {
                 value: INFINITY,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
@@ -177,7 +177,7 @@ testcases! {
         }
 
         neg_infinity {
-            Value::Float {
+            DataItem::Float {
                 value: NEG_INFINITY,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
@@ -188,7 +188,7 @@ testcases! {
         }
 
         nan(value2diag, value2hex) {
-            Value::Float {
+            DataItem::Float {
                 value: NAN,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
@@ -201,7 +201,7 @@ testcases! {
 
     mod f64 {
         zero {
-            Value::Float {
+            DataItem::Float {
                 value: 0.0,
                 bitwidth: FloatWidth::SixtyFour,
             },
@@ -212,7 +212,7 @@ testcases! {
         }
 
         one {
-            Value::Float {
+            DataItem::Float {
                 value: 1.0,
                 bitwidth: FloatWidth::SixtyFour,
             },
@@ -223,7 +223,7 @@ testcases! {
         }
 
         half {
-            Value::Float {
+            DataItem::Float {
                 value: 0.5,
                 bitwidth: FloatWidth::SixtyFour,
             },
@@ -234,7 +234,7 @@ testcases! {
         }
 
         infinity {
-            Value::Float {
+            DataItem::Float {
                 value: f64::INFINITY,
                 bitwidth: FloatWidth::SixtyFour,
             },
@@ -245,7 +245,7 @@ testcases! {
         }
 
         neg_infinity {
-            Value::Float {
+            DataItem::Float {
                 value: f64::NEG_INFINITY,
                 bitwidth: FloatWidth::SixtyFour,
             },
@@ -256,7 +256,7 @@ testcases! {
         }
 
         nan(value2diag, value2hex) {
-            Value::Float {
+            DataItem::Float {
                 value: f64::NAN,
                 bitwidth: FloatWidth::SixtyFour,
             },

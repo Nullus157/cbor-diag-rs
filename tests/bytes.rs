@@ -5,7 +5,7 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{ByteString, IntegerWidth, Value};
+use cbor_diag::{ByteString, DataItem, IntegerWidth};
 
 #[macro_use]
 mod utils;
@@ -19,7 +19,7 @@ mod utils;
 testcases! {
     mod diag {
         empty(diag2value, value2diag) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![],
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -27,7 +27,7 @@ testcases! {
         }
 
         hello(diag2value, value2diag) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -35,7 +35,7 @@ testcases! {
         }
 
         alpha(diag2value, value2diag) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -43,7 +43,7 @@ testcases! {
         }
 
         non_alpha(diag2value, value2diag) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 bitwidth: IntegerWidth::Unknown,
             }),
@@ -53,7 +53,7 @@ testcases! {
 
     mod tiny {
         empty(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![],
                 bitwidth: IntegerWidth::Zero,
             }),
@@ -64,7 +64,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::Zero,
             }),
@@ -77,7 +77,7 @@ testcases! {
 
     mod u8 {
         empty(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![],
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -88,7 +88,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -99,7 +99,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -111,7 +111,7 @@ testcases! {
         }
 
         non_alpha(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 bitwidth: IntegerWidth::Eight,
             }),
@@ -124,7 +124,7 @@ testcases! {
 
     mod u16 {
         empty(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![],
                 bitwidth: IntegerWidth::Sixteen,
             }),
@@ -135,7 +135,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::Sixteen,
             }),
@@ -146,7 +146,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
                 bitwidth: IntegerWidth::Sixteen,
             }),
@@ -160,7 +160,7 @@ testcases! {
 
     mod u32 {
         empty(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![],
                 bitwidth: IntegerWidth::ThirtyTwo,
             }),
@@ -171,7 +171,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::ThirtyTwo,
             }),
@@ -182,7 +182,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
                 bitwidth: IntegerWidth::ThirtyTwo,
             }),
@@ -196,7 +196,7 @@ testcases! {
 
     mod u64 {
         empty(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: vec![],
                 bitwidth: IntegerWidth::SixtyFour,
             }),
@@ -207,7 +207,7 @@ testcases! {
         }
 
         hello(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::SixtyFour,
             }),
@@ -218,7 +218,7 @@ testcases! {
         }
 
         alpha(hex2value, value2hex) {
-            Value::ByteString(ByteString {
+            DataItem::ByteString(ByteString {
                 data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
                 bitwidth: IntegerWidth::SixtyFour,
             }),
@@ -233,12 +233,12 @@ testcases! {
     mod indefinite {
         mod diag {
             empty(value2diag) {
-                Value::IndefiniteByteString(vec![]),
+                DataItem::IndefiniteByteString(vec![]),
                 "(_ )",
             }
 
             one_empty(diag2value, value2diag) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: vec![],
                         bitwidth: IntegerWidth::Unknown,
@@ -248,7 +248,7 @@ testcases! {
             }
 
             some_empty(diag2value, value2diag) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: vec![],
                         bitwidth: IntegerWidth::Unknown,
@@ -262,7 +262,7 @@ testcases! {
             }
 
             hello_world(diag2value, value2diag) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: b"hello"[..].into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -276,7 +276,7 @@ testcases! {
             }
 
             alpha(diag2value, value2diag) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: b"abc"[..].into(),
                         bitwidth: IntegerWidth::Unknown,
@@ -298,7 +298,7 @@ testcases! {
             }
 
             non_alpha(diag2value, value2diag) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: vec![0, 1, 2, 3, 4],
                         bitwidth: IntegerWidth::Unknown,
@@ -314,7 +314,7 @@ testcases! {
 
         mod hex {
             empty(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![]),
+                DataItem::IndefiniteByteString(vec![]),
                 indoc!(r#"
                     5f    # bytes(*)
                        ff #   break
@@ -322,7 +322,7 @@ testcases! {
             }
 
             one_empty(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: "".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -337,7 +337,7 @@ testcases! {
             }
 
             some_empty(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: "".into(),
                         bitwidth: IntegerWidth::Zero,
@@ -358,7 +358,7 @@ testcases! {
             }
 
             hello_world(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: b"hello"[..].into(),
                         bitwidth: IntegerWidth::Zero,
@@ -379,7 +379,7 @@ testcases! {
             }
 
             alpha(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: b"abc"[..].into(),
                         bitwidth: IntegerWidth::Zero,
@@ -413,7 +413,7 @@ testcases! {
             }
 
             non_alpha(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: vec![0, 1, 2, 3, 4],
                         bitwidth: IntegerWidth::Zero,
@@ -434,7 +434,7 @@ testcases! {
             }
 
             escaped(hex2value, value2hex) {
-                Value::IndefiniteByteString(vec![
+                DataItem::IndefiniteByteString(vec![
                     ByteString {
                         data: b"\\"[..].into(),
                         bitwidth: IntegerWidth::Zero,

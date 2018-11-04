@@ -6,7 +6,9 @@ extern crate hex;
 
 extern crate cbor_diag;
 
-use cbor_diag::{ByteString, FloatWidth, IntegerWidth, Tag, TextString, Value};
+use cbor_diag::{
+    ByteString, DataItem, FloatWidth, IntegerWidth, Tag, TextString,
+};
 
 #[macro_use]
 mod utils;
@@ -14,10 +16,10 @@ mod utils;
 testcases! {
     mod both {
         self_describe_cbor {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::SELF_DESCRIBE_CBOR,
                 bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(Value::Integer {
+                value: Box::new(DataItem::Integer {
                     value: 0,
                     bitwidth: IntegerWidth::Zero,
                 }),
@@ -32,28 +34,28 @@ testcases! {
 
     mod diag {
         date_time(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::TextString(TextString {
+                        value: Box::new(DataItem::TextString(TextString {
                             data: "2018-08-02T18:19:38Z".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }))
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::TextString(TextString {
+                        value: Box::new(DataItem::TextString(TextString {
                             data: "1921-06-01T05:40:21Z".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }))
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::TextString(TextString {
+                        value: Box::new(DataItem::TextString(TextString {
                             data: "2018-08-02T18:19:38.125Z".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }))
@@ -65,28 +67,28 @@ testcases! {
         }
 
         epoch_date_time(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::Integer {
+                        value: Box::new(DataItem::Integer {
                             value: 1533233978,
                             bitwidth: IntegerWidth::Unknown,
                         })
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::Negative {
+                        value: Box::new(DataItem::Negative {
                             value: 1533233978,
                             bitwidth: IntegerWidth::Unknown,
                         })
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::Float {
+                        value: Box::new(DataItem::Float {
                             value: 1533233978.125,
                             bitwidth: FloatWidth::Unknown,
                         })
@@ -98,10 +100,10 @@ testcases! {
         }
 
         positive_bignum(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::POSITIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode(
                         "000001ffffffffffffffffffffff0000000000000000000000"
                     ).unwrap(),
@@ -112,10 +114,10 @@ testcases! {
         }
 
         negative_bignum(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::NEGATIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode(
                         "123456789abcdeffedcba987654321"
                     ).unwrap(),
@@ -126,16 +128,16 @@ testcases! {
         }
 
         decimal_fraction(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::DECIMAL_FRACTION,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 1,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 27315,
                             bitwidth: IntegerWidth::Unknown,
                         },
@@ -147,16 +149,16 @@ testcases! {
         }
 
         bigfloat(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BIGFLOAT,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 0,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 3,
                             bitwidth: IntegerWidth::Zero,
                         },
@@ -168,19 +170,19 @@ testcases! {
         }
 
         decimal_fraction_bignum(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::DECIMAL_FRACTION,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 1,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::ByteString(ByteString {
+                            value: Box::new(DataItem::ByteString(ByteString {
                                 data: hex::decode(
                                     "000001ffffffffffffffffffffff0000000000000000000000"
                                 ).unwrap(),
@@ -195,19 +197,19 @@ testcases! {
         }
 
         bigfloat_bignum(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BIGFLOAT,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 0,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::ByteString(ByteString {
+                            value: Box::new(DataItem::ByteString(ByteString {
                                 data: hex::decode(
                                     "000001ffffffffffffffffffffff0000000000000000000000"
                                 ).unwrap(),
@@ -222,10 +224,10 @@ testcases! {
         }
 
         base64url_encoding(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -234,12 +236,12 @@ testcases! {
         }
 
         base64url_encoding_nested(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
@@ -251,10 +253,10 @@ testcases! {
         }
 
         base64_encoding(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -263,12 +265,12 @@ testcases! {
         }
 
         base64_encoding_nested(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
@@ -280,10 +282,10 @@ testcases! {
         }
 
         base16_encoding(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE16,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -292,12 +294,12 @@ testcases! {
         }
 
         base16_encoding_nested(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE16,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
@@ -309,21 +311,21 @@ testcases! {
         }
 
         multiple_encodings(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::ENCODED_BASE64,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::Array {
+                            value: Box::new(DataItem::Array {
                                 data: vec![
-                                    Value::ByteString(ByteString {
+                                    DataItem::ByteString(ByteString {
                                         data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                                         bitwidth: IntegerWidth::Unknown,
                                     })
@@ -331,10 +333,10 @@ testcases! {
                                 bitwidth: None,
                             })
                         },
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::ENCODED_BASE16,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::ByteString(ByteString {
+                            value: Box::new(DataItem::ByteString(ByteString {
                                 data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                                 bitwidth: IntegerWidth::Unknown,
                             })),
@@ -347,10 +349,10 @@ testcases! {
         }
 
         encoded_cbor(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("9f64f09f87b317ff").unwrap(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -359,10 +361,10 @@ testcases! {
         }
 
         encoded_cbor_invalid(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("ff").unwrap(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -371,10 +373,10 @@ testcases! {
         }
 
         encoded_cbor_nested(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("d818489f64f09f87b317ff").unwrap(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -383,10 +385,10 @@ testcases! {
         }
 
         uri(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::URI,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "https://example.com".into(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -395,10 +397,10 @@ testcases! {
         }
 
         uri_non_http(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::URI,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "urn:oasis:names:specification:docbook:dtd:xml:4.1.2".into(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -407,10 +409,10 @@ testcases! {
         }
 
         uri_invalid(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::URI,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "foo".into(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -419,10 +421,10 @@ testcases! {
         }
 
         base64url(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BASE64URL,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2".into(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -431,10 +433,10 @@ testcases! {
         }
 
         base64(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BASE64,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2".into(),
                     bitwidth: IntegerWidth::Unknown,
                 })),
@@ -443,10 +445,10 @@ testcases! {
         }
 
         self_describe_cbor(diag2value, value2diag) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::SELF_DESCRIBE_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(Value::Integer {
+                value: Box::new(DataItem::Integer {
                     value: 0,
                     bitwidth: IntegerWidth::Zero,
                 }),
@@ -457,28 +459,28 @@ testcases! {
 
     mod hex_tests {
         date_time(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::TextString(TextString {
+                        value: Box::new(DataItem::TextString(TextString {
                             data: "2018-08-02T18:19:38Z".into(),
                             bitwidth: IntegerWidth::Zero,
                         }))
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::TextString(TextString {
+                        value: Box::new(DataItem::TextString(TextString {
                             data: "1921-06-01T05:40:21Z".into(),
                             bitwidth: IntegerWidth::Zero,
                         }))
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::TextString(TextString {
+                        value: Box::new(DataItem::TextString(TextString {
                             data: "2018-08-02T18:19:38.125Z".into(),
                             bitwidth: IntegerWidth::Eight,
                         }))
@@ -504,28 +506,28 @@ testcases! {
         }
 
         epoch_date_time(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::Integer {
+                        value: Box::new(DataItem::Integer {
                             value: 1533233978,
                             bitwidth: IntegerWidth::ThirtyTwo,
                         })
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::Negative {
+                        value: Box::new(DataItem::Negative {
                             value: 1533233978,
                             bitwidth: IntegerWidth::ThirtyTwo,
                         })
                     },
-                    Value::Tag {
+                    DataItem::Tag {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
-                        value: Box::new(Value::Float {
+                        value: Box::new(DataItem::Float {
                             value: 1533233978.125,
                             bitwidth: FloatWidth::SixtyFour,
                         })
@@ -548,10 +550,10 @@ testcases! {
         }
 
         positive_bignum(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::POSITIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode(
                         "000001ffffffffffffffffffffff0000000000000000000000"
                     ).unwrap(),
@@ -568,10 +570,10 @@ testcases! {
         }
 
         negative_bignum(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::NEGATIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode(
                         "123456789abcdeffedcba987654321"
                     ).unwrap(),
@@ -587,16 +589,16 @@ testcases! {
         }
 
         decimal_fraction(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::DECIMAL_FRACTION,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 1,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 27315,
                             bitwidth: IntegerWidth::Sixteen,
                         },
@@ -614,16 +616,16 @@ testcases! {
         }
 
         bigfloat(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BIGFLOAT,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 0,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 3,
                             bitwidth: IntegerWidth::Zero,
                         },
@@ -641,19 +643,19 @@ testcases! {
         }
 
         decimal_fraction_bignum(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::DECIMAL_FRACTION,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 52,
                             bitwidth: IntegerWidth::Eight,
                         },
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::ByteString(ByteString {
+                            value: Box::new(DataItem::ByteString(ByteString {
                                 data: hex::decode(
                                     "000001ffffffffffffffffffffff0000000000000000000000"
                                 ).unwrap(),
@@ -678,19 +680,19 @@ testcases! {
         }
 
         bigfloat_bignum(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BIGFLOAT,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::Negative {
+                        DataItem::Negative {
                             value: 175,
                             bitwidth: IntegerWidth::Eight,
                         },
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::ByteString(ByteString {
+                            value: Box::new(DataItem::ByteString(ByteString {
                                 data: hex::decode(
                                     "000001ffffffffffffffffffffff0000000000000000000000"
                                 ).unwrap(),
@@ -715,10 +717,10 @@ testcases! {
         }
 
         base64url_encoding(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -731,12 +733,12 @@ testcases! {
         }
 
         base64url_encoding_nested(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Zero,
                         }),
@@ -754,10 +756,10 @@ testcases! {
         }
 
         base64_encoding(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -770,12 +772,12 @@ testcases! {
         }
 
         base64_encoding_nested(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Zero,
                         }),
@@ -793,10 +795,10 @@ testcases! {
         }
 
         base16_encoding(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE16,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -809,12 +811,12 @@ testcases! {
         }
 
         base16_encoding_nested(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE16,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Zero,
                         }),
@@ -832,21 +834,21 @@ testcases! {
         }
 
         multiple_encodings(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(Value::Array {
+                value: Box::new(DataItem::Array {
                     data: vec![
-                        Value::ByteString(ByteString {
+                        DataItem::ByteString(ByteString {
                             data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                             bitwidth: IntegerWidth::Zero,
                         }),
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::ENCODED_BASE64,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::Array {
+                            value: Box::new(DataItem::Array {
                                 data: vec![
-                                    Value::ByteString(ByteString {
+                                    DataItem::ByteString(ByteString {
                                         data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                                         bitwidth: IntegerWidth::Zero,
                                     })
@@ -854,10 +856,10 @@ testcases! {
                                 bitwidth: None,
                             })
                         },
-                        Value::Tag {
+                        DataItem::Tag {
                             tag: Tag::ENCODED_BASE16,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(Value::ByteString(ByteString {
+                            value: Box::new(DataItem::ByteString(ByteString {
                                 data: hex::decode("123456789abcdeffedcba9876543").unwrap(),
                                 bitwidth: IntegerWidth::Zero,
                             })),
@@ -884,10 +886,10 @@ testcases! {
         }
 
         encoded_cbor(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("9f64f09f87b317ff").unwrap(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -906,10 +908,10 @@ testcases! {
         }
 
         encoded_cbor_invalid(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("ff").unwrap(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -924,10 +926,10 @@ testcases! {
         }
 
         uri(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::URI,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "https://example.com".into(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -941,10 +943,10 @@ testcases! {
         }
 
         uri_non_http(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::URI,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "urn:oasis:names:specification:docbook:dtd:xml:4.1.2".into(),
                     bitwidth: IntegerWidth::Eight,
                 })),
@@ -961,10 +963,10 @@ testcases! {
         }
 
         uri_invalid(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::URI,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "foo".into(),
                     bitwidth: IntegerWidth::Zero,
                 })),
@@ -978,10 +980,10 @@ testcases! {
         }
 
         base64url(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BASE64URL,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2".into(),
                     bitwidth: IntegerWidth::Eight,
                 })),
@@ -998,10 +1000,10 @@ testcases! {
         }
 
         base64(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::BASE64,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::TextString(TextString {
+                value: Box::new(DataItem::TextString(TextString {
                     data: "aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2".into(),
                     bitwidth: IntegerWidth::Eight,
                 })),
@@ -1018,10 +1020,10 @@ testcases! {
         }
 
         encoded_cbor_nested(hex2value, value2hex) {
-            Value::Tag {
+            DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(Value::ByteString(ByteString {
+                value: Box::new(DataItem::ByteString(ByteString {
                     data: hex::decode("d818489f64f09f87b317ff").unwrap(),
                     bitwidth: IntegerWidth::Zero,
                 })),

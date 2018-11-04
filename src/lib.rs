@@ -11,10 +11,10 @@ extern crate uri;
 mod encode;
 mod error;
 mod parse;
-pub mod syntax;
+mod syntax;
 
 pub use syntax::{
-    ByteString, FloatWidth, IntegerWidth, Simple, Tag, TextString, Value,
+    ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString,
 };
 
 pub use error::{Error, Result};

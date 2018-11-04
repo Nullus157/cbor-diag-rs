@@ -5,7 +5,7 @@ extern crate pretty_assertions;
 
 extern crate cbor_diag;
 
-use cbor_diag::{IntegerWidth, TextString, Value};
+use cbor_diag::{DataItem, IntegerWidth, TextString};
 
 #[macro_use]
 mod utils;
@@ -19,7 +19,7 @@ mod utils;
 testcases! {
     mod diag {
         empty(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
@@ -27,13 +27,13 @@ testcases! {
         }
 
         hello_world(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "hello".into(),
                         bitwidth: IntegerWidth::Unknown,
                     }),
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "world".into(),
                         bitwidth: IntegerWidth::Unknown,
                     }),
@@ -44,13 +44,13 @@ testcases! {
         }
 
         non_alpha(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     }),
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1ff}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     }),
@@ -61,13 +61,13 @@ testcases! {
         }
 
         heterogenous(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     }),
-                    Value::Integer {
+                    DataItem::Integer {
                         value: 23,
                         bitwidth: IntegerWidth::Zero,
                     },
@@ -78,23 +78,23 @@ testcases! {
         }
 
         nested(diag2value, value2diag) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Unknown,
                     }),
-                    Value::Integer {
+                    DataItem::Integer {
                         value: 23,
                         bitwidth: IntegerWidth::Zero,
                     },
-                    Value::Array {
+                    DataItem::Array {
                         data: vec![
-                            Value::TextString(TextString {
+                            DataItem::TextString(TextString {
                                 data: "\u{1f1f3}".into(),
                                 bitwidth: IntegerWidth::Unknown,
                             }),
-                            Value::Integer {
+                            DataItem::Integer {
                                 value: 23,
                                 bitwidth: IntegerWidth::Zero,
                             },
@@ -110,7 +110,7 @@ testcases! {
 
     mod hex {
         empty(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![],
                 bitwidth: Some(IntegerWidth::Zero),
             },
@@ -120,13 +120,13 @@ testcases! {
         }
 
         hello_world(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "hello".into(),
                         bitwidth: IntegerWidth::Zero,
                     }),
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "world".into(),
                         bitwidth: IntegerWidth::Sixteen,
                     }),
@@ -143,13 +143,13 @@ testcases! {
         }
 
         non_alpha(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Zero,
                     }),
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1ff}".into(),
                         bitwidth: IntegerWidth::Eight,
                     }),
@@ -166,13 +166,13 @@ testcases! {
         }
 
         heterogenous(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Zero,
                     }),
-                    Value::Integer {
+                    DataItem::Integer {
                         value: 23,
                         bitwidth: IntegerWidth::SixtyFour,
                     },
@@ -188,23 +188,23 @@ testcases! {
         }
 
         nested(hex2value, value2hex) {
-            Value::Array {
+            DataItem::Array {
                 data: vec![
-                    Value::TextString(TextString {
+                    DataItem::TextString(TextString {
                         data: "\u{1f1f3}".into(),
                         bitwidth: IntegerWidth::Zero,
                     }),
-                    Value::Integer {
+                    DataItem::Integer {
                         value: 23,
                         bitwidth: IntegerWidth::SixtyFour,
                     },
-                    Value::Array {
+                    DataItem::Array {
                         data: vec![
-                            Value::TextString(TextString {
+                            DataItem::TextString(TextString {
                                 data: "\u{1f1f3}".into(),
                                 bitwidth: IntegerWidth::Zero,
                             }),
-                            Value::Integer {
+                            DataItem::Integer {
                                 value: 23,
                                 bitwidth: IntegerWidth::SixtyFour,
                             },
@@ -230,7 +230,7 @@ testcases! {
     mod indefinite {
         mod diag {
             empty(diag2value, value2diag) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![],
                     bitwidth: None,
                 },
@@ -238,13 +238,13 @@ testcases! {
             }
 
             hello_world(diag2value, value2diag) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "hello".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "world".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
@@ -255,13 +255,13 @@ testcases! {
             }
 
             non_alpha(diag2value, value2diag) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1f3}".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1ff}".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
@@ -272,13 +272,13 @@ testcases! {
             }
 
             heterogenous(diag2value, value2diag) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1f3}".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 23,
                             bitwidth: IntegerWidth::Zero,
                         },
@@ -289,23 +289,23 @@ testcases! {
             }
 
             nested(diag2value, value2diag) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1f3}".into(),
                             bitwidth: IntegerWidth::Unknown,
                         }),
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 23,
                             bitwidth: IntegerWidth::Zero,
                         },
-                        Value::Array {
+                        DataItem::Array {
                             data: vec![
-                                Value::TextString(TextString {
+                                DataItem::TextString(TextString {
                                     data: "\u{1f1f3}".into(),
                                     bitwidth: IntegerWidth::Unknown,
                                 }),
-                                Value::Integer {
+                                DataItem::Integer {
                                     value: 23,
                                     bitwidth: IntegerWidth::Zero,
                                 },
@@ -321,7 +321,7 @@ testcases! {
 
         mod hex {
             empty(hex2value, value2hex) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![],
                     bitwidth: None,
                 },
@@ -332,13 +332,13 @@ testcases! {
             }
 
             hello_world(hex2value, value2hex) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "hello".into(),
                             bitwidth: IntegerWidth::Zero,
                         }),
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "world".into(),
                             bitwidth: IntegerWidth::Sixteen,
                         }),
@@ -356,13 +356,13 @@ testcases! {
             }
 
             non_alpha(hex2value, value2hex) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1f3}".into(),
                             bitwidth: IntegerWidth::Zero,
                         }),
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1ff}".into(),
                             bitwidth: IntegerWidth::Eight,
                         }),
@@ -380,13 +380,13 @@ testcases! {
             }
 
             heterogenous(hex2value, value2hex) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1f3}".into(),
                             bitwidth: IntegerWidth::Zero,
                         }),
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 23,
                             bitwidth: IntegerWidth::SixtyFour,
                         },
@@ -403,23 +403,23 @@ testcases! {
             }
 
             nested(hex2value, value2hex) {
-                Value::Array {
+                DataItem::Array {
                     data: vec![
-                        Value::TextString(TextString {
+                        DataItem::TextString(TextString {
                             data: "\u{1f1f3}".into(),
                             bitwidth: IntegerWidth::Zero,
                         }),
-                        Value::Integer {
+                        DataItem::Integer {
                             value: 23,
                             bitwidth: IntegerWidth::SixtyFour,
                         },
-                        Value::Array {
+                        DataItem::Array {
                             data: vec![
-                                Value::TextString(TextString {
+                                DataItem::TextString(TextString {
                                     data: "\u{1f1f3}".into(),
                                     bitwidth: IntegerWidth::Zero,
                                 }),
-                                Value::Integer {
+                                DataItem::Integer {
                                     value: 23,
                                     bitwidth: IntegerWidth::SixtyFour,
                                 },
