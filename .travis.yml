@@ -1,0 +1,32 @@
+language: rust
+
+rust:
+- nightly-2019-02-06
+- nightly
+- beta
+- stable
+
+script:
+- cargo test --all
+- git diff
+
+matrix:
+  allow_failures:
+  - rust: nightly
+
+  include:
+  - name: cargo test
+    os: osx
+    rust: stable
+
+  - name: cargo fmt
+    install:
+    - rustup component add rustfmt
+    script:
+    - cargo fmt --all -- --check
+
+  - name: cargo clippy
+    install:
+    - rustup component add clippy
+    script:
+    - cargo clippy --all --all-targets -- -D warnings
