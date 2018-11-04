@@ -1,15 +1,16 @@
 #[macro_use]
 extern crate proptest;
-extern crate cbor_diag;
-extern crate hex;
-
 #[macro_use]
 extern crate pretty_assertions;
+extern crate cbor_diag;
+extern crate half;
+extern crate hex;
 
 use cbor_diag::{
-    parse_bytes, parse_diag, parse_hex, ByteString, DataItem, IntegerWidth,
-    Tag, TextString,
+    parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth,
+    IntegerWidth, Tag, TextString,
 };
+use half::f16;
 use proptest::{
     arbitrary::any,
     collection::{self, SizeRange},
@@ -36,6 +37,14 @@ fn arb_integer_width() -> impl Strategy<Value = IntegerWidth> {
         Just(IntegerWidth::Sixteen),
         Just(IntegerWidth::ThirtyTwo),
         Just(IntegerWidth::SixtyFour),
+    ]
+}
+
+fn arb_float_width() -> impl Strategy<Value = FloatWidth> {
+    prop_oneof![
+        Just(FloatWidth::Sixteen),
+        Just(FloatWidth::ThirtyTwo),
+        Just(FloatWidth::SixtyFour),
     ]
 }
 
@@ -131,6 +140,20 @@ fn arb_tagged(
     })
 }
 
+fn arb_float() -> impl Strategy<Value = DataItem> {
+    arb_float_width().prop_flat_map(|bitwidth| {
+        match bitwidth {
+            FloatWidth::SixtyFour => any::<f64>().boxed(),
+            FloatWidth::ThirtyTwo => any::<f32>().prop_map_into().boxed(),
+            FloatWidth::Sixteen => {
+                any::<f32>().prop_map(f16::from_f32).prop_map_into().boxed()
+            }
+            FloatWidth::Unknown => unreachable!(),
+        }
+        .prop_map(move |value| DataItem::Float { value, bitwidth })
+    })
+}
+
 fn arb_data_item_leaf() -> impl Strategy<Value = DataItem> {
     prop_oneof![
         arb_integer(),
@@ -139,6 +162,7 @@ fn arb_data_item_leaf() -> impl Strategy<Value = DataItem> {
         arb_indefinite_bytestring(),
         arb_definite_textstring(),
         arb_indefinite_textstring(),
+        arb_float(),
     ]
 }
 
