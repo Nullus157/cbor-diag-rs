@@ -8,7 +8,7 @@ extern crate pretty_assertions;
 
 use cbor_diag::{
     parse_bytes, parse_diag, parse_hex, ByteString, DataItem, IntegerWidth,
-    TextString,
+    Tag, TextString,
 };
 use proptest::{
     arbitrary::any,
@@ -104,6 +104,33 @@ fn arb_array(
         .prop_map(|(data, bitwidth)| DataItem::Array { data, bitwidth })
 }
 
+fn arb_map(
+    data: impl Strategy<Value = DataItem> + Clone,
+    count: impl Into<SizeRange>,
+) -> impl Strategy<Value = DataItem> {
+    (
+        collection::vec((data.clone(), data), count),
+        option::of(arb_integer_width()),
+    )
+        .prop_map(|(data, bitwidth)| DataItem::Map { data, bitwidth })
+}
+
+fn arb_tagged(
+    value: impl Strategy<Value = DataItem> + Clone,
+) -> impl Strategy<Value = DataItem> {
+    arb_integer_width().prop_flat_map(move |bitwidth| {
+        (
+            (0..=bitwidth_max(bitwidth)).prop_map(Tag),
+            value.clone().prop_map(Box::new),
+        )
+            .prop_map(move |(tag, value)| DataItem::Tag {
+                tag,
+                bitwidth,
+                value,
+            })
+    })
+}
+
 fn arb_data_item_leaf() -> impl Strategy<Value = DataItem> {
     prop_oneof![
         arb_integer(),
@@ -111,13 +138,17 @@ fn arb_data_item_leaf() -> impl Strategy<Value = DataItem> {
         arb_definite_bytestring(),
         arb_indefinite_bytestring(),
         arb_definite_textstring(),
-        arb_indefinite_textstring()
+        arb_indefinite_textstring(),
     ]
 }
 
 fn arb_data_item() -> impl Strategy<Value = DataItem> {
     arb_data_item_leaf().prop_recursive(8, 256, 10, |inner| {
-        prop_oneof![arb_array(inner.clone(), 0..10),]
+        prop_oneof![
+            arb_array(inner.clone(), 0..10),
+            arb_map(inner.clone(), 0..10),
+            arb_tagged(inner.clone()),
+        ]
     })
 }
 
