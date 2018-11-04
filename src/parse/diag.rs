@@ -1,3 +1,5 @@
+#![allow(clippy::needless_pass_by_value, clippy::useless_let_if_seq)]
+
 use std::f64;
 use std::str::FromStr;
 

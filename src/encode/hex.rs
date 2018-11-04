@@ -188,7 +188,7 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     };
 
     let comment =
-        format!("negative({})", (-1 - value as i128).separated_string());
+        format!("negative({})", (-1 - i128::from(value)).separated_string());
 
     Line::new(hex, comment)
 }

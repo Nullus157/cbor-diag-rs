@@ -1,3 +1,4 @@
+#![allow(clippy::useless_let_if_seq)]
 use std::str;
 
 // TODO(https://github.com/Geal/nom/pull/791)
@@ -55,7 +56,7 @@ named! {
     do_parse!(
         tag_bits!(u8, 3, 2) >>
         // TODO: verify is workaround for https://github.com/Geal/nom/issues/848
-        length: verify!(integer, |(l, _)| l < 0x2000000000000000) >>
+        length: verify!(integer, |(l, _)| l < 0x2000_0000_0000_0000) >>
         data: bytes!(take!(length.0)) >>
         (ByteString { data: data.into(), bitwidth: length.1 }))
 }
@@ -82,7 +83,7 @@ named! {
     do_parse!(
         tag_bits!(u8, 3, 3) >>
         // TODO: verify is workaround for https://github.com/Geal/nom/issues/848
-        length: verify!(integer, |(l, _)| l < 0x2000000000000000) >>
+        length: verify!(integer, |(l, _)| l < 0x2000_0000_0000_0000) >>
         data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
         (TextString { data: data.to_owned(), bitwidth: length.1 }))
 }
@@ -178,7 +179,7 @@ named! {
               | pair!(
                     preceded!(
                         tag_bits!(u8, 5, 26),
-                        map!(bytes!(be_f32), |f| f as f64)),
+                        map!(bytes!(be_f32), f64::from)),
                     value!(FloatWidth::ThirtyTwo))
               | pair!(
                     preceded!(tag_bits!(u8, 5, 27), bytes!(be_f64)),
