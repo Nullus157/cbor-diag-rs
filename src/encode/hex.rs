@@ -484,7 +484,7 @@ fn datetime_epoch(value: &DataItem) -> Line {
         match DateTime::parse_from_rfc3339(data) {
             Ok(value) => value,
             Err(err) => {
-                return Line::new("", format!("error parsing datetime: {}", err))
+                return Line::new("", format!("error parsing datetime: {}", err));
             }
         }
     } else {
