@@ -1,9 +1,8 @@
 #![allow(clippy::useless_let_if_seq)]
 use std::str;
 
-// TODO(https://github.com/Geal/nom/pull/791)
 use half::f16;
-use nom::{be_f32, be_f64, be_u16, Context};
+use nom::{be_f32, be_f64, be_u16};
 
 use {
     ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,

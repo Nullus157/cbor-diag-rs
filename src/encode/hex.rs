@@ -507,12 +507,10 @@ fn epoch_datetime(value: &DataItem) -> Line {
         DataItem::Negative { value, .. } => {
             if value >= (i64::max_value() as u64) {
                 None
+            } else if let Some(value) = (-1i64).checked_sub(value as i64) {
+                NaiveDateTime::from_timestamp_opt(value, 0)
             } else {
-                if let Some(value) = (-1i64).checked_sub(value as i64) {
-                    NaiveDateTime::from_timestamp_opt(value, 0)
-                } else {
-                    None
-                }
+                None
             }
         }
 
@@ -746,7 +744,7 @@ fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
     let hex = match bitwidth {
         FloatWidth::Unknown => unreachable!(),
         FloatWidth::Sixteen => {
-            format!("f9 {:04x}", f16::from_f64(value).as_bits())
+            format!("f9 {:04x}", f16::from_f64(value).to_bits())
         }
         FloatWidth::ThirtyTwo => format!("fa {:08x}", (value as f32).to_bits()),
         FloatWidth::SixtyFour => format!("fb {:016x}", value.to_bits()),

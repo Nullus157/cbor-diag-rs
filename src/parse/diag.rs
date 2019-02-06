@@ -7,8 +7,6 @@ use base64;
 use hex;
 use nom::{self, digit, hex_digit0, AsChar};
 
-use nom::Needed;
-
 use {
     ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
     TextString,
