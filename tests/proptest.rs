@@ -232,7 +232,7 @@ fn datetime_invalid() {
         tag: Tag::EPOCH_DATETIME,
         bitwidth: IntegerWidth::Zero,
         value: Box::new(DataItem::Float {
-            value: -0.000024616718292236328,
+            value: -0.000_024_616_718_292_236_328,
             bitwidth: FloatWidth::Sixteen,
         }),
     };
@@ -245,7 +245,7 @@ fn datetime_overflow() {
         tag: Tag::EPOCH_DATETIME,
         bitwidth: IntegerWidth::Zero,
         value: Box::new(DataItem::Negative {
-            value: 8334632851200,
+            value: 8_334_632_851_200,
             bitwidth: IntegerWidth::SixtyFour,
         }),
     };
