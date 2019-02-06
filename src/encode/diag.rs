@@ -18,10 +18,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub(crate) fn with_encoding<'b>(
-        &'b mut self,
-        encoding: Encoding,
-    ) -> Context<'b> {
+    pub(crate) fn with_encoding(&mut self, encoding: Encoding) -> Context<'_> {
         Context {
             encoding,
             output: self.output,

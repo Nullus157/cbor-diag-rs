@@ -188,7 +188,7 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     };
 
     let comment =
-        format!("negative({})", (-1 - value as i128).separated_string());
+        format!("negative({})", (-1 - i128::from(value)).separated_string());
 
     Line::new(hex, comment)
 }
@@ -484,7 +484,7 @@ fn datetime_epoch(value: &DataItem) -> Line {
         match DateTime::parse_from_rfc3339(data) {
             Ok(value) => value,
             Err(err) => {
-                return Line::new("", format!("error parsing datetime: {}", err))
+                return Line::new("", format!("error parsing datetime: {}", err));
             }
         }
     } else {
@@ -498,24 +498,36 @@ fn epoch_datetime(value: &DataItem) -> Line {
     let date = match *value {
         DataItem::Integer { value, .. } => {
             if value >= (i64::max_value() as u64) {
-                return Line::new("", "offset is too large");
+                None
+            } else {
+                NaiveDateTime::from_timestamp_opt(value as i64, 0)
             }
-            NaiveDateTime::from_timestamp(value as i64, 0)
         }
+
         DataItem::Negative { value, .. } => {
             if value >= (i64::max_value() as u64) {
-                return Line::new("", "offset is too large");
-            }
-            if let Some(value) = (-1i64).checked_sub(value as i64) {
-                NaiveDateTime::from_timestamp(value, 0)
+                None
+            } else if let Some(value) = (-1i64).checked_sub(value as i64) {
+                NaiveDateTime::from_timestamp_opt(value, 0)
             } else {
-                return Line::new("", "offset is too large");
+                None
             }
         }
-        DataItem::Float { value, .. } => NaiveDateTime::from_timestamp(
-            value.abs() as i64,
-            (value.fract() * 1_000_000_000.0) as u32,
-        ),
+
+        DataItem::Float { value, .. } => {
+            if value - 1.0 <= (i64::min_value() as f64)
+                || value >= (i64::max_value() as f64)
+            {
+                None
+            } else {
+                let (value, fract) = if value < 0.0 {
+                    (value - 1.0, (1.0 + value.fract()) * 1_000_000_000.0)
+                } else {
+                    (value, value.fract() * 1_000_000_000.0)
+                };
+                NaiveDateTime::from_timestamp_opt(value as i64, fract as u32)
+            }
+        }
 
         DataItem::ByteString(..)
         | DataItem::IndefiniteByteString(..)
@@ -529,7 +541,11 @@ fn epoch_datetime(value: &DataItem) -> Line {
         }
     };
 
-    Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+    if let Some(date) = date {
+        Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+    } else {
+        return Line::new("", "offset is too large");
+    }
 }
 
 fn extract_positive_bignum(value: &DataItem) -> Option<BigUint> {
@@ -728,7 +744,7 @@ fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
     let hex = match bitwidth {
         FloatWidth::Unknown => unreachable!(),
         FloatWidth::Sixteen => {
-            format!("f9 {:04x}", f16::from_f64(value).as_bits())
+            format!("f9 {:04x}", f16::from_f64(value).to_bits())
         }
         FloatWidth::ThirtyTwo => format!("fa {:08x}", (value as f32).to_bits()),
         FloatWidth::SixtyFour => format!("fb {:016x}", value.to_bits()),

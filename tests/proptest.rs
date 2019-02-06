@@ -225,3 +225,29 @@ fn newline_in_string() {
     });
     assert_eq!(item, parse_hex(item.to_hex()).unwrap());
 }
+
+#[test]
+fn datetime_invalid() {
+    let item = DataItem::Tag {
+        tag: Tag::EPOCH_DATETIME,
+        bitwidth: IntegerWidth::Zero,
+        value: Box::new(DataItem::Float {
+            value: -0.000024616718292236328,
+            bitwidth: FloatWidth::Sixteen,
+        }),
+    };
+    assert_eq!(item, parse_hex(item.to_hex()).unwrap());
+}
+
+#[test]
+fn datetime_overflow() {
+    let item = DataItem::Tag {
+        tag: Tag::EPOCH_DATETIME,
+        bitwidth: IntegerWidth::Zero,
+        value: Box::new(DataItem::Negative {
+            value: 8334632851200,
+            bitwidth: IntegerWidth::SixtyFour,
+        }),
+    };
+    assert_eq!(item, parse_hex(item.to_hex()).unwrap());
+}

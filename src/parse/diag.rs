@@ -1,11 +1,11 @@
+#![allow(clippy::needless_pass_by_value, clippy::useless_let_if_seq)]
+
 use std::f64;
 use std::str::FromStr;
 
 use base64;
 use hex;
 use nom::{self, digit, hex_digit0, AsChar};
-
-use nom::Needed;
 
 use {
     ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,

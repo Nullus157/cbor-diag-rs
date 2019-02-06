@@ -73,7 +73,7 @@ testcases! {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
                         value: Box::new(DataItem::Integer {
-                            value: 1533233978,
+                            value: 1_533_233_978,
                             bitwidth: IntegerWidth::Unknown,
                         })
                     },
@@ -81,7 +81,7 @@ testcases! {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
                         value: Box::new(DataItem::Negative {
-                            value: 1533233978,
+                            value: 1_533_233_978,
                             bitwidth: IntegerWidth::Unknown,
                         })
                     },
@@ -89,7 +89,7 @@ testcases! {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
                         value: Box::new(DataItem::Float {
-                            value: 1533233978.125,
+                            value: 1_533_233_978.125,
                             bitwidth: FloatWidth::Unknown,
                         })
                     },
@@ -512,7 +512,7 @@ testcases! {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
                         value: Box::new(DataItem::Integer {
-                            value: 1533233978,
+                            value: 1_533_233_978,
                             bitwidth: IntegerWidth::ThirtyTwo,
                         })
                     },
@@ -520,7 +520,7 @@ testcases! {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
                         value: Box::new(DataItem::Negative {
-                            value: 1533233978,
+                            value: 1_533_233_978,
                             bitwidth: IntegerWidth::ThirtyTwo,
                         })
                     },
@@ -528,7 +528,7 @@ testcases! {
                         tag: Tag::EPOCH_DATETIME,
                         bitwidth: IntegerWidth::Zero,
                         value: Box::new(DataItem::Float {
-                            value: 1533233978.125,
+                            value: 1_533_233_978.125,
                             bitwidth: FloatWidth::SixtyFour,
                         })
                     },
