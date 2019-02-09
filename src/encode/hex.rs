@@ -9,7 +9,7 @@ use num::{
     bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
 };
 use separator::Separatable;
-use uri::is_uri;
+use url::Url;
 
 use {
     parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag,
@@ -258,12 +258,10 @@ fn bytes_to_hex<'a>(
             Some(Encoding::Base64Url) => format!(
                 "b64'{}'",
                 Base64Display::with_config(&data, base64::URL_SAFE_NO_PAD)
-                    .unwrap()
             ),
             Some(Encoding::Base64) => format!(
                 "b64'{}'",
                 Base64Display::with_config(&data, base64::STANDARD_NO_PAD)
-                    .unwrap()
             ),
             Some(Encoding::Base16) => format!("h'{}'", hex),
             None => {
@@ -661,10 +659,10 @@ fn uri(value: &DataItem) -> Line {
     if let DataItem::TextString(TextString { data, .. }) = value {
         Line::new(
             "",
-            if is_uri(data) {
-                "valid uri"
+            if Url::parse(data).is_ok() {
+                "valid URL (checked against URL Standard, not RFC 3986)"
             } else {
-                "invalid uri"
+                "invalid URL (checked against URL Standard, not RFC 3986)"
             },
         )
     } else {

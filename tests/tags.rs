@@ -938,7 +938,7 @@ testcases! {
                 d8 20                                        # uri, tag(32)
                    73                                        #   text(19)
                       68747470733a2f2f6578616d706c652e636f6d #     "https://example.com"
-                                                             #   valid uri
+                                                             #   valid URL (checked against URL Standard, not RFC 3986)
             "#),
         }
 
@@ -958,7 +958,7 @@ testcases! {
                       73706563696669636174696f6e3a646f #     "specification:do"
                       63626f6f6b3a6474643a786d6c3a342e #     "cbook:dtd:xml:4."
                       312e32                           #     "1.2"
-                                                       #   valid uri
+                                                       #   valid URL (checked against URL Standard, not RFC 3986)
             "#),
         }
 
@@ -975,7 +975,7 @@ testcases! {
                 d8 20        # uri, tag(32)
                    63        #   text(3)
                       666f6f #     "foo"
-                             #   invalid uri
+                             #   invalid URL (checked against URL Standard, not RFC 3986)
             "#),
         }
 

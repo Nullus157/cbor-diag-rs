@@ -6,7 +6,7 @@ extern crate half;
 extern crate hex;
 extern crate num;
 extern crate separator;
-extern crate uri;
+extern crate url;
 
 mod encode;
 mod error;
