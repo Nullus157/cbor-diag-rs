@@ -30,3 +30,6 @@ matrix:
     - rustup component add clippy
     script:
     - cargo clippy --all --all-targets -- -D warnings
+
+branches:
+  only: [staging, trying, master]
