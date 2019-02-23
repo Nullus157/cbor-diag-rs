@@ -19,6 +19,12 @@ matrix:
     os: osx
     rust: stable
 
+  # TODO(#6): Run tests here instead of just building
+  - name: cargo build -Z minimal-versions
+    script:
+    - cargo update -Z minimal-versions
+    - cargo build --all
+
   - name: cargo fmt
     install:
     - rustup component add rustfmt

@@ -65,7 +65,6 @@ impl<'a> Context<'a> {
                         &bytestring.data,
                         base64::URL_SAFE_NO_PAD
                     )
-                    .unwrap()
                 ));
             }
             Encoding::Base64 => {
@@ -75,7 +74,6 @@ impl<'a> Context<'a> {
                         &bytestring.data,
                         base64::STANDARD_NO_PAD
                     )
-                    .unwrap()
                 ));
             }
             Encoding::Base16 => {
