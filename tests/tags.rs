@@ -1045,6 +1045,60 @@ testcases! {
             "),
         }
 
+        uuid(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::UUID,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("8c8a8d48c00f42209cf8b75a882bf586").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 25                                  # uuid, tag(37)
+                   50                                  #   bytes(16)
+                      8c8a8d48c00f42209cf8b75a882bf586 #     h'8c8a8d48c00f42209cf8b75a882bf586'
+                                                       #   uuid(variant(RFC4122), version(4, Random))
+                                                       #     base16(8c8a8d48-c00f-4220-9cf8-b75a882bf586)
+                                                       #     base58(JMZyLNqHizfirvWvE2EXBK)
+                                                       #     base64(jIqNSMAPQiCc+LdaiCv1hg)
+            "#),
+        }
+
+        uuid_invalid_length(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::UUID,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("0123456789").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 25            # uuid, tag(37)
+                   45            #   bytes(5)
+                      0123456789 #     h'0123456789'
+                                 #   invalid data length for uuid
+            "#),
+        }
+
+        uuid_invalid_type(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::UUID,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "0123456789ab".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 25                          # uuid, tag(37)
+                   6c                          #   text(12)
+                      303132333435363738396162 #     "0123456789ab"
+                                               #   invalid type for uuid
+            "#),
+        }
+
         network_address_ipv4(hex2value, value2hex) {
             DataItem::Tag {
                 tag: Tag::NETWORK_ADDRESS,

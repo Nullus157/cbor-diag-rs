@@ -444,6 +444,17 @@ impl Tag {
     /// [RFC 2.4.4.3]: https://tools.ietf.org/html/rfc7049#section-2.4.4.3
     pub const MIME: Tag = Tag(36);
 
+    /// Marks this item as being a binary UUID; must only be applied to a [byte
+    /// string](DataItem::ByteString) (or the [indefinite
+    /// variant](DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// See [the spec][UuidSpec] for more details on what this means.
+    ///
+    /// Defined in [non-RFC specification][UuidSpec].
+    ///
+    /// [UuidSpec]: https://github.com/lucas-clemente/cbor-specs/blob/master/uuid.md
+    pub const UUID: Tag = Tag(37);
+
     /// Marks this item as being a Network Address (IPv4 or IPv6 or MAC
     /// Address); must only be applied to a [byte string](DataItem::ByteString)
     /// (or the [indefinite variant](DataItem::IndefiniteByteString) of) data

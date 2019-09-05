@@ -13,6 +13,7 @@ use num_rational::{BigRational, Ratio};
 use num_traits::pow::pow;
 use separator::Separatable;
 use url::Url;
+use uuid::Uuid;
 
 use {
     parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag,
@@ -440,8 +441,9 @@ fn tagged_to_hex(
         Tag::BASE64 => Some("base64 encoded text"),
         Tag::REGEX => Some("regex"),
         Tag::MIME => Some("mime message"),
-        Tag::SELF_DESCRIBE_CBOR => Some("self describe cbor"),
+        Tag::UUID => Some("uuid"),
         Tag::NETWORK_ADDRESS => Some("network address"),
+        Tag::SELF_DESCRIBE_CBOR => Some("self describe cbor"),
         _ => None,
     };
 
@@ -457,6 +459,7 @@ fn tagged_to_hex(
         Tag::BASE64 => Some(base64(value)),
         Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
         Tag::NETWORK_ADDRESS => Some(network_address(value)),
+        Tag::UUID => Some(uuid(value)),
         _ => None,
     };
 
@@ -465,6 +468,7 @@ fn tagged_to_hex(
         Tag::ENCODED_BASE64 => Some(Encoding::Base64),
         Tag::ENCODED_BASE16 => Some(Encoding::Base16),
         Tag::NETWORK_ADDRESS => Some(Encoding::Base16),
+        Tag::UUID => Some(Encoding::Base16),
         _ => encoding,
     };
 
@@ -740,6 +744,47 @@ fn encoded_cbor(value: &DataItem) -> Line {
         }
     } else {
         Line::new("", "invalid type for encoded cbor")
+    }
+}
+
+fn uuid(value: &DataItem) -> Line {
+    if let DataItem::ByteString(ByteString { data, .. }) = value {
+        if let Ok(uuid) = Uuid::from_slice(data) {
+            let version = uuid
+                .get_version()
+                .map(|v| format!("{:?}", v))
+                .unwrap_or_else(|| "Unknown".into());
+
+            let variant = uuid
+                .get_variant()
+                .map(|v| format!("{:?}", v))
+                .unwrap_or_else(|| "Unknown".into());
+
+            let uuid_base58 = bs58::encode(uuid.as_bytes()).into_string();
+            let uuid_base64 = Base64Display::with_config(
+                uuid.as_bytes(),
+                base64::STANDARD_NO_PAD,
+            );
+            let mut line = Line::new(
+                "",
+                format!(
+                    "uuid(variant({}), version({}, {}))",
+                    variant,
+                    uuid.get_version_num(),
+                    version
+                ),
+            );
+            line.sublines.extend(vec![
+                Line::new("", format!("base16({})", uuid)),
+                Line::new("", format!("base58({})", uuid_base58)),
+                Line::new("", format!("base64({})", uuid_base64)),
+            ]);
+            line
+        } else {
+            Line::new("", "invalid data length for uuid")
+        }
+    } else {
+        Line::new("", "invalid type for uuid")
     }
 }
 

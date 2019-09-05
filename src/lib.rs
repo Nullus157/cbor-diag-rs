@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate nom;
 extern crate base64;
+extern crate bs58;
 extern crate chrono;
 extern crate half;
 extern crate hex;
@@ -9,6 +10,7 @@ extern crate num_rational;
 extern crate num_traits;
 extern crate separator;
 extern crate url;
+extern crate uuid;
 
 mod encode;
 mod error;
