@@ -245,13 +245,12 @@ named! {
 ///     });
 /// ```
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
-    let (remaining, parsed) = data_item(bytes.as_ref()).map_err(|e| {
-        println!("{}: {:?}", e, e);
-        "Parsing error"
-    })?;
+    let (remaining, parsed) = data_item(bytes.as_ref())
+        .map_err(|e| format!("Parsing error ({:?})", e))?;
     if !remaining.is_empty() {
-        println!("parsed: {:?} remaining: {:?}", parsed, remaining);
-        return Err("Remaining text".into());
+        return Err(
+            format!("Remaining bytes ({})", hex::encode(remaining)).into()
+        );
     }
     Ok(parsed)
 }

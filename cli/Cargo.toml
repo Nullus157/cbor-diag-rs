@@ -1,17 +1,24 @@
 [package]
 name = "cbor-diag-cli"
 version = "0.1.0"
-authors = ["Wim Looman <wim.looman@kiwi.ki>"]
+authors = ["Wim Looman <wim@nemo157.com>"]
 edition = "2018"
+description = """
+A tool for transforming between different diagnostic encodings of [Concise
+Binary Object Representation (CBOR)](https://cbor.io).
+"""
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Nemo157/cbor-diag-rs"
 
 [[bin]]
 name = "cbor-diag"
 path = "src/main.rs"
 
 [dependencies]
-cbor-diag = { path = ".." }
-paw = { version = "1.0.0", default-features = false }
-structopt = { version = "0.3.0", default-features = false, features = ["paw", "color"] }
-strum = { git = "https://github.com/Peternator7/strum", branch = "refactor", default-features = false, features = ["derive"] }
+cbor-diag = { version = "0.1.1", path = "..", default-features = false }
 log = { version = "0.4.8", default-features = false }
+paw = { version = "1.0.0", default-features = false }
 pretty_env_logger = { version = "0.3.1", default-features = false }
+structopt = { version = "0.3.0", default-features = false, features = ["paw", "color"] }
+strum = { version = "0.15.0", default-features = false }
+strum_macros = { version = "0.15.0", default-features = false }
