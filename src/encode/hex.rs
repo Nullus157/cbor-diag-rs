@@ -1,4 +1,7 @@
-use std::{ascii, cmp, i64, iter};
+use std::{
+    ascii, cmp, i64, iter,
+    net::{Ipv4Addr, Ipv6Addr},
+};
 
 use super::Encoding;
 use base64::{self, display::Base64Display};
@@ -438,6 +441,7 @@ fn tagged_to_hex(
         Tag::REGEX => Some("regex"),
         Tag::MIME => Some("mime message"),
         Tag::SELF_DESCRIBE_CBOR => Some("self describe cbor"),
+        Tag::NETWORK_ADDRESS => Some("network address"),
         _ => None,
     };
 
@@ -452,6 +456,7 @@ fn tagged_to_hex(
         Tag::BASE64URL => Some(base64url(value)),
         Tag::BASE64 => Some(base64(value)),
         Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
+        Tag::NETWORK_ADDRESS => Some(network_address(value)),
         _ => None,
     };
 
@@ -459,6 +464,7 @@ fn tagged_to_hex(
         Tag::ENCODED_BASE64URL => Some(Encoding::Base64Url),
         Tag::ENCODED_BASE64 => Some(Encoding::Base64),
         Tag::ENCODED_BASE16 => Some(Encoding::Base16),
+        Tag::NETWORK_ADDRESS => Some(Encoding::Base16),
         _ => encoding,
     };
 
@@ -734,6 +740,35 @@ fn encoded_cbor(value: &DataItem) -> Line {
         }
     } else {
         Line::new("", "invalid type for encoded cbor")
+    }
+}
+
+fn network_address(value: &DataItem) -> Line {
+    if let DataItem::ByteString(ByteString { data, .. }) = value {
+        match data.len() {
+            4 => {
+                let addr = Ipv4Addr::from([data[0], data[1], data[2], data[3]]);
+                Line::new("", format!("IPv4 address({})", addr))
+            }
+            6 => {
+                let addr = format!(
+                    "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                    data[0], data[1], data[2], data[3], data[4], data[5]
+                );
+                Line::new("", format!("MAC address({})", addr))
+            }
+            16 => {
+                let addr = Ipv6Addr::from([
+                    data[0], data[1], data[2], data[3], data[4], data[5],
+                    data[6], data[7], data[8], data[9], data[10], data[11],
+                    data[12], data[13], data[14], data[15],
+                ]);
+                Line::new("", format!("IPv6 address({})", addr))
+            }
+            _ => Line::new("", "invalid data length for network address"),
+        }
+    } else {
+        Line::new("", "invalid type for network address")
     }
 }
 

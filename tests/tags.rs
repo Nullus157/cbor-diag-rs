@@ -1044,5 +1044,90 @@ testcases! {
                                              #                            #        ff          #   break
             "),
         }
+
+        network_address_ipv4(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::NETWORK_ADDRESS,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("c00a0a01").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 0104        # network address, tag(260)
+                   44          #   bytes(4)
+                      c00a0a01 #     h'c00a0a01'
+                               #   IPv4 address(192.10.10.1)
+            "#),
+        }
+
+        network_address_mac(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::NETWORK_ADDRESS,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("0123456789ab").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 0104            # network address, tag(260)
+                   46              #   bytes(6)
+                      0123456789ab #     h'0123456789ab'
+                                   #   MAC address(01:23:45:67:89:ab)
+            "#),
+        }
+
+        network_address_ipv6(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::NETWORK_ADDRESS,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("20010db885a3000000008a2e03707334").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 0104                                # network address, tag(260)
+                   50                                  #   bytes(16)
+                      20010db885a3000000008a2e03707334 #     h'20010db885a3000000008a2e03707334'
+                                                       #   IPv6 address(2001:db8:85a3::8a2e:370:7334)
+            "#),
+        }
+
+        network_address_invalid_length(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::NETWORK_ADDRESS,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("0123456789").unwrap(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 0104          # network address, tag(260)
+                   45            #   bytes(5)
+                      0123456789 #     h'0123456789'
+                                 #   invalid data length for network address
+            "#),
+        }
+
+        network_address_invalid_type(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::NETWORK_ADDRESS,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "0123456789ab".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 0104                        # network address, tag(260)
+                   6c                          #   text(12)
+                      303132333435363738396162 #     "0123456789ab"
+                                               #   invalid type for network address
+            "#),
+        }
     }
 }

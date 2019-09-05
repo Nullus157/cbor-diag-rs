@@ -444,6 +444,18 @@ impl Tag {
     /// [RFC 2.4.4.3]: https://tools.ietf.org/html/rfc7049#section-2.4.4.3
     pub const MIME: Tag = Tag(36);
 
+    /// Marks this item as being a Network Address (IPv4 or IPv6 or MAC
+    /// Address); must only be applied to a [byte string](DataItem::ByteString)
+    /// (or the [indefinite variant](DataItem::IndefiniteByteString) of) data
+    /// item.
+    ///
+    /// See [the spec][NetworkAddressSpec] for more details on what this means.
+    ///
+    /// Defined in [non-RFC specification][NetworkAddressSpec].
+    ///
+    /// [NetworkAddressSpec]: http://www.employees.org/~ravir/cbor-network.txt
+    pub const NETWORK_ADDRESS: Tag = Tag(260);
+
     /// Marks this item as being CBOR, a no-op; can be applied to any type of
     /// data item.
     ///
