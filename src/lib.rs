@@ -1,3 +1,13 @@
+//! A crate for parsing data encoded in [Concise Binary Object Representation
+//! (CBOR)](https://cbor.io) (in any of raw binary, hex encoded (with comments)
+//! or [diagnostic notation][]) then printing it out in either annotated hex
+//! form or diagnostic notation. While doing so as much of the structured data
+//! as possible is retained to improve the debugging experience.  The primary
+//! intention of this crate is to be used in diagnostic tools working with CBOR
+//! data.
+//!
+//! [diagnostic notation]: https://tools.ietf.org/html/rfc7049#section-6
+
 #[macro_use]
 extern crate nom;
 extern crate base64;
