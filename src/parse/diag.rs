@@ -351,13 +351,10 @@ named! {
 /// ```
 pub fn parse_diag(text: impl AsRef<str>) -> Result<DataItem> {
     let text = nom::types::CompleteStr(text.as_ref());
-    let (remaining, parsed) = data_item(text).map_err(|e| {
-        println!("{}: {:?}", e, e);
-        "Parsing error"
-    })?;
+    let (remaining, parsed) =
+        data_item(text).map_err(|e| format!("Parsing error ({:?})", e))?;
     if !remaining.is_empty() {
-        println!("parsed: {:?} remaining: {:?}", parsed, remaining);
-        return Err("Remaining text".into());
+        return Err(format!("Remaining text ({:?})", remaining).into());
     }
     Ok(parsed)
 }
