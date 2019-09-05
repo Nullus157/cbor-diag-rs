@@ -5,9 +5,9 @@ use base64::{self, display::Base64Display};
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
-use num::{
-    bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
-};
+use num_bigint::{BigInt, BigUint, Sign};
+use num_rational::{BigRational, Ratio};
+use num_traits::pow::pow;
 use separator::Separatable;
 use url::Url;
 
