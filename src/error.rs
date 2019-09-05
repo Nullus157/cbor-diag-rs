@@ -1,19 +1,36 @@
-use std::error::Error as StdError;
-use std::result::Result as StdResult;
+use std::{borrow::Cow, fmt};
 
 #[derive(Debug)]
 pub enum Error {
-    Todos(&'static str),
-    Todo(Box<StdError>),
+    Todo(Cow<'static, str>),
 }
 
-pub type Result<T> = StdResult<T, Error>;
+pub type Result<T> = std::result::Result<T, Error>;
 
-impl<T> From<T> for Error
-where
-    T: StdError + 'static,
-{
-    fn from(err: T) -> Error {
-        Error::Todo(Box::new(err))
+impl From<&'static str> for Error {
+    fn from(err: &'static str) -> Error {
+        Error::Todo(err.into())
+    }
+}
+
+impl From<String> for Error {
+    fn from(err: String) -> Error {
+        Error::Todo(err.into())
+    }
+}
+
+impl From<hex::FromHexError> for Error {
+    fn from(err: hex::FromHexError) -> Error {
+        err.to_string().into()
+    }
+}
+
+impl std::error::Error for Error {}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Todo(s) => write!(f, "TODO cbor-diag::Error: {}", s),
+        }
     }
 }

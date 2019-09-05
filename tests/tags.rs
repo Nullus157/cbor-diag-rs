@@ -921,7 +921,7 @@ testcases! {
                    41    #   bytes(1)
                       ff #     "\xff"
                          #   failed to parse encoded cbor data item
-                         #     Todos("Parsing error")
+                         #     Todo("Parsing error")
             "#),
         }
 

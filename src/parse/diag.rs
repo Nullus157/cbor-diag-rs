@@ -8,7 +8,7 @@ use hex;
 use nom::{self, digit, hex_digit0, AsChar};
 
 use {
-    ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
+    ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag,
     TextString,
 };
 
@@ -53,7 +53,7 @@ named! {
         (DataItem::Integer {
             value,
             bitwidth: match (encoding, value) {
-                (None, 0...23) => IntegerWidth::Zero,
+                (None, 0..=23) => IntegerWidth::Zero,
                 (Some(0), _) => IntegerWidth::Eight,
                 (Some(1), _) => IntegerWidth::Sixteen,
                 (Some(2), _) => IntegerWidth::ThirtyTwo,
@@ -75,7 +75,7 @@ named! {
             (DataItem::Negative {
                 value: value - 1,
                 bitwidth: match (encoding, value) {
-                    (None, 0...24) => IntegerWidth::Zero,
+                    (None, 0..=24) => IntegerWidth::Zero,
                     (Some(0), _) => IntegerWidth::Eight,
                     (Some(1), _) => IntegerWidth::Sixteen,
                     (Some(2), _) => IntegerWidth::ThirtyTwo,
@@ -216,7 +216,7 @@ named! {
         (DataItem::Tag {
             tag: Tag(tag),
             bitwidth: match (encoding, tag) {
-                (None, 0...23) => IntegerWidth::Zero,
+                (None, 0..=23) => IntegerWidth::Zero,
                 (Some(0), _) => IntegerWidth::Eight,
                 (Some(1), _) => IntegerWidth::Sixteen,
                 (Some(2), _) => IntegerWidth::ThirtyTwo,
@@ -353,11 +353,11 @@ pub fn parse_diag(text: impl AsRef<str>) -> Result<DataItem> {
     let text = nom::types::CompleteStr(text.as_ref());
     let (remaining, parsed) = data_item(text).map_err(|e| {
         println!("{}: {:?}", e, e);
-        Error::Todos("Parsing error")
+        "Parsing error"
     })?;
     if !remaining.is_empty() {
         println!("parsed: {:?} remaining: {:?}", parsed, remaining);
-        return Err(Error::Todos("Remaining text"));
+        return Err("Remaining text".into());
     }
     Ok(parsed)
 }

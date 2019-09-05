@@ -5,7 +5,7 @@ use half::f16;
 use nom::{be_f32, be_f64, be_u16};
 
 use {
-    ByteString, DataItem, Error, FloatWidth, IntegerWidth, Result, Simple, Tag,
+    ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag,
     TextString,
 };
 
@@ -247,11 +247,11 @@ named! {
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
     let (remaining, parsed) = data_item(bytes.as_ref()).map_err(|e| {
         println!("{}: {:?}", e, e);
-        Error::Todos("Parsing error")
+        "Parsing error"
     })?;
     if !remaining.is_empty() {
         println!("parsed: {:?} remaining: {:?}", parsed, remaining);
-        return Err(Error::Todos("Remaining text"));
+        return Err("Remaining text".into());
     }
     Ok(parsed)
 }
