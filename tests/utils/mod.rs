@@ -2,6 +2,25 @@ extern crate cbor_diag;
 
 pub use cbor_diag::{parse_diag, parse_hex};
 
+#[derive(Eq)]
+#[doc(hidden)]
+pub struct DisplayDebug<T>(pub T);
+
+impl<T, U> PartialEq<DisplayDebug<U>> for DisplayDebug<T>
+where
+    T: PartialEq<U>,
+{
+    fn eq(&self, rhs: &DisplayDebug<U>) -> bool {
+        self.0.eq(&rhs.0)
+    }
+}
+
+impl<T: std::fmt::Display> std::fmt::Debug for DisplayDebug<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[macro_export]
 macro_rules! testcases {
     (
@@ -44,7 +63,7 @@ macro_rules! testcases {
         #[test]
         fn value2diag() {
             let diag = $value.to_diag();
-            assert_eq!(diag, $diag);
+            assert_eq!($crate::utils::DisplayDebug(diag), $crate::utils::DisplayDebug($diag));
         }
 
         testcases! {
@@ -60,7 +79,7 @@ macro_rules! testcases {
         #[test]
         fn value2hex() {
             let hex = $value.to_hex();
-            assert_eq!(hex, $hex);
+            assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug($hex));
         }
 
         testcases! {

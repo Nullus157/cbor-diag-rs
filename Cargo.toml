@@ -19,12 +19,8 @@ num-traits = { version = "0.2.8", default-features = false }
 separator = { version = "0.4.0", default-features = false }
 uuid = { version = "0.7.4", default-features = false }
 bs58 = { version = "0.2.5", default-features = false }
+pretty_assertions = { version = "0.6.1", default-features = false }
 
 [dev-dependencies]
 indoc = { version = "0.3.1", default-features = false }
 proptest = { version = "0.9.0", default-features = false, features = ["std"] }
-
-[dev-dependencies.pretty_assertions]
-git = "https://github.com/Nemo157/rust-pretty-assertions"
-branch = "prettier-multiline-strings"
-default-features = false
