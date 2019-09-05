@@ -5,9 +5,9 @@ use base64::{self, display::Base64Display};
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use hex;
-use num::{
-    bigint::Sign, pow::pow, rational::Ratio, BigInt, BigRational, BigUint,
-};
+use num_bigint::{BigInt, BigUint, Sign};
+use num_rational::{BigRational, Ratio};
+use num_traits::pow::pow;
 use separator::Separatable;
 use url::Url;
 
@@ -545,7 +545,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
     if let Some(date) = date {
         Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
     } else {
-        return Line::new("", "offset is too large");
+        Line::new("", "offset is too large")
     }
 }
 
@@ -783,7 +783,7 @@ fn simple_to_hex(simple: Simple) -> Line {
         Simple::TRUE => "true, ",
         Simple::NULL => "null, ",
         Simple::UNDEFINED => "undefined, ",
-        Simple(24...32) => "reserved, ",
+        Simple(24..=32) => "reserved, ",
         _ => "unassigned, ",
     };
 

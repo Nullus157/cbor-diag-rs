@@ -1,28 +1,24 @@
 language: rust
 
 rust:
-- nightly-2019-02-06
-- nightly
-- beta
 - stable
+- beta
+- nightly
 
 script:
 - cargo test --all
-- git diff
+- git diff  # for proptest-regressions
 
 matrix:
-  allow_failures:
-  - rust: nightly
-
   include:
-  - name: cargo test
-    os: osx
-    rust: stable
+  - os: osx
 
   # TODO(#6): Run tests here instead of just building
   - name: cargo build -Z minimal-versions
+    install:
+    - rustup toolchain add nightly
     script:
-    - cargo update -Z minimal-versions
+    - cargo +nightly update -Z minimal-versions
     - cargo build --all
 
   - name: cargo fmt

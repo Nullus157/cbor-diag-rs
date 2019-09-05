@@ -4,7 +4,9 @@ extern crate base64;
 extern crate chrono;
 extern crate half;
 extern crate hex;
-extern crate num;
+extern crate num_bigint;
+extern crate num_rational;
+extern crate num_traits;
 extern crate separator;
 extern crate url;
 
