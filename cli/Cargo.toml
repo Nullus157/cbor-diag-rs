@@ -1,0 +1,17 @@
+[package]
+name = "cbor-diag-cli"
+version = "0.1.0"
+authors = ["Wim Looman <wim.looman@kiwi.ki>"]
+edition = "2018"
+
+[[bin]]
+name = "cbor-diag"
+path = "src/main.rs"
+
+[dependencies]
+cbor-diag = { path = ".." }
+paw = "1.0.0"
+structopt = { version = "0.3.0", default-features = false, features = ["paw", "color"] }
+strum = { git = "https://github.com/Peternator7/strum", features = ["derive"] }
+log = "0.4.8"
+pretty_env_logger = "0.3.1"

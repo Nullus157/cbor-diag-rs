@@ -3,6 +3,9 @@ authors = ["Wim Looman <wim@nemo157.com>"]
 name = "cbor-diag"
 version = "0.1.0"
 
+[workspace]
+members = ["cli"]
+
 [dependencies]
 hex = "0.3.2"
 nom = "4.2.0"
