@@ -2,225 +2,278 @@
 use std::str;
 
 use half::f16;
-use nom::{be_f32, be_f64, be_u16};
-
-use {
-    ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag,
-    TextString,
+use nom::{
+    self,
+    bits::{bits, bytes},
+    branch::alt,
+    bytes::complete::take as take_bytes,
+    combinator::{map, map_res, verify},
+    multi::{count, many_till},
+    number::complete::{be_f32, be_f64, be_u16},
+    sequence::{pair, preceded},
+    IResult,
 };
 
-named! {
-    integer<(&[u8], usize), (u64, IntegerWidth)>,
-    alt_complete!(
-        pair!(
-            verify!(take_bits!(u64, 5), |v| v < 24),
-            value!(IntegerWidth::Zero))
-      | pair!(
-            preceded!(tag_bits!(u8, 5, 24), take_bits!(u64, 8)),
-            value!(IntegerWidth::Eight))
-      | pair!(
-            preceded!(tag_bits!(u8, 5, 25), take_bits!(u64, 16)),
-            value!(IntegerWidth::Sixteen))
-      | pair!(
-            preceded!(tag_bits!(u8, 5, 26), take_bits!(u64, 32)),
-            value!(IntegerWidth::ThirtyTwo))
-      | pair!(
-            preceded!(tag_bits!(u8, 5, 27), take_bits!(u64, 64)),
-            value!(IntegerWidth::SixtyFour))
-    )
+use {ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
+
+pub fn take_bits<I, O>(count: usize) -> impl Fn((I, usize)) -> IResult<(I, usize), O>
+where
+    I: nom::Slice<std::ops::RangeFrom<usize>> + nom::InputIter<Item = u8> + nom::InputLength,
+    O: From<u8>
+        + core::ops::AddAssign
+        + core::ops::Shl<usize, Output = O>
+        + core::ops::Shr<usize, Output = O>,
+{
+    nom::bits::complete::take(count)
 }
 
-named! {
-    positive<(&[u8], usize), DataItem>,
-    preceded!(
-        tag_bits!(u8, 3, 0),
-        map!(integer, |(value, bitwidth)| DataItem::Integer {
+pub fn tag_bits<I, O>(pattern: O, count: usize) -> impl Fn((I, usize)) -> IResult<(I, usize), O>
+where
+    I: nom::Slice<std::ops::RangeFrom<usize>>
+        + nom::InputIter<Item = u8>
+        + nom::InputLength
+        + Clone,
+    O: From<u8>
+        + core::ops::AddAssign
+        + core::ops::Shl<usize, Output = O>
+        + core::ops::Shr<usize, Output = O>
+        + PartialEq,
+{
+    nom::bits::complete::tag(pattern, count)
+}
+
+fn integer(input: (&[u8], usize)) -> IResult<(&[u8], usize), (u64, IntegerWidth)> {
+    alt((
+        pair(verify(take_bits(5), |&v| v < 24), |i| {
+            Ok((i, IntegerWidth::Zero))
+        }),
+        pair(preceded(tag_bits(24, 5), take_bits(8)), |i| {
+            Ok((i, IntegerWidth::Eight))
+        }),
+        pair(preceded(tag_bits(25, 5), take_bits(16)), |i| {
+            Ok((i, IntegerWidth::Sixteen))
+        }),
+        pair(preceded(tag_bits(26, 5), take_bits(32)), |i| {
+            Ok((i, IntegerWidth::ThirtyTwo))
+        }),
+        pair(preceded(tag_bits(27, 5), take_bits(64)), |i| {
+            Ok((i, IntegerWidth::SixtyFour))
+        }),
+    ))(input)
+}
+
+fn positive(input: &[u8]) -> IResult<&[u8], DataItem> {
+    bits(preceded(
+        tag_bits(0, 3),
+        map(integer, |(value, bitwidth)| DataItem::Integer {
             value,
             bitwidth,
-        }))
+        }),
+    ))(input)
 }
 
-named! {
-    negative<(&[u8], usize), DataItem>,
-    preceded!(
-        tag_bits!(u8, 3, 1),
-        map!(integer, |(value, bitwidth)| DataItem::Negative {
+fn negative(input: &[u8]) -> IResult<&[u8], DataItem> {
+    bits(preceded(
+        tag_bits(1, 3),
+        map(integer, |(value, bitwidth)| DataItem::Negative {
             value,
             bitwidth,
-        }))
+        }),
+    ))(input)
 }
 
-named! {
-    definite_bytestring<(&[u8], usize), ByteString>,
-    do_parse!(
-        tag_bits!(u8, 3, 2) >>
-        // TODO: verify is workaround for https://github.com/Geal/nom/issues/848
-        length: verify!(integer, |(l, _)| l < 0x2000_0000_0000_0000) >>
-        data: bytes!(take!(length.0)) >>
-        (ByteString { data: data.into(), bitwidth: length.1 }))
+fn definite_bytestring(input: &[u8]) -> IResult<&[u8], ByteString> {
+    let (input, (length, bitwidth)) = bits(preceded(tag_bits(2, 3), integer))(input)?;
+    let (input, data) = take_bytes(length)(input)?;
+    let data = data.to_owned();
+    Ok((input, ByteString { data, bitwidth }))
 }
 
-named! {
-    indefinite_bytestring<(&[u8], usize), DataItem>,
-    preceded!(
-        pair!(tag_bits!(u8, 3, 2), tag_bits!(u8, 5, 31)),
-        map!(
-            many_till!(definite_bytestring, stop_code),
-            |(strings, _)| DataItem::IndefiniteByteString(strings)))
+fn indefinite_bytestring(input: &[u8]) -> IResult<&[u8], DataItem> {
+    preceded(
+        bits(pair(tag_bits(2, 3), tag_bits(31, 5))),
+        map(many_till(definite_bytestring, stop_code), |(strings, _)| {
+            DataItem::IndefiniteByteString(strings)
+        }),
+    )(input)
 }
 
-named! {
-    bytestring<(&[u8], usize), DataItem>,
-    alt_complete!(
-        definite_bytestring => { DataItem::ByteString }
-      | indefinite_bytestring
-    )
+fn bytestring(input: &[u8]) -> IResult<&[u8], DataItem> {
+    alt((
+        map(definite_bytestring, DataItem::ByteString),
+        indefinite_bytestring,
+    ))(input)
 }
 
-named! {
-    definite_textstring<(&[u8], usize), TextString>,
-    do_parse!(
-        tag_bits!(u8, 3, 3) >>
-        // TODO: verify is workaround for https://github.com/Geal/nom/issues/848
-        length: verify!(integer, |(l, _)| l < 0x2000_0000_0000_0000) >>
-        data: map_res!(bytes!(take!(length.0)), |b| str::from_utf8(b)) >>
-        (TextString { data: data.to_owned(), bitwidth: length.1 }))
+fn definite_textstring(input: &[u8]) -> IResult<&[u8], TextString> {
+    let (input, (length, bitwidth)) = bits(preceded(tag_bits(3, 3), integer))(input)?;
+    let (input, data) = map_res(take_bytes(length), str::from_utf8)(input)?;
+    let data = data.to_owned();
+    Ok((input, TextString { data, bitwidth }))
 }
 
-named! {
-    indefinite_textstring<(&[u8], usize), DataItem>,
-    preceded!(
-        pair!(tag_bits!(u8, 3, 3), tag_bits!(u8, 5, 31)),
-        map!(
-            many_till!(definite_textstring, stop_code),
-            |(strings, _)| DataItem::IndefiniteTextString(strings)))
+fn indefinite_textstring(input: &[u8]) -> IResult<&[u8], DataItem> {
+    preceded(
+        bits(pair(tag_bits(3, 3), tag_bits(31, 5))),
+        map(many_till(definite_textstring, stop_code), |(strings, _)| {
+            DataItem::IndefiniteTextString(strings)
+        }),
+    )(input)
 }
 
-named! {
-    textstring<(&[u8], usize), DataItem>,
-    alt_complete!(
-        definite_textstring => { DataItem::TextString }
-      | indefinite_textstring
-    )
+fn textstring(input: &[u8]) -> IResult<&[u8], DataItem> {
+    alt((
+        map(definite_textstring, DataItem::TextString),
+        indefinite_textstring,
+    ))(input)
 }
 
-named! {
-    definite_array<(&[u8], usize), DataItem>,
-    do_parse!(
-        tag_bits!(u8, 3, 4) >>
-        length: integer >>
-        data: bytes!(count!(data_item, length.0 as usize)) >>
-        (DataItem::Array { data, bitwidth: Some(length.1) }))
-}
-
-named! {
-    indefinite_array<(&[u8], usize), DataItem>,
-    preceded!(
-        pair!(tag_bits!(u8, 3, 4), tag_bits!(u8, 5, 31)),
-        map!(
-            many_till!(bytes!(data_item), stop_code),
-            |(data, _)| DataItem::Array { data, bitwidth: None }))
-}
-
-named! {
-    array<(&[u8], usize), DataItem>,
-    alt_complete!(definite_array | indefinite_array)
-}
-
-named! {
-    definite_map<(&[u8], usize), DataItem>,
-    do_parse!(
-        tag_bits!(u8, 3, 5) >>
-        length: integer >>
-        data: bytes!(count!(pair!(data_item, data_item), length.0 as usize)) >>
-        (DataItem::Map { data, bitwidth: Some(length.1) }))
-}
-
-named! {
-    indefinite_map<(&[u8], usize), DataItem>,
-    preceded!(
-        pair!(tag_bits!(u8, 3, 5), tag_bits!(u8, 5, 31)),
-        map!(
-            many_till!(bytes!(pair!(data_item, data_item)), stop_code),
-            |(data, _)| DataItem::Map { data, bitwidth: None }))
-}
-
-named! {
-    map<(&[u8], usize), DataItem>,
-    alt_complete!(definite_map | indefinite_map)
-}
-
-named! {
-    tagged<(&[u8], usize), DataItem>,
-    do_parse!(
-        tag_bits!(u8, 3, 6) >>
-        tag: integer >>
-        value: bytes!(data_item) >>
-        (DataItem::Tag {
-            tag: Tag(tag.0),
-            bitwidth: tag.1,
-            value: Box::new(value),
-        })
-    )
-}
-
-named! {
-    float<(&[u8], usize), DataItem>,
-    preceded!(
-        tag_bits!(u8, 3, 7),
-        map!(
-            alt_complete!(
-                pair!(
-                    preceded!(
-                        tag_bits!(u8, 5, 25),
-                        map!(bytes!(be_u16), |u| f16::from_bits(u).to_f64())),
-                    value!(FloatWidth::Sixteen))
-              | pair!(
-                    preceded!(
-                        tag_bits!(u8, 5, 26),
-                        map!(bytes!(be_f32), f64::from)),
-                    value!(FloatWidth::ThirtyTwo))
-              | pair!(
-                    preceded!(tag_bits!(u8, 5, 27), bytes!(be_f64)),
-                    value!(FloatWidth::SixtyFour))
-            ),
-            |(value, bitwidth)| DataItem::Float { value, bitwidth }))
-}
-
-named! {
-    simple<(&[u8], usize), DataItem>,
-    preceded!(
-        tag_bits!(u8, 3, 7),
-        map!(
-            alt_complete!(
-                verify!(take_bits!(u8, 5), |v| v < 24)
-              | preceded!(tag_bits!(u8, 5, 24), take_bits!(u8, 8))
-            ),
-            |value| DataItem::Simple(Simple(value))
-        )
-    )
-}
-
-named! {
-    stop_code<(&[u8], usize), DataItem>,
-    preceded!(
-        tag_bits!(u8, 3, 7),
-        map!(tag_bits!(u8, 5, 31), |value| DataItem::Simple(Simple(value))))
-}
-
-named! {
-    data_item<&[u8], DataItem>,
-    bits!(alt_complete!(
-        positive
-      | negative
-      | bytestring
-      | textstring
-      | array
-      | map
-      | tagged
-      | float
-      | simple
+fn definite_array(input: &[u8]) -> IResult<&[u8], DataItem> {
+    let (input, (length, bitwidth)) = bits(preceded(tag_bits(4, 3), integer))(input)?;
+    let (input, data) = count(data_item, length as usize)(input)?;
+    Ok((
+        input,
+        DataItem::Array {
+            data,
+            bitwidth: Some(bitwidth),
+        },
     ))
+}
+
+fn indefinite_array(input: &[u8]) -> IResult<&[u8], DataItem> {
+    preceded(
+        bits(pair(tag_bits(4, 3), tag_bits(31, 5))),
+        map(many_till(data_item, stop_code), |(data, _)| {
+            DataItem::Array {
+                data,
+                bitwidth: None,
+            }
+        }),
+    )(input)
+}
+
+fn array(input: &[u8]) -> IResult<&[u8], DataItem> {
+    alt((definite_array, indefinite_array))(input)
+}
+
+fn definite_map(input: &[u8]) -> IResult<&[u8], DataItem> {
+    let (input, (length, bitwidth)) = bits(preceded(tag_bits(5, 3), integer))(input)?;
+    let (input, data) = count(pair(data_item, data_item), length as usize)(input)?;
+    Ok((
+        input,
+        DataItem::Map {
+            data,
+            bitwidth: Some(bitwidth),
+        },
+    ))
+}
+
+fn indefinite_map(input: &[u8]) -> IResult<&[u8], DataItem> {
+    preceded(
+        bits(pair(tag_bits(5, 3), tag_bits(31, 5))),
+        map(
+            many_till(pair(data_item, data_item), stop_code),
+            |(data, _)| DataItem::Map {
+                data,
+                bitwidth: None,
+            },
+        ),
+    )(input)
+}
+
+fn data_map(input: &[u8]) -> IResult<&[u8], DataItem> {
+    alt((definite_map, indefinite_map))(input)
+}
+
+fn tag_bitsged(input: &[u8]) -> IResult<&[u8], DataItem> {
+    let (input, (tag, bitwidth)) = bits(preceded(tag_bits(6, 3), integer))(input)?;
+    let (input, value) = data_item(input)?;
+    let value = Box::new(value);
+    Ok((
+        input,
+        DataItem::Tag {
+            tag: Tag(tag),
+            bitwidth,
+            value,
+        },
+    ))
+}
+
+fn float(input: &[u8]) -> IResult<&[u8], DataItem> {
+    bits(preceded(
+        tag_bits(7, 3),
+        map(
+            alt((
+                preceded(
+                    tag_bits(25, 5),
+                    bytes::<
+                        _,
+                        _,
+                        (&[u8], nom::error::ErrorKind),
+                        ((&[u8], usize), nom::error::ErrorKind),
+                        _,
+                    >(map(be_u16, |u| {
+                        (f16::from_bits(u).to_f64(), FloatWidth::Sixteen)
+                    })),
+                ),
+                preceded(
+                    tag_bits(26, 5),
+                    bytes::<
+                        _,
+                        _,
+                        (&[u8], nom::error::ErrorKind),
+                        ((&[u8], usize), nom::error::ErrorKind),
+                        _,
+                    >(map(be_f32, |f| (f64::from(f), FloatWidth::ThirtyTwo))),
+                ),
+                preceded(
+                    tag_bits(27, 5),
+                    bytes::<
+                        _,
+                        _,
+                        (&[u8], nom::error::ErrorKind),
+                        ((&[u8], usize), nom::error::ErrorKind),
+                        _,
+                    >(map(be_f64, |f| (f, FloatWidth::SixtyFour))),
+                ),
+            )),
+            |(value, bitwidth)| DataItem::Float { value, bitwidth },
+        ),
+    ))(input)
+}
+
+fn simple(input: &[u8]) -> IResult<&[u8], DataItem> {
+    bits(preceded(
+        tag_bits(7, 3),
+        map(
+            alt((
+                verify(take_bits(5), |&v| v < 24),
+                preceded(tag_bits(24, 5), take_bits(8)),
+            )),
+            |value| DataItem::Simple(Simple(value)),
+        ),
+    ))(input)
+}
+
+fn stop_code(input: &[u8]) -> IResult<&[u8], DataItem> {
+    bits(preceded(
+        tag_bits(7, 3),
+        map(tag_bits(31, 5), |value| DataItem::Simple(Simple(value))),
+    ))(input)
+}
+
+fn data_item(input: &[u8]) -> IResult<&[u8], DataItem> {
+    alt((
+        positive,
+        negative,
+        bytestring,
+        textstring,
+        array,
+        data_map,
+        tag_bitsged,
+        float,
+        simple,
+    ))(input)
 }
 
 /// Parse a string containing a binary encoded CBOR data item.
@@ -245,12 +298,10 @@ named! {
 ///     });
 /// ```
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
-    let (remaining, parsed) = data_item(bytes.as_ref())
-        .map_err(|e| format!("Parsing error ({:?})", e))?;
+    let (remaining, parsed) =
+        data_item(bytes.as_ref()).map_err(|e| format!("Parsing error ({:?})", e))?;
     if !remaining.is_empty() {
-        return Err(
-            format!("Remaining bytes ({})", hex::encode(remaining)).into()
-        );
+        return Err(format!("Remaining bytes ({})", hex::encode(remaining)).into());
     }
     Ok(parsed)
 }

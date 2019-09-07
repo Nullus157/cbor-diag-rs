@@ -15,10 +15,7 @@ use separator::Separatable;
 use url::Url;
 use uuid::Uuid;
 
-use {
-    parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag,
-    TextString,
-};
+use {parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
 struct Line {
     hex: String,
@@ -37,50 +34,28 @@ impl Line {
 
     fn from_value(encoding: Option<Encoding>, value: &DataItem) -> Line {
         match *value {
-            DataItem::Integer { value, bitwidth } => {
-                integer_to_hex(value, bitwidth)
-            }
-            DataItem::Negative { value, bitwidth } => {
-                negative_to_hex(value, bitwidth)
-            }
+            DataItem::Integer { value, bitwidth } => integer_to_hex(value, bitwidth),
+            DataItem::Negative { value, bitwidth } => negative_to_hex(value, bitwidth),
             DataItem::ByteString(ref bytestring) => {
                 definite_bytestring_to_hex(encoding, bytestring)
             }
             DataItem::IndefiniteByteString(ref bytestrings) => {
-                indefinite_string_to_hex(
-                    0x02,
-                    "bytes",
-                    bytestrings,
-                    |bytestring| {
-                        definite_bytestring_to_hex(encoding, bytestring)
-                    },
-                )
+                indefinite_string_to_hex(0x02, "bytes", bytestrings, |bytestring| {
+                    definite_bytestring_to_hex(encoding, bytestring)
+                })
             }
-            DataItem::TextString(ref textstring) => {
-                definite_textstring_to_hex(textstring)
-            }
+            DataItem::TextString(ref textstring) => definite_textstring_to_hex(textstring),
             DataItem::IndefiniteTextString(ref textstrings) => {
-                indefinite_string_to_hex(
-                    0x03,
-                    "text",
-                    textstrings,
-                    definite_textstring_to_hex,
-                )
+                indefinite_string_to_hex(0x03, "text", textstrings, definite_textstring_to_hex)
             }
-            DataItem::Array { ref data, bitwidth } => {
-                array_to_hex(encoding, data, bitwidth)
-            }
-            DataItem::Map { ref data, bitwidth } => {
-                map_to_hex(encoding, data, bitwidth)
-            }
+            DataItem::Array { ref data, bitwidth } => array_to_hex(encoding, data, bitwidth),
+            DataItem::Map { ref data, bitwidth } => map_to_hex(encoding, data, bitwidth),
             DataItem::Tag {
                 tag,
                 bitwidth,
                 ref value,
             } => tagged_to_hex(encoding, tag, bitwidth, &*value),
-            DataItem::Float { value, bitwidth } => {
-                float_to_hex(value, bitwidth)
-            }
+            DataItem::Float { value, bitwidth } => float_to_hex(value, bitwidth),
             DataItem::Simple(simple) => simple_to_hex(simple),
         }
     }
@@ -92,12 +67,7 @@ impl Line {
         output
     }
 
-    fn do_merge(
-        self,
-        hex_width: isize,
-        indent_level: usize,
-        output: &mut String,
-    ) {
+    fn do_merge(self, hex_width: isize, indent_level: usize, output: &mut String) {
         let (hex_indent, width) = if hex_width < 0 {
             (indent_level * 3 - hex_width.abs() as usize, 0)
         } else {
@@ -191,8 +161,7 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
         IntegerWidth::SixtyFour => format!("3b {:016x}", value),
     };
 
-    let comment =
-        format!("negative({})", (-1 - i128::from(value)).separated_string());
+    let comment = format!("negative({})", (-1 - i128::from(value)).separated_string());
 
     Line::new(hex, comment)
 }
@@ -221,12 +190,8 @@ fn length_to_hex(
 
     let hex = match bitwidth {
         Some(IntegerWidth::Unknown) => unreachable!(),
-        Some(IntegerWidth::Zero) => {
-            format!("{:02x}", (length.unwrap() as u8) + (major << 5))
-        }
-        Some(IntegerWidth::Eight) => {
-            format!("{:02x} {:02x}", (major << 5) | 0x18, length.unwrap())
-        }
+        Some(IntegerWidth::Zero) => format!("{:02x}", (length.unwrap() as u8) + (major << 5)),
+        Some(IntegerWidth::Eight) => format!("{:02x} {:02x}", (major << 5) | 0x18, length.unwrap()),
         Some(IntegerWidth::Sixteen) => {
             format!("{:02x} {:04x}", (major << 5) | 0x19, length.unwrap())
         }
@@ -252,10 +217,7 @@ fn length_to_hex(
     Line::new(hex, comment)
 }
 
-fn bytes_to_hex<'a>(
-    encoding: Option<Encoding>,
-    data: &'a [u8],
-) -> impl Iterator<Item = Line> + 'a {
+fn bytes_to_hex<'a>(encoding: Option<Encoding>, data: &'a [u8]) -> impl Iterator<Item = Line> + 'a {
     data.chunks(16).map(move |datum| {
         let hex = hex::encode(datum);
         let comment = match encoding {
@@ -282,10 +244,7 @@ fn bytes_to_hex<'a>(
     })
 }
 
-fn definite_bytestring_to_hex(
-    encoding: Option<Encoding>,
-    bytestring: &ByteString,
-) -> Line {
+fn definite_bytestring_to_hex(encoding: Option<Encoding>, bytestring: &ByteString) -> Line {
     let ByteString { ref data, bitwidth } = *bytestring;
 
     let mut line = length_to_hex(Some(data.len()), Some(bitwidth), 2, "bytes");
@@ -492,10 +451,7 @@ fn datetime_epoch(value: &DataItem) -> Line {
         match DateTime::parse_from_rfc3339(data) {
             Ok(value) => value,
             Err(err) => {
-                return Line::new(
-                    "",
-                    format!("error parsing datetime: {}", err),
-                );
+                return Line::new("", format!("error parsing datetime: {}", err));
             }
         }
     } else {
@@ -526,9 +482,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
         }
 
         DataItem::Float { value, .. } => {
-            if value - 1.0 <= (i64::min_value() as f64)
-                || value >= (i64::max_value() as f64)
-            {
+            if value - 1.0 <= (i64::min_value() as f64) || value >= (i64::max_value() as f64) {
                 None
             } else {
                 let (value, fract) = if value < 0.0 {
@@ -587,10 +541,7 @@ fn negative_bignum(value: &DataItem) -> Line {
         .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
 }
 
-fn extract_fraction(
-    value: &DataItem,
-    base: usize,
-) -> Result<BigRational, &'static str> {
+fn extract_fraction(value: &DataItem, base: usize) -> Result<BigRational, &'static str> {
     Ok(match value {
         DataItem::Array { data, .. } => {
             if data.len() != 2 {
@@ -615,9 +566,7 @@ fn extract_fraction(
             };
             let mantissa = match data[1] {
                 DataItem::Integer { value, .. } => BigInt::from(value),
-                DataItem::Negative { value, .. } => {
-                    BigInt::from(-1) - BigInt::from(value)
-                }
+                DataItem::Negative { value, .. } => BigInt::from(-1) - BigInt::from(value),
                 DataItem::Tag {
                     tag: Tag::POSITIVE_BIGNUM,
                     ref value,
@@ -650,12 +599,8 @@ fn extract_fraction(
 fn decimal_fraction(value: &DataItem) -> Line {
     // TODO: https://github.com/rust-num/num-rational/issues/10
     extract_fraction(value, 10)
-        .map(|fraction| {
-            Line::new("", format!("decimal fraction({})", fraction))
-        })
-        .unwrap_or_else(|err| {
-            Line::new("", format!("{} for decimal fraction", err))
-        })
+        .map(|fraction| Line::new("", format!("decimal fraction({})", fraction)))
+        .unwrap_or_else(|err| Line::new("", format!("{} for decimal fraction", err)))
 }
 
 fn bigfloat(value: &DataItem) -> Line {
@@ -693,9 +638,7 @@ fn base64_base(
                 merged
                     .lines()
                     .skip(1)
-                    .map(|line| {
-                        Line::new("", line.split_at(3).1.replace("#  ", "#"))
-                    })
+                    .map(|line| Line::new("", line.split_at(3).1.replace("#  ", "#")))
                     .collect::<Vec<_>>()
                     .into_iter()
             })
@@ -730,14 +673,12 @@ fn encoded_cbor(value: &DataItem) -> Line {
         match parse_bytes(data) {
             Ok(value) => {
                 let mut line = Line::new("", "encoded cbor data item");
-                line.sublines.extend(
-                    value.to_hex().lines().map(|line| Line::new("", line)),
-                );
+                line.sublines
+                    .extend(value.to_hex().lines().map(|line| Line::new("", line)));
                 line
             }
             Err(err) => {
-                let mut line =
-                    Line::new("", "failed to parse encoded cbor data item");
+                let mut line = Line::new("", "failed to parse encoded cbor data item");
                 line.sublines.push(Line::new("", format!("{:?}", err)));
                 line
             }
@@ -761,10 +702,7 @@ fn uuid(value: &DataItem) -> Line {
                 .unwrap_or_else(|| "Unknown".into());
 
             let uuid_base58 = bs58::encode(uuid.as_bytes()).into_string();
-            let uuid_base64 = Base64Display::with_config(
-                uuid.as_bytes(),
-                base64::STANDARD_NO_PAD,
-            );
+            let uuid_base64 = Base64Display::with_config(uuid.as_bytes(), base64::STANDARD_NO_PAD);
             let mut line = Line::new(
                 "",
                 format!(
@@ -804,9 +742,8 @@ fn network_address(value: &DataItem) -> Line {
             }
             16 => {
                 let addr = Ipv6Addr::from([
-                    data[0], data[1], data[2], data[3], data[4], data[5],
-                    data[6], data[7], data[8], data[9], data[10], data[11],
-                    data[12], data[13], data[14], data[15],
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
+                    data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15],
                 ]);
                 Line::new("", format!("IPv6 address({})", addr))
             }
@@ -824,9 +761,7 @@ fn float_to_hex(value: f64, mut bitwidth: FloatWidth) -> Line {
 
     let hex = match bitwidth {
         FloatWidth::Unknown => unreachable!(),
-        FloatWidth::Sixteen => {
-            format!("f9 {:04x}", f16::from_f64(value).to_bits())
-        }
+        FloatWidth::Sixteen => format!("f9 {:04x}", f16::from_f64(value).to_bits()),
         FloatWidth::ThirtyTwo => format!("fa {:08x}", (value as f32).to_bits()),
         FloatWidth::SixtyFour => format!("fb {:016x}", value.to_bits()),
     };

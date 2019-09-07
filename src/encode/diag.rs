@@ -61,19 +61,13 @@ impl<'a> Context<'a> {
             Encoding::Base64Url => {
                 self.output.push_str(&format!(
                     "b64'{}'",
-                    Base64Display::with_config(
-                        &bytestring.data,
-                        base64::URL_SAFE_NO_PAD
-                    )
+                    Base64Display::with_config(&bytestring.data, base64::URL_SAFE_NO_PAD)
                 ));
             }
             Encoding::Base64 => {
                 self.output.push_str(&format!(
                     "b64'{}'",
-                    Base64Display::with_config(
-                        &bytestring.data,
-                        base64::STANDARD_NO_PAD
-                    )
+                    Base64Display::with_config(&bytestring.data, base64::STANDARD_NO_PAD)
                 ));
             }
             Encoding::Base16 => {
@@ -159,12 +153,7 @@ impl<'a> Context<'a> {
         self.output.push('}');
     }
 
-    pub fn tagged_to_diag(
-        &mut self,
-        tag: Tag,
-        bitwidth: IntegerWidth,
-        value: &DataItem,
-    ) {
+    pub fn tagged_to_diag(&mut self, tag: Tag, bitwidth: IntegerWidth, value: &DataItem) {
         if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
             self.output.push_str(&tag.0.to_string());
         } else {
@@ -207,9 +196,7 @@ impl<'a> Context<'a> {
             self.output.push_str("Infinity");
         } else {
             let value = match bitwidth {
-                FloatWidth::Unknown | FloatWidth::SixtyFour => {
-                    value.to_string()
-                }
+                FloatWidth::Unknown | FloatWidth::SixtyFour => value.to_string(),
                 FloatWidth::Sixteen => f16::from_f64(value).to_string(),
                 FloatWidth::ThirtyTwo => (value as f32).to_string(),
             };
@@ -232,9 +219,7 @@ impl<'a> Context<'a> {
             Simple::TRUE => self.output.push_str("true"),
             Simple::NULL => self.output.push_str("null"),
             Simple::UNDEFINED => self.output.push_str("undefined"),
-            Simple(value) => {
-                self.output.push_str(&format!("simple({})", value))
-            }
+            Simple(value) => self.output.push_str(&format!("simple({})", value)),
         }
     }
 
@@ -250,19 +235,13 @@ impl<'a> Context<'a> {
                 self.definite_bytestring_to_diag(bytestring);
             }
             DataItem::IndefiniteByteString(ref bytestrings) => {
-                self.indefinite_string_to_diag(
-                    bytestrings,
-                    Self::definite_bytestring_to_diag,
-                );
+                self.indefinite_string_to_diag(bytestrings, Self::definite_bytestring_to_diag);
             }
             DataItem::TextString(ref textstring) => {
                 self.definite_textstring_to_diag(textstring);
             }
             DataItem::IndefiniteTextString(ref textstrings) => {
-                self.indefinite_string_to_diag(
-                    textstrings,
-                    Self::definite_textstring_to_diag,
-                );
+                self.indefinite_string_to_diag(textstrings, Self::definite_textstring_to_diag);
             }
             DataItem::Array {
                 ref data,
