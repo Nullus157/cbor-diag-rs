@@ -7,8 +7,8 @@ extern crate half;
 extern crate hex;
 
 use cbor_diag::{
-    parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth,
-    IntegerWidth, Simple, Tag, TextString,
+    parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth, IntegerWidth, Simple,
+    Tag, TextString,
 };
 use half::f16;
 use proptest::{
@@ -56,13 +56,11 @@ fn arb_unsigned() -> impl Strategy<Value = (u64, IntegerWidth)> {
 }
 
 fn arb_integer() -> impl Strategy<Value = DataItem> {
-    arb_unsigned()
-        .prop_map(|(value, bitwidth)| DataItem::Integer { value, bitwidth })
+    arb_unsigned().prop_map(|(value, bitwidth)| DataItem::Integer { value, bitwidth })
 }
 
 fn arb_negative() -> impl Strategy<Value = DataItem> {
-    arb_unsigned()
-        .prop_map(|(value, bitwidth)| DataItem::Negative { value, bitwidth })
+    arb_unsigned().prop_map(|(value, bitwidth)| DataItem::Negative { value, bitwidth })
 }
 
 fn arb_bytestring() -> impl Strategy<Value = ByteString> {
@@ -80,8 +78,7 @@ fn arb_definite_bytestring() -> impl Strategy<Value = DataItem> {
 }
 
 fn arb_indefinite_bytestring() -> impl Strategy<Value = DataItem> {
-    collection::vec(arb_bytestring(), 0..10)
-        .prop_map(DataItem::IndefiniteByteString)
+    collection::vec(arb_bytestring(), 0..10).prop_map(DataItem::IndefiniteByteString)
 }
 
 fn arb_textstring() -> impl Strategy<Value = TextString> {
@@ -99,8 +96,7 @@ fn arb_definite_textstring() -> impl Strategy<Value = DataItem> {
 }
 
 fn arb_indefinite_textstring() -> impl Strategy<Value = DataItem> {
-    collection::vec(arb_textstring(), 0..10)
-        .prop_map(DataItem::IndefiniteTextString)
+    collection::vec(arb_textstring(), 0..10).prop_map(DataItem::IndefiniteTextString)
 }
 
 fn arb_array(
@@ -125,9 +121,7 @@ fn arb_map(
         .prop_map(|(data, bitwidth)| DataItem::Map { data, bitwidth })
 }
 
-fn arb_tagged(
-    value: impl Strategy<Value = DataItem> + Clone,
-) -> impl Strategy<Value = DataItem> {
+fn arb_tagged(value: impl Strategy<Value = DataItem> + Clone) -> impl Strategy<Value = DataItem> {
     arb_integer_width().prop_flat_map(move |bitwidth| {
         (
             (0..=bitwidth_max(bitwidth)).prop_map(Tag),
@@ -146,9 +140,7 @@ fn arb_float() -> impl Strategy<Value = DataItem> {
         match bitwidth {
             FloatWidth::SixtyFour => any::<f64>().boxed(),
             FloatWidth::ThirtyTwo => any::<f32>().prop_map_into().boxed(),
-            FloatWidth::Sixteen => {
-                any::<f32>().prop_map(f16::from_f32).prop_map_into().boxed()
-            }
+            FloatWidth::Sixteen => any::<f32>().prop_map(f16::from_f32).prop_map_into().boxed(),
             FloatWidth::Unknown => unreachable!(),
         }
         .prop_map(move |value| DataItem::Float { value, bitwidth })

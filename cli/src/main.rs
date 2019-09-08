@@ -42,11 +42,7 @@ impl To {
 /// formats for CBOR.
 struct Args {
     /// What format to attempt to parse the input as
-    #[structopt(
-        long,
-        default_value = "auto",
-        possible_values(From::variants())
-    )]
+    #[structopt(long, default_value = "auto", possible_values(From::variants()))]
     from: From,
 
     /// What format to output

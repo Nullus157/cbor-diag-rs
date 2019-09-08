@@ -8,13 +8,12 @@
 //!
 //! [diagnostic notation]: https://tools.ietf.org/html/rfc7049#section-6
 
-#[macro_use]
-extern crate nom;
 extern crate base64;
 extern crate bs58;
 extern crate chrono;
 extern crate half;
 extern crate hex;
+extern crate nom;
 extern crate num_bigint;
 extern crate num_rational;
 extern crate num_traits;
@@ -27,9 +26,7 @@ mod error;
 mod parse;
 mod syntax;
 
-pub use syntax::{
-    ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString,
-};
+pub use syntax::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
 pub use error::{Error, Result};
 

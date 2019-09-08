@@ -6,9 +6,7 @@ extern crate hex;
 
 extern crate cbor_diag;
 
-use cbor_diag::{
-    ByteString, DataItem, FloatWidth, IntegerWidth, Tag, TextString,
-};
+use cbor_diag::{ByteString, DataItem, FloatWidth, IntegerWidth, Tag, TextString};
 
 #[macro_use]
 mod utils;
@@ -921,7 +919,7 @@ testcases! {
                    41    #   bytes(1)
                       ff #     "\xff"
                          #   failed to parse encoded cbor data item
-                         #     Todo("Parsing error (Error(Code([255], Alt)))")
+                         #     Todo("Parsing error (Error(([255], TagBits)))")
             "#),
         }
 
