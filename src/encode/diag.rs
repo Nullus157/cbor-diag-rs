@@ -5,24 +5,98 @@ use hex;
 use super::Encoding;
 use {ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub(crate) enum Layout {
+    Pretty,
+    Compact,
+}
+
 pub(crate) struct Context<'a> {
-    encoding: Encoding,
     output: &'a mut String,
+    layout: Layout,
+    encoding: Encoding,
+    indent: usize,
+}
+
+trait IsTrivial {
+    fn is_trivial(&self) -> bool;
+}
+
+fn is_trivial(value: &impl IsTrivial) -> bool {
+    value.is_trivial()
+}
+
+impl IsTrivial for DataItem {
+    fn is_trivial(&self) -> bool {
+        match self {
+            DataItem::Integer { .. }
+            | DataItem::Negative { .. }
+            | DataItem::Float { .. }
+            | DataItem::Simple(_) => true,
+            DataItem::Map { .. } => false,
+            DataItem::ByteString(value) => value.is_trivial(),
+            DataItem::TextString(value) => value.is_trivial(),
+            DataItem::Array { data, .. } => data.len() < 2 && data.iter().all(is_trivial),
+            DataItem::IndefiniteByteString(strings) => {
+                strings.len() < 2 && strings.iter().all(is_trivial)
+            }
+            DataItem::IndefiniteTextString(strings) => {
+                strings.len() < 2 && strings.iter().all(is_trivial)
+            }
+            DataItem::Tag { value, .. } => value.is_trivial(),
+        }
+    }
+}
+
+impl IsTrivial for (DataItem, DataItem) {
+    fn is_trivial(&self) -> bool {
+        self.0.is_trivial() && self.1.is_trivial()
+    }
+}
+
+impl IsTrivial for ByteString {
+    fn is_trivial(&self) -> bool {
+        self.data.len() < 16
+    }
+}
+
+impl IsTrivial for TextString {
+    fn is_trivial(&self) -> bool {
+        self.data.len() < 32
+    }
 }
 
 impl<'a> Context<'a> {
-    pub(crate) fn new(output: &'a mut String) -> Self {
+    pub(crate) fn new(output: &'a mut String, layout: Layout) -> Self {
         Self {
-            encoding: Encoding::Base16,
             output,
+            layout,
+            encoding: Encoding::Base16,
+            indent: 0,
         }
     }
 
     pub(crate) fn with_encoding(&mut self, encoding: Encoding) -> Context<'_> {
         Context {
-            encoding,
             output: self.output,
+            layout: self.layout,
+            encoding,
+            indent: self.indent,
         }
+    }
+
+    fn pretty(&self) -> bool {
+        self.layout == Layout::Pretty
+    }
+
+    fn indent(&mut self) {
+        for _ in 0..self.indent {
+            self.output.push(' ');
+        }
+    }
+
+    fn line(&mut self) {
+        self.output.push('\n');
     }
 
     fn integer_to_diag(&mut self, value: u64, bitwidth: IntegerWidth) {
@@ -91,66 +165,70 @@ impl<'a> Context<'a> {
         self.output.push('"');
     }
 
-    fn indefinite_string_to_diag<T>(
+    fn container_to_diag<T: IsTrivial>(
+        &mut self,
+        begin: char,
+        items: &[T],
+        end: char,
+        definite: bool,
+        item_to_diag: fn(&mut Self, &T),
+    ) {
+        self.output.push(begin);
+        if !definite {
+            self.output.push_str("_");
+        }
+        if items.len() < 2 && items.iter().all(IsTrivial::is_trivial) {
+            if self.pretty() {
+                self.output.push(' ');
+            }
+            if let Some(item) = items.first() {
+                item_to_diag(self, item);
+                if self.pretty() {
+                    self.output.push(' ');
+                }
+            }
+        } else {
+            self.indent += 4;
+            for item in items {
+                if self.pretty() {
+                    self.line();
+                    self.indent();
+                }
+                item_to_diag(self, item);
+                self.output.push(',');
+            }
+            self.indent -= 4;
+            if self.pretty() {
+                self.line();
+                self.indent();
+            } else {
+                self.output.pop();
+            }
+        }
+        self.output.push(end);
+    }
+
+    fn indefinite_string_to_diag<T: IsTrivial>(
         &mut self,
         strings: &[T],
         definite_string_to_diag: fn(&mut Self, &T),
     ) {
-        self.output.push_str("(_");
-        if strings.is_empty() {
-            self.output.push(' ');
-            self.output.push(' ');
-        }
-        for string in strings {
-            self.output.push(' ');
-            definite_string_to_diag(self, string);
-            self.output.push(',');
-        }
-        self.output.pop();
-        self.output.push(')');
+        self.container_to_diag('(', strings, ')', false, definite_string_to_diag);
     }
 
     fn array_to_diag(&mut self, array: &[DataItem], definite: bool) {
-        self.output.push('[');
-        if !definite {
-            self.output.push('_');
-            self.output.push(' ');
-        }
-        if array.is_empty() {
-            self.output.push(' ');
-            self.output.push(' ');
-        }
-        for value in array {
-            self.value_to_diag(value);
-            self.output.push(',');
-            self.output.push(' ');
-        }
-        self.output.pop();
-        self.output.pop();
-        self.output.push(']');
+        self.container_to_diag('[', array, ']', definite, Self::item_to_diag);
     }
 
     fn map_to_diag(&mut self, values: &[(DataItem, DataItem)], definite: bool) {
-        self.output.push('{');
-        if !definite {
-            self.output.push('_');
-            if values.is_empty() {
-                self.output.push(' ');
+        self.container_to_diag('{', values, '}', definite, |this, (key, value)| {
+            this.item_to_diag(key);
+            this.output.push(':');
+            if this.pretty() {
+                this.output.push(' ');
             }
-        }
-        for (key, value) in values {
-            self.output.push(' ');
-            self.value_to_diag(key);
-            self.output.push(':');
-            self.output.push(' ');
-            self.value_to_diag(value);
-            self.output.push(',');
-        }
-        if !values.is_empty() {
-            self.output.pop();
-            self.output.push(' ');
-        }
-        self.output.push('}');
+            this.item_to_diag(value);
+        });
     }
 
     pub fn tagged_to_diag(&mut self, tag: Tag, bitwidth: IntegerWidth, value: &DataItem) {
@@ -170,16 +248,16 @@ impl<'a> Context<'a> {
 
         match tag {
             Tag::ENCODED_BASE64URL => {
-                self.with_encoding(Encoding::Base64Url).value_to_diag(value);
+                self.with_encoding(Encoding::Base64Url).item_to_diag(value);
             }
             Tag::ENCODED_BASE64 => {
-                self.with_encoding(Encoding::Base64).value_to_diag(value);
+                self.with_encoding(Encoding::Base64).item_to_diag(value);
             }
             Tag::ENCODED_BASE16 => {
-                self.with_encoding(Encoding::Base16).value_to_diag(value);
+                self.with_encoding(Encoding::Base16).item_to_diag(value);
             }
             _ => {
-                self.value_to_diag(value);
+                self.item_to_diag(value);
             }
         }
 
@@ -223,7 +301,7 @@ impl<'a> Context<'a> {
         }
     }
 
-    fn value_to_diag(&mut self, value: &DataItem) {
+    fn item_to_diag(&mut self, value: &DataItem) {
         match *value {
             DataItem::Integer { value, bitwidth } => {
                 self.integer_to_diag(value, bitwidth);
@@ -275,7 +353,13 @@ impl<'a> Context<'a> {
 impl DataItem {
     pub fn to_diag(&self) -> String {
         let mut s = String::with_capacity(128);
-        Context::new(&mut s).value_to_diag(self);
+        Context::new(&mut s, Layout::Compact).item_to_diag(self);
+        s
+    }
+
+    pub fn to_diag_pretty(&self) -> String {
+        let mut s = String::with_capacity(128);
+        Context::new(&mut s, Layout::Pretty).item_to_diag(self);
         s
     }
 }

@@ -23,7 +23,26 @@ testcases! {
                 data: vec![],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "[]",
+            {
+                "[]",
+                "[ ]",
+            }
+        }
+
+        hello(diag2value, value2diag) {
+            DataItem::Array {
+                data: vec![
+                    DataItem::TextString(TextString {
+                        data: "hello".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    }),
+                ],
+                bitwidth: Some(IntegerWidth::Unknown),
+            },
+            {
+                r#"["hello"]"#,
+                r#"[ "hello" ]"#,
+            }
         }
 
         hello_world(diag2value, value2diag) {
@@ -40,7 +59,15 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            r#"["hello", "world"]"#,
+            {
+                r#"["hello","world"]"#,
+                r#"
+                [
+                    "hello",
+                    "world",
+                ]
+                "#,
+            }
         }
 
         non_alpha(diag2value, value2diag) {
@@ -57,7 +84,15 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "[\"\u{1f1f3}\", \"\u{1f1ff}\"]",
+            {
+                "[\"\u{1f1f3}\",\"\u{1f1ff}\"]",
+                "
+                [
+                    \"\u{1f1f3}\",
+                    \"\u{1f1ff}\",
+                ]
+                ",
+            }
         }
 
         heterogenous(diag2value, value2diag) {
@@ -74,7 +109,15 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "[\"\u{1f1f3}\", 23]",
+            {
+                "[\"\u{1f1f3}\",23]",
+                "
+                [
+                    \"\u{1f1f3}\",
+                    23,
+                ]
+                ",
+            }
         }
 
         nested(diag2value, value2diag) {
@@ -104,7 +147,19 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "[\"\u{1f1f3}\", 23, [\"\u{1f1f3}\", 23]]",
+            {
+                "[\"\u{1f1f3}\",23,[\"\u{1f1f3}\",23]]",
+                "
+                [
+                    \"\u{1f1f3}\",
+                    23,
+                    [
+                        \"\u{1f1f3}\",
+                        23,
+                    ],
+                ]
+                ",
+            }
         }
     }
 
@@ -234,7 +289,26 @@ testcases! {
                     data: vec![],
                     bitwidth: None,
                 },
-                "[_ ]",
+                {
+                    "[_]",
+                    "[_ ]",
+                }
+            }
+
+            hello(diag2value, value2diag) {
+                DataItem::Array {
+                    data: vec![
+                        DataItem::TextString(TextString {
+                            data: "hello".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ],
+                    bitwidth: None,
+                },
+                {
+                    r#"[_"hello"]"#,
+                    r#"[_ "hello" ]"#,
+                }
             }
 
             hello_world(diag2value, value2diag) {
@@ -251,7 +325,15 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                r#"[_ "hello", "world"]"#,
+                {
+                    r#"[_"hello","world"]"#,
+                    r#"
+                    [_
+                        "hello",
+                        "world",
+                    ]
+                    "#,
+                }
             }
 
             non_alpha(diag2value, value2diag) {
@@ -268,7 +350,15 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                "[_ \"\u{1f1f3}\", \"\u{1f1ff}\"]",
+                {
+                    "[_\"\u{1f1f3}\",\"\u{1f1ff}\"]",
+                    "
+                    [_
+                        \"\u{1f1f3}\",
+                        \"\u{1f1ff}\",
+                    ]
+                    ",
+                }
             }
 
             heterogenous(diag2value, value2diag) {
@@ -285,7 +375,15 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                "[_ \"\u{1f1f3}\", 23]",
+                {
+                    "[_\"\u{1f1f3}\",23]",
+                    "
+                    [_
+                        \"\u{1f1f3}\",
+                        23,
+                    ]
+                    ",
+                }
             }
 
             nested(diag2value, value2diag) {
@@ -315,7 +413,19 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                "[_ \"\u{1f1f3}\", 23, [_ \"\u{1f1f3}\", 23]]",
+                {
+                    "[_\"\u{1f1f3}\",23,[_\"\u{1f1f3}\",23]]",
+                    "
+                    [_
+                        \"\u{1f1f3}\",
+                        23,
+                        [_
+                            \"\u{1f1f3}\",
+                            23,
+                        ],
+                    ]
+                    ",
+                }
             }
         }
 
