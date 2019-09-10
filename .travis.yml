@@ -21,6 +21,12 @@ matrix:
     - cargo +nightly update -Z minimal-versions
     - cargo build --all
 
+  - name: cargo build --target wasm32-unknown-unknown
+    install:
+    - rustup target add wasm32-unknown-unknown
+    script:
+    - cargo build
+
   - name: cargo fmt
     install:
     - rustup component add rustfmt

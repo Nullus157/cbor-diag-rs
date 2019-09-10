@@ -1,17 +1,17 @@
 #![allow(clippy::useless_let_if_seq)]
-use std::str;
+use std::{convert::TryFrom, str};
 
 use half::f16;
 use nom::{
-    self,
     bits::{bits, bytes},
     branch::alt,
     bytes::complete::take as take_bytes,
     combinator::{map, map_res, verify},
+    error::{make_error, ErrorKind},
     multi::{count, many_till},
     number::complete::{be_f32, be_f64, be_u16},
     sequence::{pair, preceded},
-    IResult,
+    Err, IResult,
 };
 
 use {ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
@@ -84,6 +84,8 @@ fn negative(input: &[u8]) -> IResult<&[u8], DataItem> {
 
 fn definite_bytestring(input: &[u8]) -> IResult<&[u8], ByteString> {
     let (input, (length, bitwidth)) = bits(preceded(tag_bits(2, 3), integer))(input)?;
+    let length = usize::try_from(length)
+        .map_err(|_| Err::Error(make_error(input, ErrorKind::LengthValue)))?;
     let (input, data) = take_bytes(length)(input)?;
     let data = data.to_owned();
     Ok((input, ByteString { data, bitwidth }))
@@ -107,6 +109,8 @@ fn bytestring(input: &[u8]) -> IResult<&[u8], DataItem> {
 
 fn definite_textstring(input: &[u8]) -> IResult<&[u8], TextString> {
     let (input, (length, bitwidth)) = bits(preceded(tag_bits(3, 3), integer))(input)?;
+    let length = usize::try_from(length)
+        .map_err(|_| Err::Error(make_error(input, ErrorKind::LengthValue)))?;
     let (input, data) = map_res(take_bytes(length), str::from_utf8)(input)?;
     let data = data.to_owned();
     Ok((input, TextString { data, bitwidth }))
