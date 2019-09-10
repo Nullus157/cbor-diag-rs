@@ -1,4 +1,5 @@
 extern crate cbor_diag;
+pub extern crate hex;
 
 pub use cbor_diag::{parse_diag, parse_hex};
 
@@ -19,6 +20,13 @@ impl<T: std::fmt::Display> std::fmt::Debug for DisplayDebug<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
+}
+
+pub fn remove_comments(hex: impl AsRef<str>) -> String {
+    hex.as_ref()
+        .lines()
+        .map(|line| line.split('#').next().unwrap().replace(" ", ""))
+        .collect()
 }
 
 #[macro_export]
@@ -76,6 +84,13 @@ macro_rules! testcases {
             $value:expr, $diag:expr, $hex:expr
         }
     ) => {
+        #[test]
+        fn value2bytes() {
+            let hex = $crate::utils::hex::encode($value.to_bytes());
+            let expected = $crate::utils::remove_comments($hex);
+            assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug(expected));
+        }
+
         #[test]
         fn value2hex() {
             let hex = $value.to_hex();
