@@ -33,23 +33,31 @@ pub fn remove_comments(hex: impl AsRef<str>) -> String {
 macro_rules! testcases {
     (
         @testcase $name:ident(diag2value $(, $rest:ident)+) {
-            $value:expr, $diag:expr, $hex:expr
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
         }
     ) => {
         #[test]
-        fn diag2value() {
-            let value = $crate::utils::parse_diag($diag).unwrap();
+        fn diag2value_compact() {
+            let value = $crate::utils::parse_diag($compact).unwrap();
             assert_eq!(value, $value);
         }
 
+        $(
+            #[test]
+            fn diag2value_pretty() {
+                let value = $crate::utils::parse_diag($pretty).unwrap();
+                assert_eq!(value, $value);
+            }
+        )?
+
         testcases! {
-            @testcase $name($($rest),*) { $value, $diag, $hex }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
         }
     };
 
     (
         @testcase $name:ident(hex2value $(, $rest:ident)+) {
-            $value:expr, $diag:expr, $hex:expr
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
         }
     ) => {
         #[test]
@@ -59,13 +67,37 @@ macro_rules! testcases {
         }
 
         testcases! {
-            @testcase $name($($rest),*) { $value, $diag, $hex }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
         }
     };
 
     (
         @testcase $name:ident(value2diag $(, $rest:ident)*) {
-            $value:expr, $diag:expr, $hex:expr
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+        }
+    ) => {
+        #[test]
+        fn value2diag_compact() {
+            let compact = $value.to_diag();
+            assert_eq!($crate::utils::DisplayDebug(compact), $crate::utils::DisplayDebug($compact));
+        }
+
+        $(
+            #[test]
+            fn value2diag_pretty() {
+                let pretty = $value.to_diag_pretty();
+                assert_eq!($crate::utils::DisplayDebug(pretty), $crate::utils::DisplayDebug(indoc!($pretty).trim()));
+            }
+        )?
+
+        testcases! {
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
+        }
+    };
+
+    (
+        @testcase $name:ident(value2diag $(, $rest:ident)*) {
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
         }
     ) => {
         #[test]
@@ -75,13 +107,13 @@ macro_rules! testcases {
         }
 
         testcases! {
-            @testcase $name($($rest),*) { $value, $diag, $hex }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
         }
     };
 
     (
         @testcase $name:ident(value2hex $(, $rest:ident)*) {
-            $value:expr, $diag:expr, $hex:expr
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
         }
     ) => {
         #[test]
@@ -98,15 +130,60 @@ macro_rules! testcases {
         }
 
         testcases! {
-            @testcase $name($($rest),*) { $value, $diag, $hex }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
         }
     };
 
     (
         @testcase $name:ident() {
-            $value:expr, $diag:expr, $hex:expr
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
         }
     ) => {
+    };
+
+    (
+        @testcases $name:ident($($test:ident),+) {
+            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+        }
+    ) => {
+        mod $name {
+            #[allow(unused_imports)]
+            use super::*;
+
+            testcases! {
+                @testcase $name($($test),*) { $value, { $compact $(, $pretty)? }, { $hex } }
+            }
+        }
+    };
+
+    (
+        @testcases $name:ident($($test:ident),+) {
+            $value:expr, { $compact:expr, $pretty:expr $(,)+ }, $hex:expr $(,)*
+        }
+    ) => {
+        mod $name {
+            #[allow(unused_imports)]
+            use super::*;
+
+            testcases! {
+                @testcase $name($($test),*) { $value, { $compact, $pretty }, { $hex } }
+            }
+        }
+    };
+
+    (
+        @testcases $name:ident($($test:ident),+) {
+            $value:expr, { $compact:expr, $pretty:expr $(,)* } $(,)*
+        }
+    ) => {
+        mod $name {
+            #[allow(unused_imports)]
+            use super::*;
+
+            testcases! {
+                @testcase $name($($test),+) { $value, { $compact, $pretty }, { "" } }
+            }
+        }
     };
 
     (
@@ -119,7 +196,7 @@ macro_rules! testcases {
             use super::*;
 
             testcases! {
-                @testcase $name($($test),+) { $value, $diag, $hex }
+                @testcase $name($($test),+) { $value, { $diag }, { $hex } }
             }
         }
     };
@@ -134,7 +211,7 @@ macro_rules! testcases {
             use super::*;
 
             testcases! {
-                @testcase $name($($test),+) { $value, $hexordiag, $hexordiag }
+                @testcase $name($($test),+) { $value, { $hexordiag }, { $hexordiag } }
             }
         }
     };

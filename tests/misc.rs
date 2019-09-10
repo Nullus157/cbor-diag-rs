@@ -13,7 +13,10 @@ mod utils;
 testcases! {
     false_ {
         DataItem::Simple(Simple::FALSE),
-        "false",
+        {
+            "false",
+            "false",
+        },
         indoc!("
             f4 # false, simple(20)
         "),
@@ -21,7 +24,10 @@ testcases! {
 
     true_ {
         DataItem::Simple(Simple::TRUE),
-        "true",
+        {
+            "true",
+            "true",
+        },
         indoc!("
             f5 # true, simple(21)
         "),
@@ -29,7 +35,10 @@ testcases! {
 
     null {
         DataItem::Simple(Simple::NULL),
-        "null",
+        {
+            "null",
+            "null",
+        },
         indoc!("
             f6 # null, simple(22)
         "),
@@ -37,7 +46,10 @@ testcases! {
 
     undefined {
         DataItem::Simple(Simple::UNDEFINED),
-        "undefined",
+        {
+            "undefined",
+            "undefined",
+        },
         indoc!("
             f7 # undefined, simple(23)
         "),
@@ -45,7 +57,10 @@ testcases! {
 
     simple_16 {
         DataItem::Simple(Simple(16)),
-        "simple(16)",
+        {
+            "simple(16)",
+            "simple(16)",
+        },
         indoc!("
             f0 # unassigned, simple(16)
         "),
@@ -53,7 +68,10 @@ testcases! {
 
     simple_24 {
         DataItem::Simple(Simple(24)),
-        "simple(24)",
+        {
+            "simple(24)",
+            "simple(24)",
+        },
         indoc!("
             f8 18 # reserved, simple(24)
         "),
@@ -61,7 +79,10 @@ testcases! {
 
     simple_255 {
         DataItem::Simple(Simple(255)),
-        "simple(255)",
+        {
+            "simple(255)",
+            "simple(255)",
+        },
         indoc!("
             f8 ff # unassigned, simple(255)
         "),

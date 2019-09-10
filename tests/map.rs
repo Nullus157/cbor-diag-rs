@@ -17,7 +17,10 @@ testcases! {
                 data: vec![],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "{}",
+            {
+                "{}",
+                "{ }",
+            }
         }
 
         hello_world(diag2value, value2diag) {
@@ -36,7 +39,10 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            r#"{ "hello": "world" }"#,
+            {
+                r#"{"hello":"world"}"#,
+                r#"{ "hello": "world" }"#,
+            }
         }
 
         non_alpha(diag2value, value2diag) {
@@ -55,7 +61,10 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "{ \"\u{1f1f3}\": \"\u{1f1ff}\" }",
+            {
+                "{\"\u{1f1f3}\":\"\u{1f1ff}\"}",
+                "{ \"\u{1f1f3}\": \"\u{1f1ff}\" }",
+            }
         }
 
         heterogenous(diag2value, value2diag) {
@@ -74,7 +83,10 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "{ 23: \"\u{1f1f3}\" }",
+            {
+                "{23:\"\u{1f1f3}\"}",
+                "{ 23: \"\u{1f1f3}\" }",
+            }
         }
 
         nested(diag2value, value2diag) {
@@ -143,7 +155,25 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            "{ { [\"\u{1f1f3}\", 23]: h'f09f87b3' }: \"\u{1f1f3}\", 23: { [\"\u{1f1f3}\", 23]: \"\u{1f1f3}\" } }",
+            {
+                "{{[\"\u{1f1f3}\",23]:h'f09f87b3'}:\"\u{1f1f3}\",23:{[\"\u{1f1f3}\",23]:\"\u{1f1f3}\"}}",
+                "
+                {
+                    {
+                        [
+                            \"\u{1f1f3}\",
+                            23,
+                        ]: h'f09f87b3',
+                    }: \"\u{1f1f3}\",
+                    23: {
+                        [
+                            \"\u{1f1f3}\",
+                            23,
+                        ]: \"\u{1f1f3}\",
+                    },
+                }
+                ",
+            }
         }
     }
 
@@ -328,7 +358,10 @@ testcases! {
                     data: vec![],
                     bitwidth: None,
                 },
-                "{_ }",
+                {
+                    "{_}",
+                    "{_ }",
+                }
             }
 
             hello_world(diag2value, value2diag) {
@@ -347,7 +380,10 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                r#"{_ "hello": "world" }"#,
+                {
+                    r#"{_"hello":"world"}"#,
+                    r#"{_ "hello": "world" }"#,
+                }
             }
 
             non_alpha(diag2value, value2diag) {
@@ -366,7 +402,10 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                "{_ \"\u{1f1f3}\": \"\u{1f1ff}\" }",
+                {
+                    "{_\"\u{1f1f3}\":\"\u{1f1ff}\"}",
+                    "{_ \"\u{1f1f3}\": \"\u{1f1ff}\" }",
+                }
             }
 
             heterogenous(diag2value, value2diag) {
@@ -385,7 +424,10 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                "{_ 23: \"\u{1f1f3}\" }",
+                {
+                    "{_23:\"\u{1f1f3}\"}",
+                    "{_ 23: \"\u{1f1f3}\" }",
+                }
             }
 
             nested(diag2value, value2diag) {
@@ -454,7 +496,25 @@ testcases! {
                     ],
                     bitwidth: None,
                 },
-                "{_ { [\"\u{1f1f3}\", 23]: h'f09f87b3' }: \"\u{1f1f3}\", 23: {_ [_ \"\u{1f1f3}\", 23]: \"\u{1f1f3}\" } }",
+                {
+                    "{_{[\"\u{1f1f3}\",23]:h'f09f87b3'}:\"\u{1f1f3}\",23:{_[_\"\u{1f1f3}\",23]:\"\u{1f1f3}\"}}",
+                    "
+                    {_
+                        {
+                            [
+                                \"\u{1f1f3}\",
+                                23,
+                            ]: h'f09f87b3',
+                        }: \"\u{1f1f3}\",
+                        23: {_
+                            [_
+                                \"\u{1f1f3}\",
+                                23,
+                            ]: \"\u{1f1f3}\",
+                        },
+                    }
+                    ",
+                }
             }
         }
 

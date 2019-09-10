@@ -28,6 +28,11 @@ fn wrapws<'a, T>(
     delimited(ws::<()>, parser, ws::<()>)
 }
 
+#[allow(clippy::needless_lifetimes)]
+fn opt_comma_tag<'a>(t: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
+    alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
+}
+
 /// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, -, _
 fn base64url_digit0<T>(input: T) -> IResult<T, T>
 where
@@ -89,14 +94,17 @@ fn positive(input: &str) -> IResult<&str, DataItem> {
 fn negative(input: &str) -> IResult<&str, DataItem> {
     preceded(
         tag("-"),
-        map(integer, |(value, bitwidth)| DataItem::Negative {
-            value: value - 1,
-            bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 24 {
-                IntegerWidth::Zero
-            } else {
-                bitwidth
+        map(
+            verify(integer, |&(value, _)| value > 0),
+            |(value, bitwidth)| DataItem::Negative {
+                value: value - 1,
+                bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 24 {
+                    IntegerWidth::Zero
+                } else {
+                    bitwidth
+                },
             },
-        }),
+        ),
     )(input)
 }
 
@@ -126,9 +134,9 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
 fn indefinite_bytestring(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
-            tag("(_ "),
-            alt((separated_list(tag(","), definite_bytestring), ws)),
-            tag(")"),
+            tag("(_"),
+            separated_list(tag(","), definite_bytestring),
+            opt_comma_tag(")"),
         ),
         DataItem::IndefiniteByteString,
     )(input)
@@ -162,9 +170,9 @@ fn definite_textstring(input: &str) -> IResult<&str, TextString> {
 fn indefinite_textstring(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
-            tag("(_ "),
-            alt((separated_list(tag(","), definite_textstring), ws)),
-            tag(")"),
+            tag("(_"),
+            separated_list(tag(","), definite_textstring),
+            opt_comma_tag(")"),
         ),
         DataItem::IndefiniteTextString,
     )(input)
@@ -180,9 +188,9 @@ fn textstring(input: &str) -> IResult<&str, DataItem> {
 fn definite_array(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
-            tag("["),
-            alt((separated_list(tag(","), data_item), ws)),
-            tag("]"),
+            wrapws(tag("[")),
+            separated_list(tag(","), data_item),
+            opt_comma_tag("]"),
         ),
         |data| DataItem::Array {
             data,
@@ -194,9 +202,9 @@ fn definite_array(input: &str) -> IResult<&str, DataItem> {
 fn indefinite_array(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
-            tag("[_ "),
-            alt((separated_list(tag(","), data_item), ws)),
-            tag("]"),
+            wrapws(tag("[_")),
+            separated_list(tag(","), data_item),
+            opt_comma_tag("]"),
         ),
         |data| DataItem::Array {
             data,
@@ -212,12 +220,9 @@ fn array(input: &str) -> IResult<&str, DataItem> {
 fn definite_map(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
-            tag("{"),
-            alt((
-                separated_list(tag(","), separated_pair(data_item, tag(":"), data_item)),
-                ws,
-            )),
-            tag("}"),
+            wrapws(tag("{")),
+            separated_list(tag(","), separated_pair(data_item, tag(":"), data_item)),
+            opt_comma_tag("}"),
         ),
         |data| DataItem::Map {
             data,
@@ -229,12 +234,9 @@ fn definite_map(input: &str) -> IResult<&str, DataItem> {
 fn indefinite_map(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
-            tag("{_ "),
-            alt((
-                separated_list(tag(","), separated_pair(data_item, tag(":"), data_item)),
-                ws,
-            )),
-            tag("}"),
+            wrapws(tag("{_")),
+            separated_list(tag(","), separated_pair(data_item, tag(":"), data_item)),
+            opt_comma_tag("}"),
         ),
         |data| DataItem::Map {
             data,

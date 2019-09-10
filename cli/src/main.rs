@@ -25,6 +25,7 @@ enum To {
     Hex,
     Bytes,
     Diag,
+    Compact,
 }
 
 // TODO: strum 0.16
@@ -32,7 +33,7 @@ impl To {
     /// Return a slice containing the names of the variants of this enum
     #[allow(dead_code)]
     pub fn variants() -> &'static [&'static str] {
-        &["annotated", "hex", "bytes", "diag"]
+        &["annotated", "hex", "bytes", "diag", "compact"]
     }
 }
 
@@ -111,6 +112,10 @@ fn try_main(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             output.write_all(&value.to_bytes())?;
         }
         To::Diag => {
+            output.write_all(value.to_diag_pretty().as_bytes())?;
+            output.write_all(b"\n")?;
+        }
+        To::Compact => {
             output.write_all(value.to_diag().as_bytes())?;
             output.write_all(b"\n")?;
         }

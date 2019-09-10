@@ -23,7 +23,10 @@ testcases! {
                 data: vec![],
                 bitwidth: IntegerWidth::Unknown,
             }),
-            "h''",
+            {
+                "h''",
+                "h''",
+            }
         }
 
         hello(diag2value, value2diag) {
@@ -31,7 +34,10 @@ testcases! {
                 data: b"hello"[..].into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
-            "h'68656c6c6f'",
+            {
+                "h'68656c6c6f'",
+                "h'68656c6c6f'",
+            }
         }
 
         alpha(diag2value, value2diag) {
@@ -39,7 +45,10 @@ testcases! {
                 data: b"abcdefghijklmnopqrstuvwxyz"[..].into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
-            "h'6162636465666768696a6b6c6d6e6f707172737475767778797a'",
+            {
+                "h'6162636465666768696a6b6c6d6e6f707172737475767778797a'",
+                "h'6162636465666768696a6b6c6d6e6f707172737475767778797a'",
+            }
         }
 
         non_alpha(diag2value, value2diag) {
@@ -47,7 +56,10 @@ testcases! {
                 data: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 bitwidth: IntegerWidth::Unknown,
             }),
-            "h'000102030405060708090a'",
+            {
+                "h'000102030405060708090a'",
+                "h'000102030405060708090a'",
+            }
         }
     }
 
@@ -234,7 +246,10 @@ testcases! {
         mod diag {
             empty(value2diag) {
                 DataItem::IndefiniteByteString(vec![]),
-                "(_ )",
+                {
+                    "(_)",
+                    "(_ )",
+                }
             }
 
             one_empty(diag2value, value2diag) {
@@ -244,7 +259,10 @@ testcases! {
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ h'')",
+                {
+                    "(_h'')",
+                    "(_ h'' )",
+                }
             }
 
             some_empty(diag2value, value2diag) {
@@ -258,7 +276,28 @@ testcases! {
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ h'', h'')",
+                {
+                    "(_h'',h'')",
+                    "
+                    (_
+                        h'',
+                        h'',
+                    )
+                    ",
+                }
+            }
+
+            hello(diag2value, value2diag) {
+                DataItem::IndefiniteByteString(vec![
+                    ByteString {
+                        data: b"hello"[..].into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    },
+                ]),
+                {
+                    "(_h'68656c6c6f')",
+                    "(_ h'68656c6c6f' )",
+                }
             }
 
             hello_world(diag2value, value2diag) {
@@ -272,7 +311,15 @@ testcases! {
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ h'68656c6c6f', h'776f726c64')",
+                {
+                    "(_h'68656c6c6f',h'776f726c64')",
+                    "
+                    (_
+                        h'68656c6c6f',
+                        h'776f726c64',
+                    )
+                    ",
+                }
             }
 
             alpha(diag2value, value2diag) {
@@ -294,7 +341,17 @@ testcases! {
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ h'616263', h'', h'6465666768696a6b6c6d6e6f70717273747576', h'7778797a')",
+                {
+                    "(_h'616263',h'',h'6465666768696a6b6c6d6e6f70717273747576',h'7778797a')",
+                    "
+                    (_
+                        h'616263',
+                        h'',
+                        h'6465666768696a6b6c6d6e6f70717273747576',
+                        h'7778797a',
+                    )
+                    ",
+                }
             }
 
             non_alpha(diag2value, value2diag) {
@@ -308,7 +365,15 @@ testcases! {
                         bitwidth: IntegerWidth::Unknown,
                     },
                 ]),
-                "(_ h'0001020304', h'05060708090a')",
+                {
+                    "(_h'0001020304',h'05060708090a')",
+                    "
+                    (_
+                        h'0001020304',
+                        h'05060708090a',
+                    )
+                    ",
+                }
             }
         }
 

@@ -243,3 +243,8 @@ fn datetime_overflow() {
     };
     assert_eq!(item, parse_hex(item.to_hex()).unwrap());
 }
+
+#[test]
+fn negative_underflow() {
+    assert!(parse_diag("-0").is_err());
+}

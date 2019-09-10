@@ -22,7 +22,10 @@ testcases! {
                     bitwidth: IntegerWidth::Zero,
                 }),
             },
-            "55799_1(0)",
+            {
+                "55799_1(0)",
+                "55799_1(0)",
+            },
             indoc!("
                 d9 d9f7 # self describe cbor, tag(55799)
                    00   #   unsigned(0)
@@ -61,7 +64,16 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            r#"[0("2018-08-02T18:19:38Z"), 0("1921-06-01T05:40:21Z"), 0("2018-08-02T18:19:38.125Z")]"#,
+            {
+                r#"[0("2018-08-02T18:19:38Z"),0("1921-06-01T05:40:21Z"),0("2018-08-02T18:19:38.125Z")]"#,
+                r#"
+                [
+                    0("2018-08-02T18:19:38Z"),
+                    0("1921-06-01T05:40:21Z"),
+                    0("2018-08-02T18:19:38.125Z"),
+                ]
+                "#,
+            }
         }
 
         epoch_date_time(diag2value, value2diag) {
@@ -94,7 +106,16 @@ testcases! {
                 ],
                 bitwidth: Some(IntegerWidth::Unknown),
             },
-            r#"[1(1533233978), 1(-1533233979), 1(1533233978.125)]"#,
+            {
+                r#"[1(1533233978),1(-1533233979),1(1533233978.125)]"#,
+                r#"
+                [
+                    1(1533233978),
+                    1(-1533233979),
+                    1(1533233978.125),
+                ]
+                "#,
+            }
         }
 
         positive_bignum(diag2value, value2diag) {
@@ -108,7 +129,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 }))
             },
-            "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
+            {
+                "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
+                "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
+            }
         }
 
         negative_bignum(diag2value, value2diag) {
@@ -122,7 +146,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 }))
             },
-            "3(h'123456789abcdeffedcba987654321')",
+            {
+                "3(h'123456789abcdeffedcba987654321')",
+                "3(h'123456789abcdeffedcba987654321')",
+            }
         }
 
         decimal_fraction(diag2value, value2diag) {
@@ -143,7 +170,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Unknown),
                 })
             },
-            "4([-2, 27315])",
+            {
+                "4([-2,27315])",
+                "
+                4([
+                    -2,
+                    27315,
+                ])
+                ",
+            }
         }
 
         bigfloat(diag2value, value2diag) {
@@ -164,7 +199,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Unknown),
                 })
             },
-            "5([-1, 3])",
+            {
+                "5([-1,3])",
+                "
+                5([
+                    -1,
+                    3,
+                ])
+                ",
+            }
         }
 
         decimal_fraction_bignum(diag2value, value2diag) {
@@ -191,7 +234,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Unknown),
                 })
             },
-            "4([-2, 2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+            {
+                "4([-2,2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+                "
+                4([
+                    -2,
+                    2(h'000001ffffffffffffffffffffff0000000000000000000000'),
+                ])
+                ",
+            }
         }
 
         bigfloat_bignum(diag2value, value2diag) {
@@ -218,7 +269,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Unknown),
                 })
             },
-            "5([-1, 2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+            {
+                "5([-1,2(h'000001ffffffffffffffffffffff0000000000000000000000')])",
+                "
+                5([
+                    -1,
+                    2(h'000001ffffffffffffffffffffff0000000000000000000000'),
+                ])
+                ",
+            }
         }
 
         base64url_encoding(diag2value, value2diag) {
@@ -230,7 +289,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            "21(b64'EjRWeJq83v_ty6mHZUM')",
+            {
+                "21(b64'EjRWeJq83v_ty6mHZUM')",
+                "21(b64'EjRWeJq83v_ty6mHZUM')",
+            }
         }
 
         base64url_encoding_nested(diag2value, value2diag) {
@@ -247,7 +309,10 @@ testcases! {
                     bitwidth: None,
                 })
             },
-            "21([_ b64'EjRWeJq83v_ty6mHZUM'])",
+            {
+                "21([_b64'EjRWeJq83v_ty6mHZUM'])",
+                "21([_ b64'EjRWeJq83v_ty6mHZUM' ])",
+            }
         }
 
         base64_encoding(diag2value, value2diag) {
@@ -259,7 +324,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            "22(b64'EjRWeJq83v/ty6mHZUM')",
+            {
+                "22(b64'EjRWeJq83v/ty6mHZUM')",
+                "22(b64'EjRWeJq83v/ty6mHZUM')",
+            }
         }
 
         base64_encoding_nested(diag2value, value2diag) {
@@ -276,7 +344,10 @@ testcases! {
                     bitwidth: None,
                 })
             },
-            "22([_ b64'EjRWeJq83v/ty6mHZUM'])",
+            {
+                "22([_b64'EjRWeJq83v/ty6mHZUM'])",
+                "22([_ b64'EjRWeJq83v/ty6mHZUM' ])",
+            }
         }
 
         base16_encoding(diag2value, value2diag) {
@@ -288,7 +359,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            "23(h'123456789abcdeffedcba9876543')",
+            {
+                "23(h'123456789abcdeffedcba9876543')",
+                "23(h'123456789abcdeffedcba9876543')",
+            }
         }
 
         base16_encoding_nested(diag2value, value2diag) {
@@ -305,7 +379,10 @@ testcases! {
                     bitwidth: None,
                 })
             },
-            "23([_ h'123456789abcdeffedcba9876543'])",
+            {
+                "23([_h'123456789abcdeffedcba9876543'])",
+                "23([_ h'123456789abcdeffedcba9876543' ])",
+            }
         }
 
         multiple_encodings(diag2value, value2diag) {
@@ -343,7 +420,16 @@ testcases! {
                     bitwidth: None,
                 })
             },
-            "21([_ b64'EjRWeJq83v_ty6mHZUM', 22([_ b64'EjRWeJq83v/ty6mHZUM']), 23(h'123456789abcdeffedcba9876543')])",
+            {
+                "21([_b64'EjRWeJq83v_ty6mHZUM',22([_b64'EjRWeJq83v/ty6mHZUM']),23(h'123456789abcdeffedcba9876543')])",
+                "
+                21([_
+                    b64'EjRWeJq83v_ty6mHZUM',
+                    22([_ b64'EjRWeJq83v/ty6mHZUM' ]),
+                    23(h'123456789abcdeffedcba9876543'),
+                ])
+                ",
+            }
         }
 
         encoded_cbor(diag2value, value2diag) {
@@ -355,7 +441,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            "24(h'9f64f09f87b317ff')",
+            {
+                "24(h'9f64f09f87b317ff')",
+                "24(h'9f64f09f87b317ff')",
+            }
         }
 
         encoded_cbor_invalid(diag2value, value2diag) {
@@ -367,7 +456,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            "24(h'ff')",
+            {
+                "24(h'ff')",
+                "24(h'ff')",
+            }
         }
 
         encoded_cbor_nested(diag2value, value2diag) {
@@ -379,7 +471,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            "24(h'd818489f64f09f87b317ff')",
+            {
+                "24(h'd818489f64f09f87b317ff')",
+                "24(h'd818489f64f09f87b317ff')",
+            }
         }
 
         uri(diag2value, value2diag) {
@@ -391,7 +486,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            r#"32("https://example.com")"#,
+            {
+                r#"32("https://example.com")"#,
+                r#"32("https://example.com")"#,
+            }
         }
 
         uri_non_http(diag2value, value2diag) {
@@ -403,7 +501,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            r#"32("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")"#,
+            {
+                r#"32("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")"#,
+                r#"32("urn:oasis:names:specification:docbook:dtd:xml:4.1.2")"#,
+            }
         }
 
         uri_invalid(diag2value, value2diag) {
@@ -415,7 +516,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            r#"32("foo")"#,
+            {
+                r#"32("foo")"#,
+                r#"32("foo")"#,
+            }
         }
 
         base64url(diag2value, value2diag) {
@@ -427,7 +531,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            r#"33("aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2")"#,
+            {
+                r#"33("aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2")"#,
+                r#"33("aHR0cHM6Ly9leGFtcGxlLmNvbS_wn5C2")"#,
+            }
         }
 
         base64(diag2value, value2diag) {
@@ -439,7 +546,10 @@ testcases! {
                     bitwidth: IntegerWidth::Unknown,
                 })),
             },
-            r#"34("aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2")"#,
+            {
+                r#"34("aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2")"#,
+                r#"34("aHR0cHM6Ly9leGFtcGxlLmNvbS/wn5C2")"#,
+            }
         }
 
         self_describe_cbor(diag2value, value2diag) {
@@ -451,7 +561,10 @@ testcases! {
                     bitwidth: IntegerWidth::Zero,
                 }),
             },
-            "55799(0)",
+            {
+                "55799(0)",
+                "55799(0)",
+            }
         }
     }
 
