@@ -94,14 +94,17 @@ fn positive(input: &str) -> IResult<&str, DataItem> {
 fn negative(input: &str) -> IResult<&str, DataItem> {
     preceded(
         tag("-"),
-        map(integer, |(value, bitwidth)| DataItem::Negative {
-            value: value - 1,
-            bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 24 {
-                IntegerWidth::Zero
-            } else {
-                bitwidth
+        map(
+            verify(integer, |&(value, _)| value > 0),
+            |(value, bitwidth)| DataItem::Negative {
+                value: value - 1,
+                bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 24 {
+                    IntegerWidth::Zero
+                } else {
+                    bitwidth
+                },
             },
-        }),
+        ),
     )(input)
 }
 
