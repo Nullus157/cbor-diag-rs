@@ -1,6 +1,6 @@
 [package]
 name = "cbor-diag-cli"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Wim Looman <wim@nemo157.com>"]
 edition = "2018"
 description = """
@@ -15,7 +15,7 @@ name = "cbor-diag"
 path = "src/main.rs"
 
 [dependencies]
-cbor-diag = { version = "0.1.1", path = "..", default-features = false }
+cbor-diag = { version = "0.1.2", path = "..", default-features = false }
 log = { version = "0.4.8", default-features = false }
 paw = { version = "1.0.0", default-features = false }
 pretty_env_logger = { version = "0.3.1", default-features = false }
