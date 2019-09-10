@@ -105,10 +105,10 @@ fn try_main(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             output.write_all(value.to_hex().as_bytes())?;
         }
         To::Hex => {
-            return Err("not yet implemented".into());
+            output.write_all(hex::encode(value.to_bytes()).as_bytes())?;
         }
         To::Bytes => {
-            return Err("not yet implemented".into());
+            output.write_all(&value.to_bytes())?;
         }
         To::Diag => {
             output.write_all(value.to_diag().as_bytes())?;
