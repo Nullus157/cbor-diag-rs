@@ -9,6 +9,7 @@ Binary Object Representation (CBOR)](https://cbor.io).
 """
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Nemo157/cbor-diag-rs"
+readme = "README.md"
 
 [[bin]]
 name = "cbor-diag"
