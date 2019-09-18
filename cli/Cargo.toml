@@ -23,4 +23,4 @@ pretty_env_logger = { version = "0.3.1", default-features = false }
 structopt = { version = "0.3.0", default-features = false, features = ["paw", "color"] }
 strum = { version = "0.15.0", default-features = false }
 strum_macros = { version = "0.15.0", default-features = false }
-hex = "0.3.2"
+hex = "0.4.0"
