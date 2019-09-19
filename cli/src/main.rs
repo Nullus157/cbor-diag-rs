@@ -1,6 +1,6 @@
 use std::io::{Read, Write};
 
-#[derive(Debug, strum_macros::EnumString)]
+#[derive(Debug, strum::EnumString, strum::EnumVariantNames)]
 #[strum(serialize_all = "snake_case")]
 enum From {
     Auto,
@@ -9,16 +9,7 @@ enum From {
     Diag,
 }
 
-// TODO: strum 0.16
-impl From {
-    /// Return a slice containing the names of the variants of this enum
-    #[allow(dead_code)]
-    pub fn variants() -> &'static [&'static str] {
-        &["auto", "hex", "bytes", "diag"]
-    }
-}
-
-#[derive(Debug, strum_macros::EnumString)]
+#[derive(Debug, strum::EnumString, strum::EnumVariantNames)]
 #[strum(serialize_all = "snake_case")]
 enum To {
     Annotated,
@@ -26,15 +17,6 @@ enum To {
     Bytes,
     Diag,
     Compact,
-}
-
-// TODO: strum 0.16
-impl To {
-    /// Return a slice containing the names of the variants of this enum
-    #[allow(dead_code)]
-    pub fn variants() -> &'static [&'static str] {
-        &["annotated", "hex", "bytes", "diag", "compact"]
-    }
 }
 
 #[derive(Debug, structopt::StructOpt)]
