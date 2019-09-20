@@ -1,6 +1,6 @@
 [package]
 name = "cbor-diag-cli"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Wim Looman <wim@nemo157.com>"]
 edition = "2018"
 description = """
