@@ -18,51 +18,113 @@ pub(crate) struct Context<'a> {
     indent: usize,
 }
 
-trait IsTrivial {
-    fn is_trivial(&self) -> bool;
+trait LengthEstimate {
+    /// Can shortcircuit and return `max` if it is more than that
+    fn estimate(&self, max: usize) -> usize;
 }
 
-fn is_trivial(value: &impl IsTrivial) -> bool {
-    value.is_trivial()
+fn is_trivial(value: &impl LengthEstimate) -> bool {
+    const MAX: usize = 60;
+    value.estimate(MAX) < MAX
 }
 
-impl IsTrivial for DataItem {
-    fn is_trivial(&self) -> bool {
+impl LengthEstimate for DataItem {
+    fn estimate(&self, max: usize) -> usize {
         match self {
-            DataItem::Integer { .. }
-            | DataItem::Negative { .. }
-            | DataItem::Float { .. }
-            | DataItem::Simple(_) => true,
-            DataItem::Map { .. } => false,
-            DataItem::ByteString(value) => value.is_trivial(),
-            DataItem::TextString(value) => value.is_trivial(),
-            DataItem::Array { data, .. } => data.len() < 2 && data.iter().all(is_trivial),
+            DataItem::Integer { value, .. } => value.to_string().len() + 2,
+            DataItem::Negative { value, .. } => value.to_string().len() + 3,
+            DataItem::Float { value, .. } => value.to_string().len() + 3,
+            DataItem::Simple(value) => value.estimate(max),
+            DataItem::ByteString(value) => value.estimate(max),
+            DataItem::TextString(value) => value.estimate(max),
+            DataItem::Array { data, .. } => {
+                let mut len = 4;
+                for item in data {
+                    len += item.estimate(max - len) + 2;
+                    if len >= max {
+                        return len;
+                    }
+                }
+                len
+            }
+            DataItem::Map { data, .. } => {
+                let mut len = 4;
+                for entry in data {
+                    len += entry.estimate(max - len) + 2;
+                    if len >= max {
+                        return len;
+                    }
+                }
+                len
+            }
             DataItem::IndefiniteByteString(strings) => {
-                strings.len() < 2 && strings.iter().all(is_trivial)
+                let mut len = 4;
+                for string in strings {
+                    len += string.estimate(max - len) + 2;
+                    if len >= max {
+                        return len;
+                    }
+                }
+                len
             }
             DataItem::IndefiniteTextString(strings) => {
-                strings.len() < 2 && strings.iter().all(is_trivial)
+                let mut len = 4;
+                for string in strings {
+                    len += string.estimate(max - len) + 2;
+                    if len >= max {
+                        return len;
+                    }
+                }
+                len
             }
-            DataItem::Tag { value, .. } => value.is_trivial(),
+            DataItem::Tag { tag, value, .. } => (tag, value).estimate(max),
         }
     }
 }
 
-impl IsTrivial for (DataItem, DataItem) {
-    fn is_trivial(&self) -> bool {
-        self.0.is_trivial() && self.1.is_trivial()
+impl<T: LengthEstimate + ?Sized> LengthEstimate for &T {
+    fn estimate(&self, max: usize) -> usize {
+        (&**self).estimate(max)
     }
 }
 
-impl IsTrivial for ByteString {
-    fn is_trivial(&self) -> bool {
-        self.data.len() < 16
+impl<T: LengthEstimate + ?Sized> LengthEstimate for Box<T> {
+    fn estimate(&self, max: usize) -> usize {
+        (&**self).estimate(max)
     }
 }
 
-impl IsTrivial for TextString {
-    fn is_trivial(&self) -> bool {
-        self.data.len() < 32
+impl<T: LengthEstimate, U: LengthEstimate> LengthEstimate for (T, U) {
+    fn estimate(&self, max: usize) -> usize {
+        let mut len = self.0.estimate(max);
+        if len < max {
+            len += self.1.estimate(max - len);
+        }
+        len
+    }
+}
+
+impl LengthEstimate for ByteString {
+    fn estimate(&self, _: usize) -> usize {
+        self.data.len() * 2 + 4
+    }
+}
+
+impl LengthEstimate for TextString {
+    fn estimate(&self, _: usize) -> usize {
+        self.data.len() + 2
+    }
+}
+
+impl LengthEstimate for Tag {
+    fn estimate(&self, _: usize) -> usize {
+        self.0.to_string().len() + 2
+    }
+}
+
+impl LengthEstimate for Simple {
+    fn estimate(&self, _: usize) -> usize {
+        self.0.to_string().len() + 8
     }
 }
 
@@ -165,63 +227,68 @@ impl<'a> Context<'a> {
         self.output.push('"');
     }
 
-    fn container_to_diag<T: IsTrivial>(
+    fn container_to_diag<T>(
         &mut self,
         begin: char,
         items: &[T],
         end: char,
         definite: bool,
+        trivial: bool,
         item_to_diag: fn(&mut Self, &T),
     ) {
         self.output.push(begin);
         if !definite {
             self.output.push_str("_");
         }
-        if items.len() < 2 && items.iter().all(IsTrivial::is_trivial) {
-            if self.pretty() {
-                self.output.push(' ');
-            }
-            if let Some(item) = items.first() {
-                item_to_diag(self, item);
-                if self.pretty() {
-                    self.output.push(' ');
-                }
-            }
-        } else {
+        if !trivial {
             self.indent += 4;
-            for item in items {
-                if self.pretty() {
+        }
+        for item in items {
+            if self.pretty() {
+                if trivial {
+                    self.output.push(' ');
+                } else {
                     self.line();
                     self.indent();
                 }
-                item_to_diag(self, item);
-                self.output.push(',');
             }
+            item_to_diag(self, item);
+            self.output.push(',');
+        }
+        if !trivial {
             self.indent -= 4;
-            if self.pretty() {
+        }
+        if self.pretty() {
+            if trivial {
+                if !items.is_empty() {
+                    self.output.pop();
+                }
+                self.output.push(' ');
+            } else {
                 self.line();
                 self.indent();
-            } else {
-                self.output.pop();
             }
+        } else if !items.is_empty() {
+            self.output.pop();
         }
         self.output.push(end);
     }
 
-    fn indefinite_string_to_diag<T: IsTrivial>(
+    fn indefinite_string_to_diag<T>(
         &mut self,
         strings: &[T],
+        trivial: bool,
         definite_string_to_diag: fn(&mut Self, &T),
     ) {
-        self.container_to_diag('(', strings, ')', false, definite_string_to_diag);
+        self.container_to_diag('(', strings, ')', false, trivial, definite_string_to_diag);
     }
 
-    fn array_to_diag(&mut self, array: &[DataItem], definite: bool) {
-        self.container_to_diag('[', array, ']', definite, Self::item_to_diag);
+    fn array_to_diag(&mut self, array: &[DataItem], definite: bool, trivial: bool) {
+        self.container_to_diag('[', array, ']', definite, trivial, Self::item_to_diag);
     }
 
-    fn map_to_diag(&mut self, values: &[(DataItem, DataItem)], definite: bool) {
-        self.container_to_diag('{', values, '}', definite, |this, (key, value)| {
+    fn map_to_diag(&mut self, values: &[(DataItem, DataItem)], definite: bool, trivial: bool) {
+        self.container_to_diag('{', values, '}', definite, trivial, |this, (key, value)| {
             this.item_to_diag(key);
             this.output.push(':');
             if this.pretty() {
@@ -313,25 +380,33 @@ impl<'a> Context<'a> {
                 self.definite_bytestring_to_diag(bytestring);
             }
             DataItem::IndefiniteByteString(ref bytestrings) => {
-                self.indefinite_string_to_diag(bytestrings, Self::definite_bytestring_to_diag);
+                self.indefinite_string_to_diag(
+                    bytestrings,
+                    is_trivial(value),
+                    Self::definite_bytestring_to_diag,
+                );
             }
             DataItem::TextString(ref textstring) => {
                 self.definite_textstring_to_diag(textstring);
             }
             DataItem::IndefiniteTextString(ref textstrings) => {
-                self.indefinite_string_to_diag(textstrings, Self::definite_textstring_to_diag);
+                self.indefinite_string_to_diag(
+                    textstrings,
+                    is_trivial(value),
+                    Self::definite_textstring_to_diag,
+                );
             }
             DataItem::Array {
                 ref data,
                 ref bitwidth,
             } => {
-                self.array_to_diag(data, bitwidth.is_some());
+                self.array_to_diag(data, bitwidth.is_some(), is_trivial(value));
             }
             DataItem::Map {
                 ref data,
                 ref bitwidth,
             } => {
-                self.map_to_diag(data, bitwidth.is_some());
+                self.map_to_diag(data, bitwidth.is_some(), is_trivial(value));
             }
             DataItem::Tag {
                 tag,
