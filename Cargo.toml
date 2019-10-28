@@ -20,7 +20,7 @@ hex = { version = "0.4.0", default-features = false }
 nom = { version = "5.0.1", default-features = false, features = ["std"] }
 half = { version = "1.3.0", default-features = false }
 chrono = { version = "0.4.9", default-features = false }
-base64 = { version = "0.10.1", default-features = false }
+base64 = { version = "0.11.0", default-features = false, features = ["std"] }
 url = { version = "2.1.0", default-features = false }
 num-rational = { version = "0.2.2", default-features = false, features = ["bigint"] }
 num-bigint = { version = "0.2.3", default-features = false, features = ["std"] }
