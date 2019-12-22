@@ -171,7 +171,7 @@ fn arb_data_item() -> impl Strategy<Value = DataItem> {
         prop_oneof![
             arb_array(inner.clone(), 0..10),
             arb_map(inner.clone(), 0..10),
-            arb_tagged(inner.clone()),
+            arb_tagged(inner),
         ]
     })
 }
