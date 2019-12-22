@@ -1,4 +1,5 @@
 use std::io::{Read, Write};
+use strum::VariantNames;
 
 #[derive(Debug, strum::EnumString, strum::EnumVariantNames)]
 #[strum(serialize_all = "snake_case")]
@@ -25,11 +26,11 @@ enum To {
 /// formats for CBOR.
 struct Args {
     /// What format to attempt to parse the input as
-    #[structopt(long, default_value = "auto", possible_values(From::variants()))]
+    #[structopt(long, default_value = "auto", possible_values(From::VARIANTS))]
     from: From,
 
     /// What format to output
-    #[structopt(long, default_value = "diag", possible_values(To::variants()))]
+    #[structopt(long, default_value = "diag", possible_values(To::VARIANTS))]
     to: To,
 }
 
