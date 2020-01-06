@@ -1,8 +1,8 @@
 use anyhow::anyhow;
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use strum::VariantNames;
 
-#[derive(Debug, strum::EnumString, strum::EnumVariantNames)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, strum::EnumString, strum::EnumVariantNames)]
 #[strum(serialize_all = "snake_case")]
 enum From {
     Auto,
@@ -11,7 +11,7 @@ enum From {
     Diag,
 }
 
-#[derive(Debug, strum::EnumString, strum::EnumVariantNames)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, strum::EnumString, strum::EnumVariantNames)]
 #[strum(serialize_all = "snake_case")]
 enum To {
     Annotated,
@@ -33,45 +33,27 @@ struct Args {
     /// What format to output
     #[structopt(long, default_value = "diag", possible_values(To::VARIANTS))]
     to: To,
+
+    /// Parse a series of undelimited CBOR data items in binary format (a.k.a. the `cbor-seq` data
+    /// type).
+    #[structopt(long, conflicts_with("from"))]
+    seq: bool,
 }
 
-#[paw::main]
-fn main(args: Args) -> anyhow::Result<()> {
-    let input = std::io::stdin();
-    let mut input = input.lock();
+trait ReadExt: Read {
+    fn read_to_vec(&mut self, buffer: &mut Vec<u8>) -> io::Result<bool> {
+        let offset = buffer.len();
+        buffer.resize(offset + 10 * 1024, 0);
+        let len = self.read(&mut buffer[offset..])?;
+        buffer.resize(offset + len, 0);
+        Ok(len != 0)
+    }
+}
 
-    let data = {
-        let mut data = Default::default();
-        input.read_to_end(&mut data)?;
-        data
-    };
+impl<R: Read> ReadExt for R {}
 
-    let value = match args.from {
-        From::Auto => cbor_diag::parse_bytes(&data)
-            .ok()
-            .or_else(|| {
-                String::from_utf8(data).ok().and_then(|data| {
-                    cbor_diag::parse_hex(&data)
-                        .ok()
-                        .or_else(|| cbor_diag::parse_diag(&data).ok())
-                })
-            })
-            .ok_or_else(|| anyhow!("Failed all parsers"))?,
-        From::Hex => {
-            let data = String::from_utf8(data)?;
-            cbor_diag::parse_hex(data)?
-        }
-        From::Bytes => cbor_diag::parse_bytes(data)?,
-        From::Diag => {
-            let data = String::from_utf8(data)?;
-            cbor_diag::parse_diag(data)?
-        }
-    };
-
-    let output = std::io::stdout();
-    let mut output = output.lock();
-
-    match args.to {
+fn output_item(value: cbor_diag::DataItem, to: To, mut output: impl Write) -> anyhow::Result<()> {
+    match to {
         To::Annotated => {
             output.write_all(value.to_hex().as_bytes())?;
         }
@@ -90,6 +72,65 @@ fn main(args: Args) -> anyhow::Result<()> {
             output.write_all(b"\n")?;
         }
     };
+
+    Ok(())
+}
+
+#[paw::main]
+fn main(args: Args) -> anyhow::Result<()> {
+    let input = std::io::stdin();
+    let mut input = input.lock();
+
+    let output = std::io::stdout();
+    let mut output = output.lock();
+
+    if args.seq {
+        let mut data = Default::default();
+
+        while input.read_to_vec(&mut data)? {
+            while let Some((value, len)) = cbor_diag::parse_bytes_partial(&data)? {
+                output_item(value, args.to, &mut output)?;
+                if args.to != To::Bytes && args.to != To::Compact {
+                    output.write_all(b"\n")?;
+                }
+                data.drain(..len);
+            }
+        }
+
+        if !data.is_empty() {
+            return Err(anyhow!("{} bytes remaining after last item", data.len()));
+        }
+    } else {
+        let data = {
+            let mut data = Default::default();
+            input.read_to_end(&mut data)?;
+            data
+        };
+
+        let value = match args.from {
+            From::Auto => cbor_diag::parse_bytes(&data)
+                .ok()
+                .or_else(|| {
+                    String::from_utf8(data).ok().and_then(|data| {
+                        cbor_diag::parse_hex(&data)
+                            .ok()
+                            .or_else(|| cbor_diag::parse_diag(&data).ok())
+                    })
+                })
+                .ok_or_else(|| anyhow!("Failed all parsers"))?,
+            From::Hex => {
+                let data = String::from_utf8(data)?;
+                cbor_diag::parse_hex(data)?
+            }
+            From::Bytes => cbor_diag::parse_bytes(data)?,
+            From::Diag => {
+                let data = String::from_utf8(data)?;
+                cbor_diag::parse_diag(data)?
+            }
+        };
+
+        output_item(value, args.to, &mut output)?;
+    }
 
     Ok(())
 }
