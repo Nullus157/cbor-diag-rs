@@ -4,7 +4,7 @@ use {DataItem, Result};
 mod binary;
 mod diag;
 
-pub use self::binary::parse_bytes;
+pub use self::binary::{parse_bytes, parse_bytes_partial};
 pub use self::diag::parse_diag;
 
 fn remove_comments(hex: impl AsRef<str>) -> String {
