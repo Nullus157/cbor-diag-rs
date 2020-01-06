@@ -35,19 +35,6 @@ struct Args {
     to: To,
 }
 
-trait ResultExt<T, E> {
-    fn swap(self) -> Result<E, T>;
-}
-
-impl<T, E> ResultExt<T, E> for Result<T, E> {
-    fn swap(self) -> Result<E, T> {
-        match self {
-            Ok(t) => Err(t),
-            Err(e) => Ok(e),
-        }
-    }
-}
-
 #[paw::main]
 fn main(args: Args) -> anyhow::Result<()> {
     let input = std::io::stdin();
