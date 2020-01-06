@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use std::io::{Read, Write};
 use strum::VariantNames;
 
@@ -47,9 +48,8 @@ impl<T, E> ResultExt<T, E> for Result<T, E> {
     }
 }
 
-fn try_main(args: Args) -> Result<(), Box<dyn std::error::Error>> {
-    log::debug!("{:?}", args);
-
+#[paw::main]
+fn main(args: Args) -> anyhow::Result<()> {
     let input = std::io::stdin();
     let mut input = input.lock();
 
@@ -69,7 +69,7 @@ fn try_main(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                         .or_else(|| cbor_diag::parse_diag(&data).ok())
                 })
             })
-            .ok_or_else(|| "Failed all parsers")?,
+            .ok_or_else(|| anyhow!("Failed all parsers"))?,
         From::Hex => {
             let data = String::from_utf8(data)?;
             cbor_diag::parse_hex(data)?
@@ -105,14 +105,4 @@ fn try_main(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     };
 
     Ok(())
-}
-
-#[paw::main]
-fn main(args: Args) {
-    pretty_env_logger::init();
-
-    match try_main(args) {
-        Ok(()) => {}
-        Err(err) => log::error!("{}", err),
-    }
 }
