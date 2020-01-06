@@ -30,6 +30,4 @@ pub use syntax::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, Te
 
 pub use error::{Error, Result};
 
-pub use self::parse::parse_bytes;
-pub use self::parse::parse_diag;
-pub use self::parse::parse_hex;
+pub use self::parse::{parse_bytes, parse_bytes_partial, parse_diag, parse_hex};

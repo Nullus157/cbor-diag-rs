@@ -5,11 +5,11 @@ use half::f16;
 use nom::{
     bits::{bits, bytes},
     branch::alt,
-    bytes::complete::take as take_bytes,
+    bytes::streaming::take as take_bytes,
     combinator::{map, map_res, verify},
     error::{make_error, ErrorKind},
     multi::{count, many_till},
-    number::complete::{be_f32, be_f64, be_u16},
+    number::streaming::{be_f32, be_f64, be_u16},
     sequence::{pair, preceded},
     Err, IResult,
 };
@@ -24,7 +24,7 @@ where
         + core::ops::Shl<usize, Output = O>
         + core::ops::Shr<usize, Output = O>,
 {
-    nom::bits::complete::take(count)
+    nom::bits::streaming::take(count)
 }
 
 pub fn tag_bits<I, O>(pattern: O, count: usize) -> impl Fn((I, usize)) -> IResult<(I, usize), O>
@@ -39,7 +39,7 @@ where
         + core::ops::Shr<usize, Output = O>
         + PartialEq,
 {
-    nom::bits::complete::tag(pattern, count)
+    nom::bits::streaming::tag(pattern, count)
 }
 
 fn integer(input: (&[u8], usize)) -> IResult<(&[u8], usize), (u64, IntegerWidth)> {
@@ -308,4 +308,49 @@ pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
         return Err(format!("Remaining bytes ({})", hex::encode(remaining)).into());
     }
     Ok(parsed)
+}
+
+/// Parse a string containing a binary encoded CBOR data item, optionally followed by more data.
+///
+/// Returns one of:
+///
+///  * `Err(_)` => a parsing error if there was an issue encountered
+///  * `Ok(None)` => the end of a data item was not reached
+///  * `Ok(Some(_))` => the parsed item along with how many bytes were used to parse this item
+///
+/// # Examples
+///
+/// ```rust
+/// use cbor_diag::{DataItem, IntegerWidth, Tag, TextString};
+///
+/// assert_eq!(
+///     cbor_diag::parse_bytes_partial(&b"\
+///         \xd8\x20\x73\x68\x74\x74\x70\x73\x3a\x2f\x2f\x65\x78\x61\x6d\x70\
+///         \x6c\x65\x2e\x63\x6f\
+///     "[..]).unwrap(),
+///     None);
+///
+/// assert_eq!(
+///     cbor_diag::parse_bytes_partial(&b"\
+///         \xd8\x20\x73\x68\x74\x74\x70\x73\x3a\x2f\x2f\x65\x78\x61\x6d\x70\
+///         \x6c\x65\x2e\x63\x6f\x6d\xff\
+///     "[..]).unwrap(),
+///     Some((
+///         DataItem::Tag {
+///             tag: Tag::URI,
+///             bitwidth: IntegerWidth::Eight,
+///             value: Box::new(DataItem::TextString(TextString {
+///                 data: "https://example.com".into(),
+///                 bitwidth: IntegerWidth::Zero,
+///             })),
+///         },
+///         22
+///     )));
+/// ```
+pub fn parse_bytes_partial(bytes: impl AsRef<[u8]>) -> Result<Option<(DataItem, usize)>> {
+    match data_item(bytes.as_ref()) {
+        Ok((remaining, item)) => Ok(Some((item, bytes.as_ref().len() - remaining.len()))),
+        Err(nom::Err::Incomplete(_)) => Ok(None),
+        Err(nom::Err::Failure(_)) | Err(nom::Err::Error(_)) => Err("Parser error".into()),
+    }
 }
