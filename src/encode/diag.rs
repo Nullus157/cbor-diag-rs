@@ -230,20 +230,32 @@ impl<'a> Context<'a> {
     fn container_to_diag<T>(
         &mut self,
         begin: char,
-        items: &[T],
+        items: impl IntoIterator<Item = T>,
         end: char,
         definite: bool,
         trivial: bool,
-        item_to_diag: fn(&mut Self, &T),
+        item_to_diag: fn(&mut Self, T),
     ) {
         self.output.push(begin);
         if !definite {
-            self.output.push_str("_");
+            self.output.push('_');
+            if trivial && self.pretty() {
+                self.output.push(' ');
+            }
         }
         if !trivial {
             self.indent += 4;
         }
+        let mut items = items.into_iter();
+        if let Some(item) = items.next() {
+            if self.pretty() && !trivial {
+                self.line();
+                self.indent();
+            }
+            item_to_diag(self, item);
+        }
         for item in items {
+            self.output.push(',');
             if self.pretty() {
                 if trivial {
                     self.output.push(' ');
@@ -253,23 +265,14 @@ impl<'a> Context<'a> {
                 }
             }
             item_to_diag(self, item);
-            self.output.push(',');
         }
         if !trivial {
             self.indent -= 4;
-        }
-        if self.pretty() {
-            if trivial {
-                if !items.is_empty() {
-                    self.output.pop();
-                }
-                self.output.push(' ');
-            } else {
+            if self.pretty() {
+                self.output.push(',');
                 self.line();
                 self.indent();
             }
-        } else if !items.is_empty() {
-            self.output.pop();
         }
         self.output.push(end);
     }

@@ -172,7 +172,7 @@ testcases! {
             },
             {
                 "4([-2,27315])",
-                "4([ -2, 27315 ])",
+                "4([-2, 27315])",
             }
         }
 
@@ -196,7 +196,7 @@ testcases! {
             },
             {
                 "5([-1,3])",
-                "5([ -1, 3 ])",
+                "5([-1, 3])",
             }
         }
 
@@ -301,7 +301,7 @@ testcases! {
             },
             {
                 "21([_b64'EjRWeJq83v_ty6mHZUM'])",
-                "21([_ b64'EjRWeJq83v_ty6mHZUM' ])",
+                "21([_ b64'EjRWeJq83v_ty6mHZUM'])",
             }
         }
 
@@ -336,7 +336,7 @@ testcases! {
             },
             {
                 "22([_b64'EjRWeJq83v/ty6mHZUM'])",
-                "22([_ b64'EjRWeJq83v/ty6mHZUM' ])",
+                "22([_ b64'EjRWeJq83v/ty6mHZUM'])",
             }
         }
 
@@ -371,7 +371,7 @@ testcases! {
             },
             {
                 "23([_h'123456789abcdeffedcba9876543'])",
-                "23([_ h'123456789abcdeffedcba9876543' ])",
+                "23([_ h'123456789abcdeffedcba9876543'])",
             }
         }
 
@@ -415,7 +415,7 @@ testcases! {
                 "
                 21([_
                     b64'EjRWeJq83v_ty6mHZUM',
-                    22([_ b64'EjRWeJq83v/ty6mHZUM' ]),
+                    22([_ b64'EjRWeJq83v/ty6mHZUM']),
                     23(h'123456789abcdeffedcba9876543'),
                 ])
                 ",

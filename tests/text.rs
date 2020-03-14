@@ -307,7 +307,7 @@ testcases! {
                 ]),
                 {
                     r#"(_"")"#,
-                    r#"(_ "" )"#,
+                    r#"(_ "")"#,
                 }
             }
 
@@ -324,7 +324,7 @@ testcases! {
                 ]),
                 {
                     r#"(_"","")"#,
-                    r#"(_ "", "" )"#,
+                    r#"(_ "", "")"#,
                 }
             }
 
@@ -337,7 +337,7 @@ testcases! {
                 ]),
                 {
                     r#"(_"hello")"#,
-                    r#"(_ "hello" )"#,
+                    r#"(_ "hello")"#,
                 }
             }
 
@@ -354,7 +354,7 @@ testcases! {
                 ]),
                 {
                     r#"(_"hello","world")"#,
-                    r#"(_ "hello", "world" )"#,
+                    r#"(_ "hello", "world")"#,
                 }
             }
 
@@ -379,7 +379,7 @@ testcases! {
                 ]),
                 {
                     r#"(_"abc","","defghijklmnopqrstuv","wxyz")"#,
-                    r#"(_ "abc", "", "defghijklmnopqrstuv", "wxyz" )"#,
+                    r#"(_ "abc", "", "defghijklmnopqrstuv", "wxyz")"#,
                 }
             }
 
@@ -396,7 +396,7 @@ testcases! {
                 ]),
                 {
                     "(_\"\u{1f1f3}\",\"\u{1f1ff}\")",
-                    "(_ \"\u{1f1f3}\", \"\u{1f1ff}\" )",
+                    "(_ \"\u{1f1f3}\", \"\u{1f1ff}\")",
                 }
             }
 
@@ -413,7 +413,7 @@ testcases! {
                 ]),
                 {
                     r#"(_"\\","\"")"#,
-                    r#"(_ "\\", "\"" )"#,
+                    r#"(_ "\\", "\"")"#,
                 }
             }
         }
