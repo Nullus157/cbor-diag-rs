@@ -6,26 +6,31 @@ rust:
 - nightly
 
 script:
-- cargo test --all
+- cargo test --all --locked
 - git diff  # for proptest-regressions
 
 matrix:
   include:
   - os: osx
 
-  # TODO(#6): Run tests here instead of just building
   - name: cargo build -Z minimal-versions
     install:
     - rustup toolchain add nightly
-    script:
+    before_script:
     - cargo +nightly update -Z minimal-versions
-    - cargo build --all
+    script:
+    # TODO(#6): Run tests here instead of just building
+    - cargo build --all --locked
+
+  - name: cargo build --update
+    before_script:
+    - cargo update --aggressive
 
   - name: cargo build --target wasm32-unknown-unknown
     install:
     - rustup target add wasm32-unknown-unknown
     script:
-    - cargo build
+    - cargo build --target wasm32-unknown-unknown --locked
 
   - name: cargo fmt
     install:
@@ -37,7 +42,7 @@ matrix:
     install:
     - rustup component add clippy
     script:
-    - cargo clippy --all --all-targets -- -D warnings
+    - cargo clippy --all --all-targets --locked -- -D warnings
 
 branches:
   only: [staging, trying, master]
