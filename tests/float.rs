@@ -1,12 +1,5 @@
-#[macro_use]
-extern crate indoc;
-#[macro_use]
-extern crate pretty_assertions;
-
-extern crate cbor_diag;
-extern crate half;
-
 use cbor_diag::{DataItem, FloatWidth};
+use indoc::indoc;
 use std::f64::{INFINITY, NAN, NEG_INFINITY};
 
 #[macro_use]

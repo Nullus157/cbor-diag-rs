@@ -8,26 +8,15 @@
 //!
 //! [diagnostic notation]: https://tools.ietf.org/html/rfc7049#section-6
 
-extern crate base64;
-extern crate bs58;
-extern crate chrono;
-extern crate half;
-extern crate hex;
-extern crate nom;
-extern crate num_bigint;
-extern crate num_rational;
-extern crate num_traits;
-extern crate separator;
-extern crate url;
-extern crate uuid;
+#![warn(rust_2018_idioms)]
 
 mod encode;
 mod error;
 mod parse;
 mod syntax;
 
-pub use syntax::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
-
-pub use error::{Error, Result};
-
-pub use self::parse::{parse_bytes, parse_bytes_partial, parse_diag, parse_hex};
+pub use self::{
+    error::{Error, Result},
+    parse::{parse_bytes, parse_bytes_partial, parse_diag, parse_hex},
+    syntax::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString},
+};

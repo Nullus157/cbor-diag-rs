@@ -1,9 +1,8 @@
 use base64::{self, display::Base64Display};
 use half::f16;
-use hex;
 
 use super::Encoding;
-use {ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
+use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub(crate) enum Layout {

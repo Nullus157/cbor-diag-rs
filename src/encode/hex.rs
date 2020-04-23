@@ -7,7 +7,6 @@ use super::Encoding;
 use base64::{self, display::Base64Display};
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
-use hex;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_rational::{BigRational, Ratio};
 use num_traits::pow::pow;
@@ -15,7 +14,7 @@ use separator::Separatable;
 use url::Url;
 use uuid::Uuid;
 
-use {parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
+use crate::{parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
 struct Line {
     hex: String,

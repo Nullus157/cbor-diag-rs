@@ -3,8 +3,6 @@
 use std::f64;
 use std::str::FromStr;
 
-use base64;
-use hex;
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag},
@@ -16,7 +14,7 @@ use nom::{
     IResult,
 };
 
-use {ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
+use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
 
 fn ws<O: Default>(input: &str) -> IResult<&str, O> {
     map(nom::character::complete::multispace0, |_| O::default())(input)
