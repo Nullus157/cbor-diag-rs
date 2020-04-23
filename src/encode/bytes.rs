@@ -1,6 +1,6 @@
 use half::f16;
 
-use {ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
+use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
 fn item_to_bytes(bytes: &mut Vec<u8>, value: &DataItem) {
     match *value {

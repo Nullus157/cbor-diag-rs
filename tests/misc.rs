@@ -1,11 +1,5 @@
-#[macro_use]
-extern crate indoc;
-#[macro_use]
-extern crate pretty_assertions;
-
-extern crate cbor_diag;
-
 use cbor_diag::{DataItem, Simple};
+use indoc::indoc;
 
 #[macro_use]
 mod utils;

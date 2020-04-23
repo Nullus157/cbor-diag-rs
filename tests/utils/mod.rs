@@ -1,6 +1,3 @@
-extern crate cbor_diag;
-pub extern crate hex;
-
 pub use cbor_diag::{parse_diag, parse_hex};
 
 #[derive(Eq)]
@@ -29,7 +26,6 @@ pub fn remove_comments(hex: impl AsRef<str>) -> String {
         .collect()
 }
 
-#[macro_export]
 macro_rules! testcases {
     (
         @testcase $name:ident(diag2value $(, $rest:ident)+) {
@@ -39,14 +35,14 @@ macro_rules! testcases {
         #[test]
         fn diag2value_compact() {
             let value = $crate::utils::parse_diag($compact).unwrap();
-            assert_eq!(value, $value);
+            ::pretty_assertions::assert_eq!(value, $value);
         }
 
         $(
             #[test]
             fn diag2value_pretty() {
                 let value = $crate::utils::parse_diag($pretty).unwrap();
-                assert_eq!(value, $value);
+                ::pretty_assertions::assert_eq!(value, $value);
             }
         )?
 
@@ -63,7 +59,7 @@ macro_rules! testcases {
         #[test]
         fn hex2value() {
             let value = $crate::utils::parse_hex($hex).unwrap();
-            assert_eq!(value, $value);
+            ::pretty_assertions::assert_eq!(value, $value);
         }
 
         testcases! {
@@ -79,14 +75,14 @@ macro_rules! testcases {
         #[test]
         fn value2diag_compact() {
             let compact = $value.to_diag();
-            assert_eq!($crate::utils::DisplayDebug(compact), $crate::utils::DisplayDebug($compact));
+            ::pretty_assertions::assert_eq!($crate::utils::DisplayDebug(compact), $crate::utils::DisplayDebug($compact));
         }
 
         $(
             #[test]
             fn value2diag_pretty() {
                 let pretty = $value.to_diag_pretty();
-                assert_eq!($crate::utils::DisplayDebug(pretty), $crate::utils::DisplayDebug(indoc!($pretty).trim()));
+                ::pretty_assertions::assert_eq!($crate::utils::DisplayDebug(pretty), $crate::utils::DisplayDebug(indoc::indoc!($pretty).trim()));
             }
         )?
 
@@ -103,7 +99,7 @@ macro_rules! testcases {
         #[test]
         fn value2diag() {
             let diag = $value.to_diag();
-            assert_eq!($crate::utils::DisplayDebug(diag), $crate::utils::DisplayDebug($diag));
+            ::pretty_assertions::assert_eq!($crate::utils::DisplayDebug(diag), $crate::utils::DisplayDebug($diag));
         }
 
         testcases! {
@@ -118,15 +114,15 @@ macro_rules! testcases {
     ) => {
         #[test]
         fn value2bytes() {
-            let hex = $crate::utils::hex::encode($value.to_bytes());
+            let hex = ::hex::encode($value.to_bytes());
             let expected = $crate::utils::remove_comments($hex);
-            assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug(expected));
+            ::pretty_assertions::assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug(expected));
         }
 
         #[test]
         fn value2hex() {
             let hex = $value.to_hex();
-            assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug($hex));
+            ::pretty_assertions::assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug($hex));
         }
 
         testcases! {

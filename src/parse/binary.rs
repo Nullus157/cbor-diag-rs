@@ -14,7 +14,7 @@ use nom::{
     Err, IResult,
 };
 
-use {ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
+use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
 
 pub fn take_bits<I, O>(count: usize) -> impl Fn((I, usize)) -> IResult<(I, usize), O>
 where

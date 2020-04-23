@@ -1,20 +1,13 @@
-#[macro_use]
-extern crate proptest;
-#[macro_use]
-extern crate pretty_assertions;
-extern crate cbor_diag;
-extern crate half;
-extern crate hex;
-
 use cbor_diag::{
     parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth, IntegerWidth, Simple,
     Tag, TextString,
 };
 use half::f16;
+use pretty_assertions::assert_eq;
 use proptest::{
     arbitrary::any,
     collection::{self, SizeRange},
-    option,
+    option, prop_oneof, proptest,
     sample::select,
     strategy::{Just, Strategy},
 };

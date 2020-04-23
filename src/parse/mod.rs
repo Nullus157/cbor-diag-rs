@@ -1,5 +1,4 @@
-use hex;
-use {DataItem, Result};
+use crate::{DataItem, Result};
 
 mod binary;
 mod diag;
