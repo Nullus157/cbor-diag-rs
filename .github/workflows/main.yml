@@ -109,6 +109,8 @@ jobs:
       with:
         toolchain: stable
     - uses: actions-rs/tarpaulin@v0.1
+      with:
+        args: '-- --skip proptest::'
     - uses: codecov/codecov-action@v1
 
 on:
