@@ -1,16 +1,16 @@
+use ::proptest::{
+    arbitrary::any,
+    collection::{self, SizeRange},
+    option, prop_oneof,
+    sample::select,
+    strategy::{Just, Strategy},
+};
 use cbor_diag::{
     parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth, IntegerWidth, Simple,
     Tag, TextString,
 };
 use half::f16;
 use pretty_assertions::assert_eq;
-use proptest::{
-    arbitrary::any,
-    collection::{self, SizeRange},
-    option, prop_oneof, proptest,
-    sample::select,
-    strategy::{Just, Strategy},
-};
 use std::cmp;
 
 fn bitwidth_max(width: IntegerWidth) -> u64 {
@@ -169,30 +169,36 @@ fn arb_data_item() -> impl Strategy<Value = DataItem> {
     })
 }
 
-proptest! {
-    #[test]
-    fn diag_doesnt_crash_with_anything(ref s in ".*") {
-        let _ = parse_diag(s);
-    }
+mod proptest {
+    use super::arb_data_item;
+    use cbor_diag::{parse_bytes, parse_diag, parse_hex};
+    use proptest::arbitrary::any;
 
-    #[test]
-    fn hex_doesnt_crash_with_anything(ref s in ".*") {
-        let _ = parse_hex(s);
-    }
+    proptest::proptest! {
+        #[test]
+        fn diag_doesnt_crash_with_anything(ref s in ".*") {
+            let _ = parse_diag(s);
+        }
 
-    #[test]
-    fn hex_doesnt_crash_with_hex(ref s in "(:?[0-9a-f]{2})*") {
-        let _ = parse_hex(s);
-    }
+        #[test]
+        fn hex_doesnt_crash_with_anything(ref s in ".*") {
+            let _ = parse_hex(s);
+        }
 
-    #[test]
-    fn bytes_doesnt_crash_with_anything(ref s in any::<Vec<u8>>()) {
-        let _ = parse_bytes(s);
-    }
+        #[test]
+        fn hex_doesnt_crash_with_hex(ref s in "(:?[0-9a-f]{2})*") {
+            let _ = parse_hex(s);
+        }
 
-    #[test]
-    fn to_hex_and_back(item in arb_data_item()) {
-        assert_eq!(item, parse_hex(item.to_hex()).unwrap());
+        #[test]
+        fn bytes_doesnt_crash_with_anything(ref s in any::<Vec<u8>>()) {
+            let _ = parse_bytes(s);
+        }
+
+        #[test]
+        fn to_hex_and_back(item in arb_data_item()) {
+            assert_eq!(item, parse_hex(item.to_hex()).unwrap());
+        }
     }
 }
 
