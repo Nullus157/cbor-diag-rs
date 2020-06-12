@@ -18,7 +18,7 @@ members = ["cli"]
 
 [dependencies]
 hex = { version = "0.4.0", default-features = false }
-nom = { version = "5.0.1", default-features = false, features = ["std"] }
+nom = { version = "5.1.2", default-features = false, features = ["std"] }
 half = { version = "1.6.0", default-features = false }
 chrono = { version = "0.4.10", default-features = false, features = ["alloc"] }
 base64 = { version = "0.12.1", default-features = false, features = ["std"] }
