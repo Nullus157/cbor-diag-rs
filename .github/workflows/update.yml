@@ -15,7 +15,12 @@ jobs:
         git fetch --unshallow -p origin
     - uses: hecrj/setup-rust-action@v1
     - id: update
-      run: 'echo "::set-output name=log::$(cargo update 2>&1 | tail -n +2)"'
+      run: |
+        LOG="$(cargo update 2>&1 | tail -n +2)"
+        LOG="${LOG//'%'/'%25'}"
+        LOG="${LOG//$'\n'/'%0A'}"
+        LOG="${LOG//$'\r'/'%0D'}"
+        echo "::set-output name=log::$LOG"
     - uses: actions-rs/cargo@v1
       with:
         command: update
@@ -26,13 +31,13 @@ jobs:
         commit-message: |
           Update dependencies
           
-          ${{ steps.update.output.log }}
+          ${{ steps.update.outputs.log }}
         committer: Satelles157 <satelles@nemo157.com>
         author: Satelles157 <satelles@nemo157.com>
         title: Update dependencies
-        body: ${{ steps.update.output.log }}
+        body: ${{ steps.update.outputs.log }}
         branch: update/dependencies
 
 on:
   schedule:
-  - cron: '0 14 * * 6'
+  - cron: '20 14 * * 6'
