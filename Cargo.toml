@@ -17,7 +17,7 @@ edition = "2018"
 members = ["cli"]
 
 [dependencies]
-hex = { version = "0.4.0", default-features = false }
+hex = { version = "0.4.0", default-features = false, features = ["std"] }
 nom = { version = "5.1.2", default-features = false, features = ["std"] }
 half = { version = "1.6.0", default-features = false }
 chrono = { version = "0.4.12", default-features = false, features = ["alloc"] }
