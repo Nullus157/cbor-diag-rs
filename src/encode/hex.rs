@@ -216,7 +216,7 @@ fn length_to_hex(
     Line::new(hex, comment)
 }
 
-fn bytes_to_hex<'a>(encoding: Option<Encoding>, data: &'a [u8]) -> impl Iterator<Item = Line> + 'a {
+fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item = Line> + '_ {
     data.chunks(16).map(move |datum| {
         let hex = hex::encode(datum);
         let comment = match encoding {
