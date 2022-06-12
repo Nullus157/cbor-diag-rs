@@ -19,10 +19,11 @@ impl<T: std::fmt::Display> std::fmt::Debug for DisplayDebug<T> {
     }
 }
 
+#[allow(dead_code)]
 pub fn remove_comments(hex: impl AsRef<str>) -> String {
     hex.as_ref()
         .lines()
-        .map(|line| line.split('#').next().unwrap().replace(" ", ""))
+        .map(|line| line.split('#').next().unwrap().replace(' ', ""))
         .collect()
 }
 

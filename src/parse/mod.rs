@@ -9,7 +9,7 @@ pub use self::diag::parse_diag;
 fn remove_comments(hex: impl AsRef<str>) -> String {
     hex.as_ref()
         .lines()
-        .map(|line| line.split('#').next().unwrap().replace(" ", ""))
+        .map(|line| line.split('#').next().unwrap().replace(' ', ""))
         .collect()
 }
 

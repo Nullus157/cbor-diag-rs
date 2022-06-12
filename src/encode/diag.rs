@@ -1,6 +1,8 @@
 use base64::{self, display::Base64Display};
 use half::f16;
 
+use std::fmt::Write;
+
 use super::Encoding;
 use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
@@ -39,7 +41,7 @@ impl LengthEstimate for DataItem {
             DataItem::Array { data, .. } => {
                 let mut len = 4;
                 for item in data {
-                    len += item.estimate(max - len) + 2;
+                    len += item.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -49,7 +51,7 @@ impl LengthEstimate for DataItem {
             DataItem::Map { data, .. } => {
                 let mut len = 4;
                 for entry in data {
-                    len += entry.estimate(max - len) + 2;
+                    len += entry.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -59,7 +61,7 @@ impl LengthEstimate for DataItem {
             DataItem::IndefiniteByteString(strings) => {
                 let mut len = 4;
                 for string in strings {
-                    len += string.estimate(max - len) + 2;
+                    len += string.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -69,7 +71,7 @@ impl LengthEstimate for DataItem {
             DataItem::IndefiniteTextString(strings) => {
                 let mut len = 4;
                 for string in strings {
-                    len += string.estimate(max - len) + 2;
+                    len += string.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -171,7 +173,7 @@ impl<'a> Context<'a> {
                 IntegerWidth::SixtyFour => 3,
                 _ => unreachable!(),
             };
-            self.output.push_str(&format!("{}_{}", value, encoding));
+            write!(self.output, "{}_{}", value, encoding).unwrap();
         }
     }
 
@@ -187,27 +189,30 @@ impl<'a> Context<'a> {
                 IntegerWidth::SixtyFour => 3,
                 _ => unreachable!(),
             };
-            self.output.push_str(&format!("{}_{}", value, encoding));
+            write!(self.output, "{}_{}", value, encoding).unwrap();
         }
     }
 
     fn definite_bytestring_to_diag(&mut self, bytestring: &ByteString) {
         match self.encoding {
             Encoding::Base64Url => {
-                self.output.push_str(&format!(
+                write!(
+                    self.output,
                     "b64'{}'",
                     Base64Display::with_config(&bytestring.data, base64::URL_SAFE_NO_PAD)
-                ));
+                )
+                .unwrap();
             }
             Encoding::Base64 => {
-                self.output.push_str(&format!(
+                write!(
+                    self.output,
                     "b64'{}'",
                     Base64Display::with_config(&bytestring.data, base64::STANDARD_NO_PAD)
-                ));
+                )
+                .unwrap();
             }
             Encoding::Base16 => {
-                self.output
-                    .push_str(&format!("h'{}'", hex::encode(&bytestring.data)));
+                write!(self.output, "h'{}'", hex::encode(&bytestring.data)).unwrap();
             }
         }
     }
@@ -311,7 +316,7 @@ impl<'a> Context<'a> {
                 IntegerWidth::SixtyFour => 3,
                 _ => unreachable!(),
             };
-            self.output.push_str(&format!("{}_{}", tag.0, encoding));
+            write!(self.output, "{}_{}", tag.0, encoding).unwrap();
         }
         self.output.push('(');
 
@@ -366,7 +371,7 @@ impl<'a> Context<'a> {
             Simple::TRUE => self.output.push_str("true"),
             Simple::NULL => self.output.push_str("null"),
             Simple::UNDEFINED => self.output.push_str("undefined"),
-            Simple(value) => self.output.push_str(&format!("simple({})", value)),
+            Simple(value) => write!(self.output, "simple({})", value).unwrap(),
         }
     }
 
@@ -415,7 +420,7 @@ impl<'a> Context<'a> {
                 bitwidth,
                 ref value,
             } => {
-                self.tagged_to_diag(tag, bitwidth, &*value);
+                self.tagged_to_diag(tag, bitwidth, value);
             }
             DataItem::Float { value, bitwidth } => {
                 self.float_to_diag(value, bitwidth);

@@ -52,7 +52,7 @@ pub struct Tag(pub u64);
 /// [RFC 2.3]: https://tools.ietf.org/html/rfc7049#section-2.3
 pub struct Simple(pub u8);
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 /// A string of raw bytes with no direct attached meaning.
 ///
 /// May be assigned a meaning by being enclosed in a [semantic tag](Tag).
@@ -67,7 +67,7 @@ pub struct ByteString {
     pub bitwidth: IntegerWidth,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 /// A UTF-8 encoded text string.
 ///
 /// May be assigned further meaning by being enclosed in a [semantic tag](Tag).
