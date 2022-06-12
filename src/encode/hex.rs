@@ -53,7 +53,7 @@ impl Line {
                 tag,
                 bitwidth,
                 ref value,
-            } => tagged_to_hex(encoding, tag, bitwidth, &*value),
+            } => tagged_to_hex(encoding, tag, bitwidth, value),
             DataItem::Float { value, bitwidth } => float_to_hex(value, bitwidth),
             DataItem::Simple(simple) => simple_to_hex(simple),
         }
@@ -67,21 +67,25 @@ impl Line {
     }
 
     fn do_merge(self, hex_width: isize, indent_level: usize, output: &mut String) {
+        use std::fmt::Write;
+
         let (hex_indent, width) = if hex_width < 0 {
-            (indent_level * 3 - hex_width.abs() as usize, 0)
+            (indent_level * 3 - hex_width.unsigned_abs(), 0)
         } else {
             (indent_level * 3, hex_width as usize)
         };
 
-        output.push_str(&format!(
-            "{blank:hex_indent$}{hex:width$} # {blank:comment_indent$}{comment}\n",
+        writeln!(
+            output,
+            "{blank:hex_indent$}{hex:width$} # {blank:comment_indent$}{comment}",
             blank = "",
             hex_indent = hex_indent,
             comment_indent = indent_level * 2,
             hex = self.hex,
             width = width,
             comment = self.comment
-        ));
+        )
+        .unwrap();
 
         for line in self.sublines {
             line.do_merge(hex_width - 3, indent_level + 1, output);
@@ -222,11 +226,11 @@ fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item =
         let comment = match encoding {
             Some(Encoding::Base64Url) => format!(
                 "b64'{}'",
-                Base64Display::with_config(&data, base64::URL_SAFE_NO_PAD)
+                Base64Display::with_config(data, base64::URL_SAFE_NO_PAD)
             ),
             Some(Encoding::Base64) => format!(
                 "b64'{}'",
-                Base64Display::with_config(&data, base64::STANDARD_NO_PAD)
+                Base64Display::with_config(data, base64::STANDARD_NO_PAD)
             ),
             Some(Encoding::Base16) => format!("h'{}'", hex),
             None => {
@@ -283,7 +287,7 @@ fn definite_textstring_to_hex(textstring: &TextString) -> Line {
         };
 
         if data.len() <= 24 {
-            push_line(&data);
+            push_line(data);
         } else {
             let mut data = data.as_str();
             while !data.is_empty() {
@@ -570,7 +574,7 @@ fn extract_fraction(value: &DataItem, base: usize) -> Result<BigRational, &'stat
                     tag: Tag::POSITIVE_BIGNUM,
                     ref value,
                     ..
-                } => match extract_positive_bignum(&*value) {
+                } => match extract_positive_bignum(value) {
                     Some(value) => BigInt::from_biguint(Sign::Plus, value),
                     _ => return Err("invalid type"),
                 },
@@ -578,7 +582,7 @@ fn extract_fraction(value: &DataItem, base: usize) -> Result<BigRational, &'stat
                     tag: Tag::NEGATIVE_BIGNUM,
                     ref value,
                     ..
-                } => match extract_negative_bignum(&*value) {
+                } => match extract_negative_bignum(value) {
                     Some(value) => value,
                     _ => return Err("invalid type"),
                 },

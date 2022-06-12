@@ -20,7 +20,7 @@ fn item_to_bytes(bytes: &mut Vec<u8>, value: &DataItem) {
             tag,
             bitwidth,
             ref value,
-        } => tagged_to_bytes(bytes, tag, bitwidth, &*value),
+        } => tagged_to_bytes(bytes, tag, bitwidth, value),
         DataItem::Float { value, bitwidth } => float_to_bytes(bytes, value, bitwidth),
         DataItem::Simple(simple) => simple_to_bytes(bytes, simple),
     }
