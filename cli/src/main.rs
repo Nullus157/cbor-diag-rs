@@ -19,6 +19,7 @@ enum To {
     Bytes,
     Diag,
     Compact,
+    Debug,
 }
 
 #[derive(Debug, structopt::StructOpt)]
@@ -69,6 +70,10 @@ fn output_item(value: cbor_diag::DataItem, to: To, mut output: impl Write) -> an
         }
         To::Compact => {
             output.write_all(value.to_diag().as_bytes())?;
+            output.write_all(b"\n")?;
+        }
+        To::Debug => {
+            write!(output, "{:#?}", value)?;
             output.write_all(b"\n")?;
         }
     };
