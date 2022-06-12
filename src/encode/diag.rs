@@ -41,7 +41,7 @@ impl LengthEstimate for DataItem {
             DataItem::Array { data, .. } => {
                 let mut len = 4;
                 for item in data {
-                    len += item.estimate(max - len) + 2;
+                    len += item.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -51,7 +51,7 @@ impl LengthEstimate for DataItem {
             DataItem::Map { data, .. } => {
                 let mut len = 4;
                 for entry in data {
-                    len += entry.estimate(max - len) + 2;
+                    len += entry.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -61,7 +61,7 @@ impl LengthEstimate for DataItem {
             DataItem::IndefiniteByteString(strings) => {
                 let mut len = 4;
                 for string in strings {
-                    len += string.estimate(max - len) + 2;
+                    len += string.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
@@ -71,7 +71,7 @@ impl LengthEstimate for DataItem {
             DataItem::IndefiniteTextString(strings) => {
                 let mut len = 4;
                 for string in strings {
-                    len += string.estimate(max - len) + 2;
+                    len += string.estimate(max.saturating_sub(len)) + 2;
                     if len >= max {
                         return len;
                     }
