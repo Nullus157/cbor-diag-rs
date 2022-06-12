@@ -499,4 +499,46 @@ testcases! {
             }
         }
     }
+
+    mod encodings {
+        base16(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex::decode("12345678").unwrap(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "h'12345678'" }
+        }
+
+        base32(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex::decode("12345678").unwrap(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "b32'CI2FM6A='" }
+        }
+
+        base32hex(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex::decode("12345678").unwrap(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "h32'28Q5CU0='" }
+        }
+
+        base64(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex::decode("12345678").unwrap(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "b64'EjRWeA=='" }
+        }
+
+        base64url(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex::decode("12345678").unwrap(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "b64'EjRWeA'" }
+        }
+    }
 }

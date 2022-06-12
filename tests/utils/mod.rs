@@ -29,8 +29,8 @@ pub fn remove_comments(hex: impl AsRef<str>) -> String {
 
 macro_rules! testcases {
     (
-        @testcase $name:ident(diag2value $(, $rest:ident)+) {
-            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+        @testcase $name:ident(diag2value $(, $rest:ident)*) {
+            $value:expr, { $compact:expr $(, $pretty:expr)? }$(, { $hex:expr })?
         }
     ) => {
         #[test]
@@ -48,12 +48,12 @@ macro_rules! testcases {
         )?
 
         testcases! {
-            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }$(, { $hex })? }
         }
     };
 
     (
-        @testcase $name:ident(hex2value $(, $rest:ident)+) {
+        @testcase $name:ident(hex2value $(, $rest:ident)*) {
             $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
         }
     ) => {
@@ -70,7 +70,7 @@ macro_rules! testcases {
 
     (
         @testcase $name:ident(value2diag $(, $rest:ident)*) {
-            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+            $value:expr, { $compact:expr $(, $pretty:expr)? }$(, { $hex:expr })?
         }
     ) => {
         #[test]
@@ -88,13 +88,13 @@ macro_rules! testcases {
         )?
 
         testcases! {
-            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }$(, { $hex })? }
         }
     };
 
     (
         @testcase $name:ident(value2diag $(, $rest:ident)*) {
-            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+            $value:expr, { $compact:expr $(, $pretty:expr)? }$(, { $hex:expr })?
         }
     ) => {
         #[test]
@@ -104,7 +104,7 @@ macro_rules! testcases {
         }
 
         testcases! {
-            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }, { $hex } }
+            @testcase $name($($rest),*) { $value, { $compact $(, $pretty)? }$(, { $hex })? }
         }
     };
 
@@ -133,14 +133,14 @@ macro_rules! testcases {
 
     (
         @testcase $name:ident() {
-            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+            $value:expr, { $compact:expr $(, $pretty:expr)? }$(, { $hex:expr })?
         }
     ) => {
     };
 
     (
         @testcases $name:ident($($test:ident),+) {
-            $value:expr, { $compact:expr $(, $pretty:expr)? }, { $hex:expr }
+            $value:expr, { $compact:expr $(, $pretty:expr)? }$(, { $hex:expr })?
         }
     ) => {
         mod $name {
@@ -148,7 +148,7 @@ macro_rules! testcases {
             use super::*;
 
             testcases! {
-                @testcase $name($($test),*) { $value, { $compact $(, $pretty)? }, { $hex } }
+                @testcase $name($($test),*) { $value, { $compact $(, $pretty)? }$(, { $hex })? }
             }
         }
     };

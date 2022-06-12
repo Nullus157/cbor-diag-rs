@@ -29,6 +29,7 @@ num-traits = { version = "0.2.15", default-features = false }
 separator = { version = "0.4.0", default-features = false }
 uuid = { version = "1.1.2", default-features = false }
 bs58 = { version = "0.4.0", default-features = false, features = ["alloc"] }
+data-encoding = { version = "2.3.2", default-features = false, features = ["alloc"] }
 
 [dev-dependencies]
 indoc = { version = "1.0.6", default-features = false }

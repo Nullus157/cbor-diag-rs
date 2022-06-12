@@ -31,6 +31,34 @@ fn opt_comma_tag<'a>(t: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str
     alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
 }
 
+/// Recognizes zero or more base32 characters: A-Z, 2-7, =
+fn base32_digit0<T>(input: T) -> IResult<T, T>
+where
+    T: nom::InputTakeAtPosition,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
+{
+    use nom::AsChar;
+    input.split_at_position(|item| {
+        !(('A'..='Z').contains(&item.as_char())
+            || ('2'..='7').contains(&item.as_char())
+            || item.as_char() == '=')
+    })
+}
+
+/// Recognizes zero or more base32hex characters: 0-9, A-V, =
+fn base32hex_digit0<T>(input: T) -> IResult<T, T>
+where
+    T: nom::InputTakeAtPosition,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
+{
+    use nom::AsChar;
+    input.split_at_position(|item| {
+        !(('0'..='9').contains(&item.as_char())
+            || ('A'..='V').contains(&item.as_char())
+            || item.as_char() == '=')
+    })
+}
+
 /// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, -, _
 fn base64url_digit0<T>(input: T) -> IResult<T, T>
 where
@@ -115,6 +143,14 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
             map_res(
                 preceded(tag("h"), delimited(tag("'"), hex_digit0, tag("'"))),
                 hex::decode,
+            ),
+            map_res(
+                preceded(tag("b32"), delimited(tag("'"), base32_digit0, tag("'"))),
+                |s: &str| data_encoding::BASE32.decode(s.as_bytes()),
+            ),
+            map_res(
+                preceded(tag("h32"), delimited(tag("'"), base32hex_digit0, tag("'"))),
+                |s: &str| data_encoding::BASE32HEX.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("b64"), delimited(tag("'"), base64url_digit0, tag("'"))),
