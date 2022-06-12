@@ -699,10 +699,7 @@ fn uuid(value: &DataItem) -> Line {
                 .map(|v| format!("{:?}", v))
                 .unwrap_or_else(|| "Unknown".into());
 
-            let variant = uuid
-                .get_variant()
-                .map(|v| format!("{:?}", v))
-                .unwrap_or_else(|| "Unknown".into());
+            let variant = format!("{:?}", uuid.get_variant());
 
             let uuid_base58 = bs58::encode(uuid.as_bytes()).into_string();
             let uuid_base64 = Base64Display::with_config(uuid.as_bytes(), base64::STANDARD_NO_PAD);
