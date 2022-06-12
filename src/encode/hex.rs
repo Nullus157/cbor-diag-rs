@@ -230,7 +230,7 @@ fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item =
             ),
             Some(Encoding::Base64) => format!(
                 "b64'{}'",
-                Base64Display::with_config(data, base64::STANDARD_NO_PAD)
+                Base64Display::with_config(data, base64::STANDARD)
             ),
             Some(Encoding::Base16) => format!("h'{}'", hex),
             None => {

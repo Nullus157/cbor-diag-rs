@@ -43,7 +43,7 @@ where
     })
 }
 
-/// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, +, /
+/// Recognizes zero or more base64 characters: 0-9, A-Z, a-z, +, /, =
 fn base64_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
@@ -51,7 +51,10 @@ where
 {
     use nom::AsChar;
     input.split_at_position(|item| {
-        !(item.is_alphanum() || item.as_char() == '+' || item.as_char() == '/')
+        !(item.is_alphanum()
+            || item.as_char() == '+'
+            || item.as_char() == '/'
+            || item.as_char() == '=')
     })
 }
 
@@ -119,7 +122,7 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
             ),
             map_res(
                 preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
-                |s: &str| base64::decode_config(s, base64::STANDARD_NO_PAD),
+                |s: &str| base64::decode_config(s, base64::STANDARD),
             ),
         )),
         |data| ByteString {

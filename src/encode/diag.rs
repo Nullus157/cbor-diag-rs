@@ -207,7 +207,7 @@ impl<'a> Context<'a> {
                 write!(
                     self.output,
                     "b64'{}'",
-                    Base64Display::with_config(&bytestring.data, base64::STANDARD_NO_PAD)
+                    Base64Display::with_config(&bytestring.data, base64::STANDARD)
                 )
                 .unwrap();
             }

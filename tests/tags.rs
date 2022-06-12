@@ -278,6 +278,21 @@ testcases! {
             }
         }
 
+        base64url_encoding_padded(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_BASE64URL,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("12").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                "21(b64'Eg')",
+                "21(b64'Eg')",
+            }
+        }
+
         base64url_encoding_nested(diag2value, value2diag) {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
@@ -308,8 +323,23 @@ testcases! {
                 })),
             },
             {
-                "22(b64'EjRWeJq83v/ty6mHZUM')",
-                "22(b64'EjRWeJq83v/ty6mHZUM')",
+                "22(b64'EjRWeJq83v/ty6mHZUM=')",
+                "22(b64'EjRWeJq83v/ty6mHZUM=')",
+            }
+        }
+
+        base64_encoding_padded(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_BASE64,
+                bitwidth: IntegerWidth::Zero,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex::decode("12").unwrap(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                "22(b64'Eg==')",
+                "22(b64'Eg==')",
             }
         }
 
@@ -328,8 +358,8 @@ testcases! {
                 })
             },
             {
-                "22([_b64'EjRWeJq83v/ty6mHZUM'])",
-                "22([_ b64'EjRWeJq83v/ty6mHZUM'])",
+                "22([_b64'EjRWeJq83v/ty6mHZUM='])",
+                "22([_ b64'EjRWeJq83v/ty6mHZUM='])",
             }
         }
 
@@ -404,11 +434,11 @@ testcases! {
                 })
             },
             {
-                "21([_b64'EjRWeJq83v_ty6mHZUM',22([_b64'EjRWeJq83v/ty6mHZUM']),23(h'123456789abcdeffedcba9876543')])",
+                "21([_b64'EjRWeJq83v_ty6mHZUM',22([_b64'EjRWeJq83v/ty6mHZUM=']),23(h'123456789abcdeffedcba9876543')])",
                 "
                 21([_
                     b64'EjRWeJq83v_ty6mHZUM',
-                    22([_ b64'EjRWeJq83v/ty6mHZUM']),
+                    22([_ b64'EjRWeJq83v/ty6mHZUM=']),
                     23(h'123456789abcdeffedcba9876543'),
                 ])
                 ",
@@ -861,7 +891,7 @@ testcases! {
             indoc!(r#"
                 d6                                 # suggested base64 encoding, tag(22)
                    4e                              #   bytes(14)
-                      123456789abcdeffedcba9876543 #     b64'EjRWeJq83v/ty6mHZUM'
+                      123456789abcdeffedcba9876543 #     b64'EjRWeJq83v/ty6mHZUM='
             "#),
         }
 
@@ -883,7 +913,7 @@ testcases! {
                 d6                                    # suggested base64 encoding, tag(22)
                    9f                                 #   array(*)
                       4e                              #     bytes(14)
-                         123456789abcdeffedcba9876543 #       b64'EjRWeJq83v/ty6mHZUM'
+                         123456789abcdeffedcba9876543 #       b64'EjRWeJq83v/ty6mHZUM='
                       ff                              #     break
             "#),
         }
@@ -970,7 +1000,7 @@ testcases! {
                       d6                                    #     suggested base64 encoding, tag(22)
                          9f                                 #       array(*)
                             4e                              #         bytes(14)
-                               123456789abcdeffedcba9876543 #           b64'EjRWeJq83v/ty6mHZUM'
+                               123456789abcdeffedcba9876543 #           b64'EjRWeJq83v/ty6mHZUM='
                             ff                              #         break
                       d7                                    #     suggested base16 encoding, tag(23)
                          4e                                 #       bytes(14)
