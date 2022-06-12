@@ -199,6 +199,11 @@ mod proptest {
         fn to_hex_and_back(item in arb_data_item()) {
             assert_eq!(item, parse_hex(item.to_hex()).unwrap());
         }
+
+        #[test]
+        fn to_diag(item in arb_data_item()) {
+            let _ = item.to_diag();
+        }
     }
 }
 
