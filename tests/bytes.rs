@@ -541,5 +541,48 @@ testcases! {
             }),
             { "b64'EjRWeA'" }
         }
+
+        // RFC 8610 Appendix G.1
+        mod whitespace {
+            base16(diag2value) {
+                DataItem::ByteString(ByteString {
+                    data: hex!("12345678").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                }),
+                { "h'12 34\t56\n78'" }
+            }
+
+            base32(diag2value) {
+                DataItem::ByteString(ByteString {
+                    data: hex!("12345678").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                }),
+                { "b32'CI 2F\tM6A\n='" }
+            }
+
+            base32hex(diag2value) {
+                DataItem::ByteString(ByteString {
+                    data: hex!("12345678").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                }),
+                { "h32'28 Q5\tCU0\n='" }
+            }
+
+            base64(diag2value) {
+                DataItem::ByteString(ByteString {
+                    data: hex!("12345678").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                }),
+                { "b64'Ej RW\teA\n=='" }
+            }
+
+            base64url(diag2value) {
+                DataItem::ByteString(ByteString {
+                    data: hex!("12345678").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                }),
+                { "b64'Ej RW\teA\n'" }
+            }
+        }
     }
 }

@@ -6,15 +6,34 @@ use std::str::FromStr;
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag},
-    character::complete::{char, digit1, hex_digit0, none_of},
+    character::complete::{char, digit1, none_of},
     combinator::{map, map_res, opt, recognize, value, verify},
     error::context,
     multi::separated_list,
     sequence::{delimited, pair, preceded, separated_pair, tuple},
     IResult,
 };
+use once_cell::sync::Lazy;
 
 use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
+
+static WHITESPACE: &str = "\t\n\x0A\x0B\r ";
+static BASE16: Lazy<data_encoding::Encoding> =
+    Lazy::new(|| ignore_ws(data_encoding::HEXLOWER_PERMISSIVE));
+static BASE32: Lazy<data_encoding::Encoding> = Lazy::new(|| ignore_ws(data_encoding::BASE32));
+static BASE32HEX: Lazy<data_encoding::Encoding> = Lazy::new(|| ignore_ws(data_encoding::BASE32HEX));
+static BASE64: Lazy<data_encoding::Encoding> = Lazy::new(|| ignore_ws(data_encoding::BASE64));
+static BASE64URL_NOPAD: Lazy<data_encoding::Encoding> =
+    Lazy::new(|| ignore_ws(data_encoding::BASE64URL_NOPAD));
+
+fn ignore_ws(encoding: data_encoding::Encoding) -> data_encoding::Encoding {
+    data_encoding::Specification {
+        ignore: WHITESPACE.to_owned(),
+        ..encoding.specification()
+    }
+    .encoding()
+    .unwrap()
+}
 
 fn ws<O: Default>(input: &str) -> IResult<&str, O> {
     map(nom::character::complete::multispace0, |_| O::default())(input)
@@ -31,7 +50,22 @@ fn opt_comma_tag<'a>(t: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str
     alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
 }
 
-/// Recognizes zero or more base32 characters: A-Z, 2-7, =
+/// Recognizes zero or more base16 characters: 0-9, A-F, a-f; or ASCII whitespace
+fn base16_digit0<T>(input: T) -> IResult<T, T>
+where
+    T: nom::InputTakeAtPosition,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
+{
+    use nom::AsChar;
+    input.split_at_position(|item| {
+        !(('0'..='9').contains(&item.as_char())
+            || ('A'..='F').contains(&item.as_char())
+            || ('a'..='f').contains(&item.as_char())
+            || WHITESPACE.contains(item.as_char()))
+    })
+}
+
+/// Recognizes zero or more base32 characters: A-Z, 2-7, =; or ASCII whitespace
 fn base32_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
@@ -41,11 +75,12 @@ where
     input.split_at_position(|item| {
         !(('A'..='Z').contains(&item.as_char())
             || ('2'..='7').contains(&item.as_char())
-            || item.as_char() == '=')
+            || item.as_char() == '='
+            || WHITESPACE.contains(item.as_char()))
     })
 }
 
-/// Recognizes zero or more base32hex characters: 0-9, A-V, =
+/// Recognizes zero or more base32hex characters: 0-9, A-V, =; or ASCII whitespace
 fn base32hex_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
@@ -55,11 +90,12 @@ where
     input.split_at_position(|item| {
         !(('0'..='9').contains(&item.as_char())
             || ('A'..='V').contains(&item.as_char())
-            || item.as_char() == '=')
+            || item.as_char() == '='
+            || WHITESPACE.contains(item.as_char()))
     })
 }
 
-/// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, -, _
+/// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, -, _; or ASCII whitespace
 fn base64url_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
@@ -67,11 +103,14 @@ where
 {
     use nom::AsChar;
     input.split_at_position(|item| {
-        !(item.is_alphanum() || item.as_char() == '-' || item.as_char() == '_')
+        !(item.is_alphanum()
+            || item.as_char() == '-'
+            || item.as_char() == '_'
+            || WHITESPACE.contains(item.as_char()))
     })
 }
 
-/// Recognizes zero or more base64 characters: 0-9, A-Z, a-z, +, /, =
+/// Recognizes zero or more base64 characters: 0-9, A-Z, a-z, +, /, =; or ASCII whitespace
 fn base64_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
@@ -82,7 +121,8 @@ where
         !(item.is_alphanum()
             || item.as_char() == '+'
             || item.as_char() == '/'
-            || item.as_char() == '=')
+            || item.as_char() == '='
+            || WHITESPACE.contains(item.as_char()))
     })
 }
 
@@ -141,24 +181,24 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
     wrapws(map(
         alt((
             map_res(
-                preceded(tag("h"), delimited(tag("'"), hex_digit0, tag("'"))),
-                |s: &str| data_encoding::HEXLOWER_PERMISSIVE.decode(s.as_bytes()),
+                preceded(tag("h"), delimited(tag("'"), base16_digit0, tag("'"))),
+                |s: &str| BASE16.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("b32"), delimited(tag("'"), base32_digit0, tag("'"))),
-                |s: &str| data_encoding::BASE32.decode(s.as_bytes()),
+                |s: &str| BASE32.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("h32"), delimited(tag("'"), base32hex_digit0, tag("'"))),
-                |s: &str| data_encoding::BASE32HEX.decode(s.as_bytes()),
+                |s: &str| BASE32HEX.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("b64"), delimited(tag("'"), base64url_digit0, tag("'"))),
-                |s: &str| data_encoding::BASE64URL_NOPAD.decode(s.as_bytes()),
+                |s: &str| BASE64URL_NOPAD.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
-                |s: &str| data_encoding::BASE64.decode(s.as_bytes()),
+                |s: &str| BASE64.decode(s.as_bytes()),
             ),
         )),
         |data| ByteString {
