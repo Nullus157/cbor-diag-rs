@@ -200,6 +200,18 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
                 preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
                 |s: &str| BASE64.decode(s.as_bytes()),
             ),
+            map(
+                delimited(
+                    tag("'"),
+                    opt(escaped_transform(
+                        none_of("\\'"),
+                        '\\',
+                        alt((tag("\\"), tag("'"))),
+                    )),
+                    tag("'"),
+                ),
+                |s| s.unwrap_or_default().into_bytes(),
+            ),
         )),
         |data| ByteString {
             data,

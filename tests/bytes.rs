@@ -542,6 +542,15 @@ testcases! {
             { "b64'EjRWeA'" }
         }
 
+        // RFC 8610 Appendix G.2
+        utf8(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: Vec::from(*b"'Hello Ferris!'"),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#"'\'Hello Ferris!\''"# }
+        }
+
         // RFC 8610 Appendix G.1
         mod whitespace {
             base16(diag2value) {
