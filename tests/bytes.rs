@@ -594,4 +594,48 @@ testcases! {
             }
         }
     }
+
+    // RFC 8610 Appendix G.4
+    mod concatenated {
+        one(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: Vec::from(*b"Hello Ferris!"),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "'Hello ' 'Ferris!'" }
+        }
+
+        two(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: Vec::from(*b"Hello Ferris!"),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "'Hello ' h'46657272697321'" }
+        }
+
+        three(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: Vec::from(*b"Hello Ferris!"),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "'Hello' h'20' 'Ferris!'" }
+        }
+
+        four(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: Vec::from(*b"Hello Ferris!"),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "'' h'48656c6c6f2046657272697321' '' b64''" }
+        }
+
+        five(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: Vec::from(*b"Hello Ferris!"),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "h'4 86 56c 6c6f' h' 20466 57272697321'" }
+        }
+    }
+
 }

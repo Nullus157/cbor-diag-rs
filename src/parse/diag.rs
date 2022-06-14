@@ -9,7 +9,7 @@ use nom::{
     character::complete::{char, digit1, none_of},
     combinator::{map, map_res, opt, recognize, value, verify},
     error::context,
-    multi::separated_list,
+    multi::{many1, separated_list},
     sequence::{delimited, pair, preceded, separated_pair, tuple},
     IResult,
 };
@@ -177,54 +177,55 @@ fn negative(input: &str) -> IResult<&str, DataItem> {
     )(input)
 }
 
-fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
-    wrapws(map(
-        alt((
-            map_res(
-                preceded(tag("h"), delimited(tag("'"), base16_digit0, tag("'"))),
-                |s: &str| BASE16.decode(s.as_bytes()),
+fn definite_bytestring(input: &str) -> IResult<&str, Vec<u8>> {
+    wrapws(alt((
+        map_res(
+            preceded(tag("h"), delimited(tag("'"), base16_digit0, tag("'"))),
+            |s: &str| BASE16.decode(s.as_bytes()),
+        ),
+        map_res(
+            preceded(tag("b32"), delimited(tag("'"), base32_digit0, tag("'"))),
+            |s: &str| BASE32.decode(s.as_bytes()),
+        ),
+        map_res(
+            preceded(tag("h32"), delimited(tag("'"), base32hex_digit0, tag("'"))),
+            |s: &str| BASE32HEX.decode(s.as_bytes()),
+        ),
+        map_res(
+            preceded(tag("b64"), delimited(tag("'"), base64url_digit0, tag("'"))),
+            |s: &str| BASE64URL_NOPAD.decode(s.as_bytes()),
+        ),
+        map_res(
+            preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
+            |s: &str| BASE64.decode(s.as_bytes()),
+        ),
+        map(
+            delimited(
+                tag("'"),
+                opt(escaped_transform(
+                    none_of("\\'"),
+                    '\\',
+                    alt((tag("\\"), tag("'"))),
+                )),
+                tag("'"),
             ),
-            map_res(
-                preceded(tag("b32"), delimited(tag("'"), base32_digit0, tag("'"))),
-                |s: &str| BASE32.decode(s.as_bytes()),
-            ),
-            map_res(
-                preceded(tag("h32"), delimited(tag("'"), base32hex_digit0, tag("'"))),
-                |s: &str| BASE32HEX.decode(s.as_bytes()),
-            ),
-            map_res(
-                preceded(tag("b64"), delimited(tag("'"), base64url_digit0, tag("'"))),
-                |s: &str| BASE64URL_NOPAD.decode(s.as_bytes()),
-            ),
-            map_res(
-                preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
-                |s: &str| BASE64.decode(s.as_bytes()),
-            ),
-            map(
-                delimited(
-                    tag("'"),
-                    opt(escaped_transform(
-                        none_of("\\'"),
-                        '\\',
-                        alt((tag("\\"), tag("'"))),
-                    )),
-                    tag("'"),
-                ),
-                |s| s.unwrap_or_default().into_bytes(),
-            ),
-        )),
-        |data| ByteString {
-            data,
-            bitwidth: IntegerWidth::Unknown,
-        },
-    ))(input)
+            |s| s.unwrap_or_default().into_bytes(),
+        ),
+    )))(input)
+}
+
+fn concatenated_definite_bytestring(input: &str) -> IResult<&str, ByteString> {
+    map(many1(definite_bytestring), |data| ByteString {
+        data: data.into_iter().flatten().collect(),
+        bitwidth: IntegerWidth::Unknown,
+    })(input)
 }
 
 fn indefinite_bytestring(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             tag("(_"),
-            separated_list(tag(","), definite_bytestring),
+            separated_list(tag(","), concatenated_definite_bytestring),
             opt_comma_tag(")"),
         ),
         DataItem::IndefiniteByteString,
@@ -233,7 +234,7 @@ fn indefinite_bytestring(input: &str) -> IResult<&str, DataItem> {
 
 fn bytestring(input: &str) -> IResult<&str, DataItem> {
     alt((
-        map(definite_bytestring, DataItem::ByteString),
+        map(concatenated_definite_bytestring, DataItem::ByteString),
         indefinite_bytestring,
     ))(input)
 }
