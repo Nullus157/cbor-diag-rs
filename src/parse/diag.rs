@@ -9,7 +9,7 @@ use nom::{
     character::complete::{char, digit1, none_of},
     combinator::{map, map_res, opt, recognize, value, verify},
     error::context,
-    multi::{many1, separated_list},
+    multi::{many0, many1, separated_list},
     sequence::{delimited, pair, preceded, separated_pair, tuple},
     IResult,
 };
@@ -239,7 +239,7 @@ fn bytestring(input: &str) -> IResult<&str, DataItem> {
     ))(input)
 }
 
-fn definite_textstring(input: &str) -> IResult<&str, TextString> {
+fn definite_textstring(input: &str) -> IResult<&str, String> {
     wrapws(map(
         delimited(
             tag("\""),
@@ -250,18 +250,34 @@ fn definite_textstring(input: &str) -> IResult<&str, TextString> {
             )),
             tag("\""),
         ),
-        |data| TextString {
-            data: data.unwrap_or_default(),
+        |data| data.unwrap_or_default(),
+    ))(input)
+}
+
+fn concatenated_definite_textstring(input: &str) -> IResult<&str, TextString> {
+    map(
+        pair(
+            definite_textstring,
+            map_res(
+                many0(alt((
+                    definite_bytestring,
+                    map(definite_textstring, |s| s.into_bytes()),
+                ))),
+                |rest| String::from_utf8(rest.into_iter().flatten().collect()),
+            ),
+        ),
+        |(first, rest)| TextString {
+            data: first + &rest,
             bitwidth: IntegerWidth::Unknown,
         },
-    ))(input)
+    )(input)
 }
 
 fn indefinite_textstring(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             tag("(_"),
-            separated_list(tag(","), definite_textstring),
+            separated_list(tag(","), concatenated_definite_textstring),
             opt_comma_tag(")"),
         ),
         DataItem::IndefiniteTextString,
@@ -270,7 +286,7 @@ fn indefinite_textstring(input: &str) -> IResult<&str, DataItem> {
 
 fn textstring(input: &str) -> IResult<&str, DataItem> {
     alt((
-        map(definite_textstring, DataItem::TextString),
+        map(concatenated_definite_textstring, DataItem::TextString),
         indefinite_textstring,
     ))(input)
 }

@@ -554,4 +554,39 @@ testcases! {
             }
         }
     }
+
+    // RFC 8610 Appendix G.4
+    mod concatenated {
+        one(diag2value) {
+            DataItem::TextString(TextString {
+                data: "Hello Ferris!".to_owned(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#""Hello " "Ferris!""# }
+        }
+
+        two(diag2value) {
+            DataItem::TextString(TextString {
+                data: "Hello Ferris!".to_owned(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#""Hello" h'20' "Ferris!""# }
+        }
+
+        three(diag2value) {
+            DataItem::TextString(TextString {
+                data: "Hello Ferris!".to_owned(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#""" h'48656c6c6f2046657272697321' """# }
+        }
+
+        four(diag2value) {
+            DataItem::TextString(TextString {
+                data: "Hello Ferris!".to_owned(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#""H" h'6 56c 6c6f' ' ' b64'RmV ycml zIQ'"# }
+        }
+    }
 }
