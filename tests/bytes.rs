@@ -638,4 +638,54 @@ testcases! {
         }
     }
 
+    // RFC 8610 Appendix G.3
+    mod embedded {
+        one(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex!("01").into(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "<<1>>" }
+        }
+
+        two(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex!("0102").into(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "<<1, 2>>" }
+        }
+
+        foo(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex!("63666f6ff6").into(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#"<<"foo", null>>"# }
+        }
+
+        empty(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: vec![],
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "<<>>" }
+        }
+
+        nested(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex!("63666f6ff6420102").into(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { r#"<<"foo", null, <<1, 2>>>>"# }
+        }
+
+        concatenated(diag2value) {
+            DataItem::ByteString(ByteString {
+                data: hex!("48656c6c6f4746657272697321").into(),
+                bitwidth: IntegerWidth::Unknown,
+            }),
+            { "'Hello' <<'Ferris!'>>" }
+        }
+    }
 }

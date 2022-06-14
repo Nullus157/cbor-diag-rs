@@ -238,6 +238,10 @@ fn definite_bytestring(input: &str) -> IResult<&str, Vec<u8>> {
             |s: &str| BASE64.decode(s.as_bytes()),
         ),
         map(
+            delimited(tag("<<"), separated_list(tag(","), data_item), tag(">>")),
+            |items| items.into_iter().flat_map(|item| item.to_bytes()).collect(),
+        ),
+        map(
             delimited(
                 tag("'"),
                 opt(escaped_transform(
