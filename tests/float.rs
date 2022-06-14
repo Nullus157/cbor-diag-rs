@@ -331,4 +331,31 @@ testcases! {
             ")
         }
     }
+
+    // RFC 8610 Appendix G.5
+    mod formats {
+        decimal(diag2value) {
+            DataItem::Float {
+                value: 1.5,
+                bitwidth: FloatWidth::Unknown,
+            },
+            { "1.5" }
+        }
+
+        hex1(diag2value) {
+            DataItem::Float {
+                value: 1.5,
+                bitwidth: FloatWidth::Unknown,
+            },
+            { "0x1.8p0" }
+        }
+
+        hex2(diag2value) {
+            DataItem::Float {
+                value: 1.5,
+                bitwidth: FloatWidth::Unknown,
+            },
+            { "0x18p-4" }
+        }
+    }
 }

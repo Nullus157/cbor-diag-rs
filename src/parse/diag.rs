@@ -410,7 +410,7 @@ fn tagged(input: &str) -> IResult<&str, DataItem> {
     ))
 }
 
-fn recognize_float(input: &str) -> IResult<&str, &str> {
+fn recognize_decimal_float(input: &str) -> IResult<&str, &str> {
     recognize(tuple((
         opt(alt((char('+'), char('-')))),
         tuple((digit1, pair(char('.'), digit1))),
@@ -422,9 +422,35 @@ fn recognize_float(input: &str) -> IResult<&str, &str> {
     )))(input)
 }
 
+fn hexadecimal_float(input: &str) -> IResult<&str, f64> {
+    let (input, sign) = opt(alt((char('+'), char('-'))))(input)?;
+    let (input, value) = hexadecimal(input)?;
+    let mut value = value as f64;
+    let (input, radix) = opt(preceded(
+        tag("."),
+        map_res(hex_digit1, |s| {
+            u64::from_str_radix(s, 16).map(|v| (s.len(), v))
+        }),
+    ))(input)?;
+    if let Some((radix_len, radix)) = radix {
+        value += radix as f64 / (16.0f64).powi(radix_len as i32);
+    }
+    let (input, (exp_sign, exponent)) = preceded(tag("p"), pair(opt(char('-')), decimal))(input)?;
+    let mut exponent = exponent as f64;
+    if exp_sign == Some('-') {
+        exponent *= -1.0;
+    }
+    value *= exponent.exp2();
+    if sign == Some('-') {
+        value *= -1.0;
+    }
+    Ok((input, value))
+}
+
 fn float_value(input: &str) -> IResult<&str, f64> {
     alt((
-        map_res(recognize_float, f64::from_str),
+        hexadecimal_float,
+        map_res(recognize_decimal_float, f64::from_str),
         value(f64::INFINITY, tag("Infinity")),
         value(f64::NEG_INFINITY, tag("-Infinity")),
         value(f64::NAN, tag("NaN")),
