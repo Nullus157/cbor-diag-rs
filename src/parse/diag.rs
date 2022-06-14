@@ -6,7 +6,7 @@ use std::str::FromStr;
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag},
-    character::complete::{char, digit1, none_of},
+    character::complete::{char, digit1, hex_digit1, none_of, oct_digit1},
     combinator::{map, map_res, opt, recognize, value, verify},
     error::context,
     multi::{many0, many1, separated_list},
@@ -50,6 +50,19 @@ fn opt_comma_tag<'a>(t: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str
     alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
 }
 
+/// Recognizes one or more binary numerical characters: 0, 1
+fn bin_digit1<T>(input: T) -> IResult<T, T>
+where
+    T: nom::InputTakeAtPosition,
+    <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
+{
+    use nom::AsChar;
+    input.split_at_position1_complete(
+        |item| !(item.as_char() == '0' || item.as_char() == '1'),
+        nom::error::ErrorKind::Digit,
+    )
+}
+
 /// Recognizes zero or more base16 characters: 0-9, A-F, a-f; or ASCII whitespace
 fn base16_digit0<T>(input: T) -> IResult<T, T>
 where
@@ -57,7 +70,7 @@ where
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position(|item| {
+    input.split_at_position_complete(|item| {
         !(('0'..='9').contains(&item.as_char())
             || ('A'..='F').contains(&item.as_char())
             || ('a'..='f').contains(&item.as_char())
@@ -72,7 +85,7 @@ where
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position(|item| {
+    input.split_at_position_complete(|item| {
         !(('A'..='Z').contains(&item.as_char())
             || ('2'..='7').contains(&item.as_char())
             || item.as_char() == '='
@@ -87,7 +100,7 @@ where
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position(|item| {
+    input.split_at_position_complete(|item| {
         !(('0'..='9').contains(&item.as_char())
             || ('A'..='V').contains(&item.as_char())
             || item.as_char() == '='
@@ -102,7 +115,7 @@ where
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position(|item| {
+    input.split_at_position_complete(|item| {
         !(item.is_alphanum()
             || item.as_char() == '-'
             || item.as_char() == '_'
@@ -117,7 +130,7 @@ where
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position(|item| {
+    input.split_at_position_complete(|item| {
         !(item.is_alphanum()
             || item.as_char() == '+'
             || item.as_char() == '/'
@@ -130,8 +143,33 @@ fn encoding(input: &str) -> IResult<&str, u64> {
     preceded(tag("_"), verify(map_res(digit1, u64::from_str), |&e| e < 4))(input)
 }
 
+fn hexadecimal(input: &str) -> IResult<&str, u64> {
+    preceded(
+        tag("0x"),
+        map_res(hex_digit1, |s| u64::from_str_radix(s, 16)),
+    )(input)
+}
+
+fn octal(input: &str) -> IResult<&str, u64> {
+    preceded(
+        tag("0o"),
+        map_res(oct_digit1, |s| u64::from_str_radix(s, 8)),
+    )(input)
+}
+
+fn binary(input: &str) -> IResult<&str, u64> {
+    preceded(
+        tag("0b"),
+        map_res(bin_digit1, |s| u64::from_str_radix(s, 2)),
+    )(input)
+}
+
+fn decimal(input: &str) -> IResult<&str, u64> {
+    map_res(digit1, u64::from_str)(input)
+}
+
 fn integer(input: &str) -> IResult<&str, (u64, IntegerWidth)> {
-    let (input, value) = map_res(digit1, u64::from_str)(input)?;
+    let (input, value) = alt((hexadecimal, octal, binary, decimal))(input)?;
     let (input, encoding) = opt(encoding)(input)?;
     Ok((
         input,

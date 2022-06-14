@@ -374,4 +374,39 @@ testcases! {
             ")
         }
     }
+
+    // RFC 8610 Appendix G.5
+    mod formats {
+        decimal(diag2value) {
+            DataItem::Integer {
+                value: 4711,
+                bitwidth: IntegerWidth::Unknown,
+            },
+            { "4711" }
+        }
+
+        hexadecimal(diag2value) {
+            DataItem::Integer {
+                value: 4711,
+                bitwidth: IntegerWidth::Unknown,
+            },
+            { "0x1267" }
+        }
+
+        octal(diag2value) {
+            DataItem::Integer {
+                value: 4711,
+                bitwidth: IntegerWidth::Unknown,
+            },
+            { "0o11147" }
+        }
+
+        binary(diag2value) {
+            DataItem::Integer {
+                value: 4711,
+                bitwidth: IntegerWidth::Unknown,
+            },
+            { "0b1001001100111" }
+        }
+    }
 }
