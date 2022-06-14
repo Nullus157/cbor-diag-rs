@@ -4,7 +4,6 @@ use std::{
 };
 
 use super::Encoding;
-use base64::{self, display::Base64Display};
 use chrono::{DateTime, NaiveDateTime};
 use half::f16;
 use num_bigint::{BigInt, BigUint, Sign};
@@ -224,14 +223,18 @@ fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item =
     data.chunks(16).map(move |datum| {
         let hex = hex::encode(datum);
         let comment = match encoding {
-            Some(Encoding::Base64Url) => format!(
-                "b64'{}'",
-                Base64Display::with_config(data, base64::URL_SAFE_NO_PAD)
-            ),
-            Some(Encoding::Base64) => format!(
-                "b64'{}'",
-                Base64Display::with_config(data, base64::STANDARD)
-            ),
+            Some(Encoding::Base64Url) => {
+                let mut comment = "b64'".to_owned();
+                data_encoding::BASE64URL_NOPAD.encode_append(data, &mut comment);
+                comment.push('\'');
+                comment
+            }
+            Some(Encoding::Base64) => {
+                let mut comment = "b64'".to_owned();
+                data_encoding::BASE64.encode_append(data, &mut comment);
+                comment.push('\'');
+                comment
+            }
             Some(Encoding::Base16) => format!("h'{}'", hex),
             None => {
                 let text: String = datum
@@ -630,29 +633,28 @@ fn uri(value: &DataItem) -> Line {
 
 fn base64_base(
     value: &DataItem,
-    config: base64::Config,
+    encoding: data_encoding::Encoding,
 ) -> Result<impl Iterator<Item = Line>, String> {
     if let DataItem::TextString(TextString { data, .. }) = value {
-        base64::decode_config(data, config)
-            .map(|data| {
-                let mut line = Line::new("", "");
-                line.sublines.extend(bytes_to_hex(None, &data));
-                let merged = line.merge();
-                merged
-                    .lines()
-                    .skip(1)
-                    .map(|line| Line::new("", line.split_at(3).1.replace("#  ", "#")))
-                    .collect::<Vec<_>>()
-                    .into_iter()
-            })
-            .map_err(|err| format!("{}", err))
+        let data = encoding
+            .decode(data.as_bytes())
+            .map_err(|err| format!("{}", err))?;
+        let mut line = Line::new("", "");
+        line.sublines.extend(bytes_to_hex(None, &data));
+        let merged = line.merge();
+        Ok(merged
+            .lines()
+            .skip(1)
+            .map(|line| Line::new("", line.split_at(3).1.replace("#  ", "#")))
+            .collect::<Vec<_>>()
+            .into_iter())
     } else {
         Err("invalid type".into())
     }
 }
 
 fn base64url(value: &DataItem) -> Line {
-    base64_base(value, base64::URL_SAFE_NO_PAD)
+    base64_base(value, data_encoding::BASE64URL_NOPAD)
         .map(|lines| {
             let mut line = Line::new("", "base64url decoded");
             line.sublines.extend(lines);
@@ -662,7 +664,7 @@ fn base64url(value: &DataItem) -> Line {
 }
 
 fn base64(value: &DataItem) -> Line {
-    base64_base(value, base64::STANDARD_NO_PAD)
+    base64_base(value, data_encoding::BASE64)
         .map(|lines| {
             let mut line = Line::new("", "base64 decoded");
             line.sublines.extend(lines);
@@ -702,7 +704,7 @@ fn uuid(value: &DataItem) -> Line {
             let variant = format!("{:?}", uuid.get_variant());
 
             let uuid_base58 = bs58::encode(uuid.as_bytes()).into_string();
-            let uuid_base64 = Base64Display::with_config(uuid.as_bytes(), base64::STANDARD_NO_PAD);
+            let uuid_base64 = data_encoding::BASE64_NOPAD.encode(uuid.as_bytes());
             let mut line = Line::new(
                 "",
                 format!(

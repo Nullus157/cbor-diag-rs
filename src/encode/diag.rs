@@ -1,4 +1,3 @@
-use base64::{self, display::Base64Display};
 use half::f16;
 
 use std::fmt::Write;
@@ -196,20 +195,14 @@ impl<'a> Context<'a> {
     fn definite_bytestring_to_diag(&mut self, bytestring: &ByteString) {
         match self.encoding {
             Encoding::Base64Url => {
-                write!(
-                    self.output,
-                    "b64'{}'",
-                    Base64Display::with_config(&bytestring.data, base64::URL_SAFE_NO_PAD)
-                )
-                .unwrap();
+                self.output.push_str("b64'");
+                data_encoding::BASE64URL_NOPAD.encode_append(&bytestring.data, self.output);
+                self.output.push('\'');
             }
             Encoding::Base64 => {
-                write!(
-                    self.output,
-                    "b64'{}'",
-                    Base64Display::with_config(&bytestring.data, base64::STANDARD)
-                )
-                .unwrap();
+                self.output.push_str("b64'");
+                data_encoding::BASE64.encode_append(&bytestring.data, self.output);
+                self.output.push('\'');
             }
             Encoding::Base16 => {
                 write!(self.output, "h'{}'", hex::encode(&bytestring.data)).unwrap();

@@ -154,11 +154,11 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
             ),
             map_res(
                 preceded(tag("b64"), delimited(tag("'"), base64url_digit0, tag("'"))),
-                |s: &str| base64::decode_config(s, base64::URL_SAFE_NO_PAD),
+                |s: &str| data_encoding::BASE64URL_NOPAD.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
-                |s: &str| base64::decode_config(s, base64::STANDARD),
+                |s: &str| data_encoding::BASE64.decode(s.as_bytes()),
             ),
         )),
         |data| ByteString {
