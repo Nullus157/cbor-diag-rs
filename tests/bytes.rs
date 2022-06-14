@@ -1,4 +1,5 @@
 use cbor_diag::{ByteString, DataItem, IntegerWidth};
+use data_encoding_macro::hexlower as hex;
 use indoc::indoc;
 
 #[macro_use]
@@ -503,7 +504,7 @@ testcases! {
     mod encodings {
         base16(diag2value) {
             DataItem::ByteString(ByteString {
-                data: hex::decode("12345678").unwrap(),
+                data: hex!("12345678").into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
             { "h'12345678'" }
@@ -511,7 +512,7 @@ testcases! {
 
         base32(diag2value) {
             DataItem::ByteString(ByteString {
-                data: hex::decode("12345678").unwrap(),
+                data: hex!("12345678").into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
             { "b32'CI2FM6A='" }
@@ -519,7 +520,7 @@ testcases! {
 
         base32hex(diag2value) {
             DataItem::ByteString(ByteString {
-                data: hex::decode("12345678").unwrap(),
+                data: hex!("12345678").into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
             { "h32'28Q5CU0='" }
@@ -527,7 +528,7 @@ testcases! {
 
         base64(diag2value) {
             DataItem::ByteString(ByteString {
-                data: hex::decode("12345678").unwrap(),
+                data: hex!("12345678").into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
             { "b64'EjRWeA=='" }
@@ -535,7 +536,7 @@ testcases! {
 
         base64url(diag2value) {
             DataItem::ByteString(ByteString {
-                data: hex::decode("12345678").unwrap(),
+                data: hex!("12345678").into(),
                 bitwidth: IntegerWidth::Unknown,
             }),
             { "b64'EjRWeA'" }

@@ -1,4 +1,5 @@
 use cbor_diag::{ByteString, DataItem, IntegerWidth, Tag};
+use data_encoding_macro::hexlower as hex;
 
 #[macro_use]
 mod utils;
@@ -14,7 +15,7 @@ testcases! {
                     },
                     DataItem::ByteString(
                         ByteString {
-                            data: hex::decode("0128bf0000002c").unwrap(),
+                            data: hex!("0128bf0000002c").into(),
                             bitwidth: IntegerWidth::Unknown,
                         },
                     ),

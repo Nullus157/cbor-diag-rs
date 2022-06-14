@@ -115,7 +115,7 @@ macro_rules! testcases {
     ) => {
         #[test]
         fn value2bytes() {
-            let hex = ::hex::encode($value.to_bytes());
+            let hex = ::data_encoding::HEXLOWER.encode(&$value.to_bytes());
             let expected = $crate::utils::remove_comments($hex);
             ::pretty_assertions::assert_eq!($crate::utils::DisplayDebug(hex), $crate::utils::DisplayDebug(expected));
         }

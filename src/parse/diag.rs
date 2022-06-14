@@ -142,7 +142,7 @@ fn definite_bytestring(input: &str) -> IResult<&str, ByteString> {
         alt((
             map_res(
                 preceded(tag("h"), delimited(tag("'"), hex_digit0, tag("'"))),
-                hex::decode,
+                |s: &str| data_encoding::HEXLOWER_PERMISSIVE.decode(s.as_bytes()),
             ),
             map_res(
                 preceded(tag("b32"), delimited(tag("'"), base32_digit0, tag("'"))),

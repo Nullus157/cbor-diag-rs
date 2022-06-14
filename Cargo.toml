@@ -17,7 +17,6 @@ edition = "2018"
 members = ["cli"]
 
 [dependencies]
-hex = { version = "0.4.3", default-features = false, features = ["std"] }
 nom = { version = "5.1.2", default-features = false, features = ["std"] }
 half = { version = "1.8.2", default-features = false }
 chrono = { version = "0.4.12", default-features = false, features = ["alloc"] }
@@ -34,3 +33,4 @@ data-encoding = { version = "2.3.2", default-features = false, features = ["allo
 indoc = { version = "1.0.6", default-features = false }
 proptest = { version = "1.0.0", default-features = false, features = ["std"] }
 pretty_assertions = { version = "1.2.1", default-features = false, features = ["std"] }
+data-encoding-macro = { version = "0.1.12", default-features = false }

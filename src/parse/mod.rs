@@ -42,6 +42,6 @@ fn remove_comments(hex: impl AsRef<str>) -> String {
 /// ```
 pub fn parse_hex(hex: impl AsRef<str>) -> Result<DataItem> {
     let hex = remove_comments(hex);
-    let bytes = hex::decode(hex)?;
+    let bytes = data_encoding::HEXLOWER_PERMISSIVE.decode(hex.as_bytes())?;
     parse_bytes(bytes)
 }

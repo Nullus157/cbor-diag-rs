@@ -205,7 +205,9 @@ impl<'a> Context<'a> {
                 self.output.push('\'');
             }
             Encoding::Base16 => {
-                write!(self.output, "h'{}'", hex::encode(&bytestring.data)).unwrap();
+                self.output.push_str("h'");
+                data_encoding::HEXLOWER.encode_append(&bytestring.data, self.output);
+                self.output.push('\'');
             }
         }
     }

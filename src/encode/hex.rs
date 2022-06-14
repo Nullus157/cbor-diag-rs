@@ -221,7 +221,7 @@ fn length_to_hex(
 
 fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item = Line> + '_ {
     data.chunks(16).map(move |datum| {
-        let hex = hex::encode(datum);
+        let hex = data_encoding::HEXLOWER.encode(datum);
         let comment = match encoding {
             Some(Encoding::Base64Url) => {
                 let mut comment = "b64'".to_owned();
@@ -273,7 +273,7 @@ fn definite_textstring_to_hex(textstring: &TextString) -> Line {
         line.sublines.push(Line::new("", "\"\""));
     } else {
         let mut push_line = |datum: &str| {
-            let hex = hex::encode(datum);
+            let hex = data_encoding::HEXLOWER.encode(datum.as_bytes());
             let mut comment = String::with_capacity(datum.len());
             comment.push('"');
             for c in datum.chars() {

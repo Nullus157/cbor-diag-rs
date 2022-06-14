@@ -19,8 +19,8 @@ impl From<String> for Error {
     }
 }
 
-impl From<hex::FromHexError> for Error {
-    fn from(err: hex::FromHexError) -> Error {
+impl From<data_encoding::DecodeError> for Error {
+    fn from(err: data_encoding::DecodeError) -> Error {
         err.to_string().into()
     }
 }

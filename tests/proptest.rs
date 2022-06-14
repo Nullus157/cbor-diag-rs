@@ -9,6 +9,7 @@ use cbor_diag::{
     parse_bytes, parse_diag, parse_hex, ByteString, DataItem, FloatWidth, IntegerWidth, Simple,
     Tag, TextString,
 };
+use data_encoding_macro::hexlower as hex;
 use half::f16;
 use pretty_assertions::assert_eq;
 use std::cmp;
@@ -209,8 +210,8 @@ mod proptest {
 
 #[test]
 fn multiply_overflow() {
-    let _ = parse_bytes(hex::decode("7b2000000000000000").unwrap());
-    let _ = parse_bytes(hex::decode("5b2000000000000000").unwrap());
+    let _ = parse_bytes(hex!("7b2000000000000000"));
+    let _ = parse_bytes(hex!("5b2000000000000000"));
 }
 
 #[test]
