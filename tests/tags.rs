@@ -25,6 +25,46 @@ testcases! {
                    00   #   unsigned(0)
             "),
         }
+
+        epoch_date_birth {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Negative {
+                    value: 10675,
+                    bitwidth: IntegerWidth::Sixteen,
+                }),
+            },
+            {
+                "100_0(-10676_1)",
+                "100_0(-10676_1)",
+            },
+            indoc!("
+                d8 64      # epoch date value, tag(100)
+                   39 29b3 #   negative(-10,676)
+                           #   date(1940-10-09)
+            "),
+        }
+
+        epoch_date_death {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Integer {
+                    value: 3994,
+                    bitwidth: IntegerWidth::Sixteen,
+                }),
+            },
+            {
+                "100_0(3994_1)",
+                "100_0(3994_1)",
+            },
+            indoc!("
+                d8 64      # epoch date value, tag(100)
+                   19 0f9a #   unsigned(3,994)
+                           #   date(1980-12-08)
+            "),
+        }
     }
 
     mod diag {
@@ -600,6 +640,36 @@ testcases! {
             {
                 "55799(0)",
                 "55799(0)",
+            }
+        }
+
+        date_birth(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "1940-10-09".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                r#"1004_1("1940-10-09")"#,
+                r#"1004_1("1940-10-09")"#,
+            }
+        }
+
+        date_death(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "1980-12-08".into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                r#"1004_1("1980-12-08")"#,
+                r#"1004_1("1980-12-08")"#,
             }
         }
     }
@@ -1320,6 +1390,40 @@ testcases! {
                    6c                          #   text(12)
                       303132333435363738396162 #     "0123456789ab"
                                                #   invalid type for network address
+            "#),
+        }
+
+        date_birth(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "1940-10-09".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 03ec                    # standard date string, tag(1004)
+                   6a                      #   text(10)
+                      313934302d31302d3039 #     "1940-10-09"
+                                           #   epoch(-10,676)
+            "#),
+        }
+
+        date_death(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "1980-12-08".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 03ec                    # standard date string, tag(1004)
+                   6a                      #   text(10)
+                      313938302d31322d3038 #     "1980-12-08"
+                                           #   epoch(3,994)
             "#),
         }
     }

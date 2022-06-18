@@ -1,10 +1,12 @@
 use std::{
-    ascii, cmp, i64, iter,
+    ascii, cmp,
+    convert::TryFrom,
+    i64, iter,
     net::{Ipv4Addr, Ipv6Addr},
 };
 
 use super::Encoding;
-use chrono::{DateTime, NaiveDateTime};
+use chrono::{DateTime, NaiveDate, NaiveDateTime};
 use half::f16;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_rational::{BigRational, Ratio};
@@ -409,6 +411,8 @@ fn tagged_to_hex(
         Tag::UUID => Some("uuid"),
         Tag::NETWORK_ADDRESS => Some("network address"),
         Tag::SELF_DESCRIBE_CBOR => Some("self describe cbor"),
+        Tag::EPOCH_DATE => Some("epoch date value"),
+        Tag::DATE => Some("standard date string"),
         _ => None,
     };
 
@@ -425,6 +429,8 @@ fn tagged_to_hex(
         Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
         Tag::NETWORK_ADDRESS => Some(network_address(value)),
         Tag::UUID => Some(uuid(value)),
+        Tag::EPOCH_DATE => Some(epoch_date(value)),
+        Tag::DATE => Some(date_epoch(value)),
         _ => None,
     };
 
@@ -514,6 +520,54 @@ fn epoch_datetime(value: &DataItem) -> Line {
 
     if let Some(date) = date {
         Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+    } else {
+        Line::new("", "offset is too large")
+    }
+}
+
+fn date_epoch(value: &DataItem) -> Line {
+    let date = if let DataItem::TextString(TextString { data, .. }) = value {
+        match NaiveDate::parse_from_str(data, "%Y-%m-%d") {
+            Ok(value) => value,
+            Err(err) => {
+                return Line::new("", format!("error parsing date: {}", err));
+            }
+        }
+    } else {
+        return Line::new("", "invalid type for date");
+    };
+
+    Line::new(
+        "",
+        format!(
+            "epoch({})",
+            date.signed_duration_since(NaiveDate::from_ymd(1970, 1, 1))
+                .num_days()
+                .separated_string()
+        ),
+    )
+}
+
+fn epoch_date(value: &DataItem) -> Line {
+    let date = match *value {
+        DataItem::Integer { value, .. } => i64::try_from(value).ok().and_then(|value| {
+            NaiveDate::from_ymd(1970, 1, 1).checked_add_signed(chrono::Duration::days(value))
+        }),
+
+        DataItem::Negative { value, .. } => i64::try_from(value)
+            .ok()
+            .and_then(|value| (-1i64).checked_sub(value))
+            .and_then(|value| {
+                NaiveDate::from_ymd(1970, 1, 1).checked_add_signed(chrono::Duration::days(value))
+            }),
+
+        _ => {
+            return Line::new("", "invalid type for epoch date");
+        }
+    };
+
+    if let Some(date) = date {
+        Line::new("", format!("date({})", date.format("%F")))
     } else {
         Line::new("", "offset is too large")
     }

@@ -469,6 +469,14 @@ impl Tag {
     /// [draft-2.1]: https://www.ietf.org/archive/id/draft-bormann-cbor-notable-tags-06.html#name-tags-related-to-those-defin
     pub const ENCODED_CBOR_SEQ: Tag = Tag(63);
 
+    /// Number of days since the epoch date 1970-01-01; must only be applied to an [unsigned
+    /// integer](DataItem::Integer) or [negative integer](DataItem::Negative) data item.
+    ///
+    /// Defined in [RFC 8943][].
+    ///
+    /// [RFC 8943]: https://tools.ietf.org/html/rfc8943
+    pub const EPOCH_DATE: Tag = Tag(100);
+
     /// Marks this item as being a Network Address (IPv4 or IPv6 or MAC
     /// Address); must only be applied to a [byte string](DataItem::ByteString)
     /// (or the [indefinite variant](DataItem::IndefiniteByteString) of) data
@@ -480,6 +488,16 @@ impl Tag {
     ///
     /// [NetworkAddressSpec]: http://www.employees.org/~ravir/cbor-network.txt
     pub const NETWORK_ADDRESS: Tag = Tag(260);
+
+    /// A "Standard date string"; must only be applied to a [text
+    /// string](DataItem::TextString) (or the [indefinite
+    /// variant](DataItem::IndefiniteTextString) of) data item.
+    ///
+    /// Defined in [RFC 8943][], uses format from [RFC 3339][].
+    ///
+    /// [RFC 8943]: https://tools.ietf.org/html/rfc8943
+    /// [RFC 3339]: https://tools.ietf.org/html/rfc3339
+    pub const DATE: Tag = Tag(1004);
 
     /// Marks this item as being CBOR, a no-op; can be applied to any type of
     /// data item.
