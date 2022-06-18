@@ -65,4 +65,16 @@ testcases! {
             "
         }
     }
+
+    not_unprefixed_bytestrings(diag2value) {
+        DataItem::ByteString(ByteString {
+            data: b"hello /world/"[..].into(),
+            bitwidth: IntegerWidth::Unknown,
+        }),
+        {
+            "
+                'hello /world/'
+            "
+        }
+    }
 }
