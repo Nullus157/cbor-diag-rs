@@ -9,7 +9,7 @@ use nom::{
     character::complete::{char, digit1, hex_digit1, none_of, oct_digit1},
     combinator::{map, map_res, opt, recognize, value, verify},
     error::context,
-    multi::{many0, many1, separated_list},
+    multi::{many0, many0_count, many1, separated_list},
     sequence::{delimited, pair, preceded, separated_pair, tuple},
     IResult,
 };
@@ -36,13 +36,23 @@ fn ignore_ws(encoding: data_encoding::Encoding) -> data_encoding::Encoding {
 }
 
 fn ws<O: Default>(input: &str) -> IResult<&str, O> {
-    map(nom::character::complete::multispace0, |_| O::default())(input)
+    map(nom::character::complete::multispace1, |_| O::default())(input)
+}
+
+fn comment<O: Default>(input: &str) -> IResult<&str, O> {
+    map(delimited(tag("/"), many0(none_of("/")), tag("/")), |_| {
+        O::default()
+    })(input)
+}
+
+fn ws_or_comment<O: Default>(input: &str) -> IResult<&str, O> {
+    map(many0_count(alt((comment::<O>, ws::<O>))), |_| O::default())(input)
 }
 
 fn wrapws<'a, T>(
     parser: impl Fn(&'a str) -> IResult<&'a str, T>,
 ) -> impl Fn(&'a str) -> IResult<&'a str, T> {
-    delimited(ws::<()>, parser, ws::<()>)
+    delimited(ws_or_comment::<()>, parser, ws_or_comment::<()>)
 }
 
 #[allow(clippy::needless_lifetimes)]
