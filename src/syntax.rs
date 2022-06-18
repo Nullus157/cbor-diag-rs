@@ -39,9 +39,10 @@ pub enum FloatWidth {
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 /// A semantic tag for a CBOR data item.
 ///
-/// See [RFC 7049 § 2.4: Table 3][RFC 2.4].
+/// See [RFC 7049 § 2.4: Table 3][RFC 2.4] and the [CBOR Tags IANA Registry][IANA]
 ///
 /// [RFC 2.4]: https://tools.ietf.org/html/rfc7049#section-2.4
+/// [IANA]: https://www.iana.org/assignments/cbor-tags/cbor-tags.xhtml
 pub struct Tag(pub u64);
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
@@ -454,6 +455,19 @@ impl Tag {
     ///
     /// [UuidSpec]: https://github.com/lucas-clemente/cbor-specs/blob/master/uuid.md
     pub const UUID: Tag = Tag(37);
+
+    /// Marks this item as being an encoded CBOR sequence; must only be applied
+    /// to a [byte string](DataItem::ByteString) (or the [indefinite
+    /// variant](DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// See [RFC 8742][] for more details on what this
+    /// means.
+    ///
+    /// Defined in [draft-bormann-cbor-notable-tags § 2.1][draft-2.1].
+    ///
+    /// [RFC 8742]: https://tools.ietf.org/html/rfc8742
+    /// [draft-2.1]: https://www.ietf.org/archive/id/draft-bormann-cbor-notable-tags-06.html#name-tags-related-to-those-defin
+    pub const ENCODED_CBOR_SEQ: Tag = Tag(63);
 
     /// Marks this item as being a Network Address (IPv4 or IPv6 or MAC
     /// Address); must only be applied to a [byte string](DataItem::ByteString)

@@ -228,14 +228,14 @@ impl<'a> Context<'a> {
 
     fn container_to_diag<T>(
         &mut self,
-        begin: char,
+        begin: impl Into<String>,
         items: impl IntoIterator<Item = T>,
-        end: char,
+        end: impl Into<String>,
         definite: bool,
         trivial: bool,
         item_to_diag: fn(&mut Self, T),
     ) {
-        self.output.push(begin);
+        self.output.push_str(&begin.into());
         if !definite {
             self.output.push('_');
             if trivial && self.pretty() {
@@ -273,7 +273,7 @@ impl<'a> Context<'a> {
                 self.indent();
             }
         }
-        self.output.push(end);
+        self.output.push_str(&end.into());
     }
 
     fn indefinite_string_to_diag<T>(
@@ -333,6 +333,39 @@ impl<'a> Context<'a> {
                         self.output.push_str(">>");
                     } else {
                         self.item_to_diag(value);
+                    }
+                } else {
+                    self.item_to_diag(value);
+                }
+            }
+            Tag::ENCODED_CBOR_SEQ => {
+                if let DataItem::ByteString(ByteString { data, bitwidth }) = value {
+                    let mut data = data.as_slice();
+                    let mut items = Vec::new();
+                    while let Ok(Some((item, len))) = crate::parse_bytes_partial(data) {
+                        let (_, rest) = data.split_at(len);
+                        data = rest;
+                        items.push(item);
+                    }
+                    self.container_to_diag(
+                        "<<",
+                        &items,
+                        ">>",
+                        true,
+                        is_trivial(&DataItem::Array {
+                            data: items.clone(),
+                            bitwidth: None,
+                        }),
+                        Self::item_to_diag,
+                    );
+                    if !data.is_empty() {
+                        if self.pretty() {
+                            self.output.push(' ');
+                        }
+                        self.item_to_diag(&DataItem::ByteString(ByteString {
+                            data: data.into(),
+                            bitwidth: *bitwidth,
+                        }));
                     }
                 } else {
                     self.item_to_diag(value);

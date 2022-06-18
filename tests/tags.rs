@@ -483,6 +483,36 @@ testcases! {
             }
         }
 
+        encoded_cbor_seq(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex!("9f64f09f87b317ff1615").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                r#"63(<<[_"🇳",23],22,21>>)"#,
+                r#"63(<<[_ "🇳", 23], 22, 21>>)"#,
+            }
+        }
+
+        encoded_cbor_seq_invalid(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex!("1617ff").into(),
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                "63(<<22,23>>h'ff')",
+                "63(<<22, 23>> h'ff')",
+            }
+        }
+
         uri(diag2value, value2diag) {
             DataItem::Tag {
                 tag: Tag::URI,
