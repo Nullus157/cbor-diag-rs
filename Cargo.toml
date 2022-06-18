@@ -24,7 +24,6 @@ url = { version = "2.2.2", default-features = false }
 num-rational = { version = "0.4.0", default-features = false, features = ["num-bigint"] }
 num-bigint = { version = "0.4.3", default-features = false, features = ["std"] }
 num-traits = { version = "0.2.15", default-features = false }
-once_cell = { version = "1.12.0", default-features = false, features = ["std"] }
 separator = { version = "0.4.0", default-features = false }
 uuid = { version = "1.1.2", default-features = false }
 bs58 = { version = "0.4.0", default-features = false, features = ["alloc"] }

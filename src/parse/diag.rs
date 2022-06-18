@@ -13,27 +13,8 @@ use nom::{
     sequence::{delimited, pair, preceded, separated_pair, tuple},
     IResult,
 };
-use once_cell::sync::Lazy;
 
 use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
-
-static WHITESPACE: &str = "\t\n\x0A\x0B\r ";
-static BASE16: Lazy<data_encoding::Encoding> =
-    Lazy::new(|| ignore_ws(data_encoding::HEXLOWER_PERMISSIVE));
-static BASE32: Lazy<data_encoding::Encoding> = Lazy::new(|| ignore_ws(data_encoding::BASE32));
-static BASE32HEX: Lazy<data_encoding::Encoding> = Lazy::new(|| ignore_ws(data_encoding::BASE32HEX));
-static BASE64: Lazy<data_encoding::Encoding> = Lazy::new(|| ignore_ws(data_encoding::BASE64));
-static BASE64URL_NOPAD: Lazy<data_encoding::Encoding> =
-    Lazy::new(|| ignore_ws(data_encoding::BASE64URL_NOPAD));
-
-fn ignore_ws(encoding: data_encoding::Encoding) -> data_encoding::Encoding {
-    data_encoding::Specification {
-        ignore: WHITESPACE.to_owned(),
-        ..encoding.specification()
-    }
-    .encoding()
-    .unwrap()
-}
 
 fn ws<O: Default>(input: &str) -> IResult<&str, O> {
     map(nom::character::complete::multispace1, |_| O::default())(input)
@@ -55,6 +36,15 @@ fn wrapws<'a, T>(
     delimited(ws_or_comment::<()>, parser, ws_or_comment::<()>)
 }
 
+fn wrapws_strings<'a>(
+    parser: impl Fn(&'a str) -> IResult<&'a str, &'a str>,
+) -> impl Fn(&'a str) -> IResult<&'a str, String> {
+    map(
+        many0(delimited(ws_or_comment::<()>, parser, ws_or_comment::<()>)),
+        |strings| strings.into_iter().flat_map(|s| s.chars()).collect(),
+    )
+}
+
 #[allow(clippy::needless_lifetimes)]
 fn opt_comma_tag<'a>(t: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
     alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
@@ -73,80 +63,86 @@ where
     )
 }
 
-/// Recognizes zero or more base16 characters: 0-9, A-F, a-f; or ASCII whitespace
+/// Recognizes one or more base16 characters: 0-9, A-F, a-f
 fn base16_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position_complete(|item| {
-        !(('0'..='9').contains(&item.as_char())
-            || ('A'..='F').contains(&item.as_char())
-            || ('a'..='f').contains(&item.as_char())
-            || WHITESPACE.contains(item.as_char()))
-    })
+    input.split_at_position1_complete(
+        |item| {
+            !(('0'..='9').contains(&item.as_char())
+                || ('A'..='F').contains(&item.as_char())
+                || ('a'..='f').contains(&item.as_char()))
+        },
+        nom::error::ErrorKind::Digit,
+    )
 }
 
-/// Recognizes zero or more base32 characters: A-Z, 2-7, =; or ASCII whitespace
+/// Recognizes one or more base32 characters: A-Z, 2-7, =
 fn base32_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position_complete(|item| {
-        !(('A'..='Z').contains(&item.as_char())
-            || ('2'..='7').contains(&item.as_char())
-            || item.as_char() == '='
-            || WHITESPACE.contains(item.as_char()))
-    })
+    input.split_at_position1_complete(
+        |item| {
+            !(('A'..='Z').contains(&item.as_char())
+                || ('2'..='7').contains(&item.as_char())
+                || item.as_char() == '=')
+        },
+        nom::error::ErrorKind::Digit,
+    )
 }
 
-/// Recognizes zero or more base32hex characters: 0-9, A-V, =; or ASCII whitespace
+/// Recognizes one or more base32hex characters: 0-9, A-V, =
 fn base32hex_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position_complete(|item| {
-        !(('0'..='9').contains(&item.as_char())
-            || ('A'..='V').contains(&item.as_char())
-            || item.as_char() == '='
-            || WHITESPACE.contains(item.as_char()))
-    })
+    input.split_at_position1_complete(
+        |item| {
+            !(('0'..='9').contains(&item.as_char())
+                || ('A'..='V').contains(&item.as_char())
+                || item.as_char() == '=')
+        },
+        nom::error::ErrorKind::Digit,
+    )
 }
 
-/// Recognizes zero or more base64url characters: 0-9, A-Z, a-z, -, _; or ASCII whitespace
+/// Recognizes one or more base64url characters: 0-9, A-Z, a-z, -, _
 fn base64url_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position_complete(|item| {
-        !(item.is_alphanum()
-            || item.as_char() == '-'
-            || item.as_char() == '_'
-            || WHITESPACE.contains(item.as_char()))
-    })
+    input.split_at_position1_complete(
+        |item| !(item.is_alphanum() || item.as_char() == '-' || item.as_char() == '_'),
+        nom::error::ErrorKind::Digit,
+    )
 }
 
-/// Recognizes zero or more base64 characters: 0-9, A-Z, a-z, +, /, =; or ASCII whitespace
+/// Recognizes one or more base64 characters: 0-9, A-Z, a-z, +, /, =
 fn base64_digit0<T>(input: T) -> IResult<T, T>
 where
     T: nom::InputTakeAtPosition,
     <T as nom::InputTakeAtPosition>::Item: nom::AsChar + Copy,
 {
     use nom::AsChar;
-    input.split_at_position_complete(|item| {
-        !(item.is_alphanum()
-            || item.as_char() == '+'
-            || item.as_char() == '/'
-            || item.as_char() == '='
-            || WHITESPACE.contains(item.as_char()))
-    })
+    input.split_at_position1_complete(
+        |item| {
+            !(item.is_alphanum()
+                || item.as_char() == '+'
+                || item.as_char() == '/'
+                || item.as_char() == '=')
+        },
+        nom::error::ErrorKind::Digit,
+    )
 }
 
 fn encoding(input: &str) -> IResult<&str, u64> {
@@ -228,24 +224,39 @@ fn negative(input: &str) -> IResult<&str, DataItem> {
 fn definite_bytestring(input: &str) -> IResult<&str, Vec<u8>> {
     wrapws(alt((
         map_res(
-            preceded(tag("h"), delimited(tag("'"), base16_digit0, tag("'"))),
-            |s: &str| BASE16.decode(s.as_bytes()),
+            preceded(
+                tag("h"),
+                delimited(tag("'"), wrapws_strings(base16_digit0), tag("'")),
+            ),
+            |s| data_encoding::HEXLOWER_PERMISSIVE.decode(s.as_bytes()),
         ),
         map_res(
-            preceded(tag("b32"), delimited(tag("'"), base32_digit0, tag("'"))),
-            |s: &str| BASE32.decode(s.as_bytes()),
+            preceded(
+                tag("b32"),
+                delimited(tag("'"), wrapws_strings(base32_digit0), tag("'")),
+            ),
+            |s| data_encoding::BASE32.decode(s.as_bytes()),
         ),
         map_res(
-            preceded(tag("h32"), delimited(tag("'"), base32hex_digit0, tag("'"))),
-            |s: &str| BASE32HEX.decode(s.as_bytes()),
+            preceded(
+                tag("h32"),
+                delimited(tag("'"), wrapws_strings(base32hex_digit0), tag("'")),
+            ),
+            |s| data_encoding::BASE32HEX.decode(s.as_bytes()),
         ),
         map_res(
-            preceded(tag("b64"), delimited(tag("'"), base64url_digit0, tag("'"))),
-            |s: &str| BASE64URL_NOPAD.decode(s.as_bytes()),
+            preceded(
+                tag("b64"),
+                delimited(tag("'"), wrapws_strings(base64url_digit0), tag("'")),
+            ),
+            |s| data_encoding::BASE64URL_NOPAD.decode(s.as_bytes()),
         ),
         map_res(
-            preceded(tag("b64"), delimited(tag("'"), base64_digit0, tag("'"))),
-            |s: &str| BASE64.decode(s.as_bytes()),
+            preceded(
+                tag("b64"),
+                delimited(tag("'"), wrapws_strings(base64_digit0), tag("'")),
+            ),
+            |s| data_encoding::BASE64.decode(s.as_bytes()),
         ),
         map(
             delimited(tag("<<"), separated_list(tag(","), data_item), tag(">>")),
