@@ -684,27 +684,28 @@ fn date_epoch(value: &DataItem) -> Line {
 }
 
 fn epoch_date(value: &DataItem) -> Line {
-    let date = match *value {
-        DataItem::Integer { value, .. } => i64::try_from(value).ok().and_then(|value| {
-            NaiveDate::from_ymd(1970, 1, 1).checked_add_signed(chrono::Duration::days(value))
-        }),
+    let days = match *value {
+        DataItem::Integer { value, .. } => i64::try_from(value).ok(),
 
         DataItem::Negative { value, .. } => i64::try_from(value)
             .ok()
-            .and_then(|value| (-1i64).checked_sub(value))
-            .and_then(|value| {
-                NaiveDate::from_ymd(1970, 1, 1).checked_add_signed(chrono::Duration::days(value))
-            }),
+            .and_then(|value| (-1i64).checked_sub(value)),
 
         _ => {
             return Line::new("", "invalid type for epoch date");
         }
     };
 
+    let date = days
+        .and_then(|days| days.checked_mul(24 * 60 * 60 * 1000))
+        // This is the only non-panicking constructor for `chrono::Duration`
+        .map(chrono::Duration::milliseconds)
+        .and_then(|duration| NaiveDate::from_ymd(1970, 1, 1).checked_add_signed(duration));
+
     if let Some(date) = date {
         Line::new("", format!("date({})", date.format("%F")))
     } else {
-        Line::new("", "offset is too large")
+        Line::new("", "date offset is too large for this tool")
     }
 }
 
