@@ -1507,6 +1507,74 @@ testcases! {
             "#),
         }
 
+        date_min_repr(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "-262144-01-01".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+               d9 03ec                          # standard date string, tag(1004)
+                  6d                            #   text(13)
+                     2d3236323134342d30312d3031 #     "-262144-01-01"
+                                                #   epoch(-96,465,658)
+            "#),
+        }
+
+        date_min_repr_minus_one(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "-262145-12-31".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+               d9 03ec                          # standard date string, tag(1004)
+                  6d                            #   text(13)
+                     2d3236323134352d31322d3331 #     "-262145-12-31"
+                                                #   error parsing date: input is out of range
+            "#),
+        }
+
+        date_max_repr(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "+262143-12-31".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+               d9 03ec                          # standard date string, tag(1004)
+                  6d                            #   text(13)
+                     2b3236323134332d31322d3331 #     "+262143-12-31"
+                                                #   epoch(95,026,601)
+            "#),
+        }
+
+        date_max_repr_plus_one(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "+262144-01-01".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+               d9 03ec                          # standard date string, tag(1004)
+                  6d                            #   text(13)
+                     2b3236323134342d30312d3031 #     "+262144-01-01"
+                                                #   error parsing date: input is out of range
+            "#),
+        }
+
         shared_ref_cyclic(hex2value, value2hex) {
             DataItem::Tag {
                 tag: Tag::SHAREABLE,
