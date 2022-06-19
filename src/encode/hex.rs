@@ -496,7 +496,7 @@ fn tagged_to_hex(
         Tag::ENCODED_BASE64 => context.with_encoding(Some(Encoding::Base64), |context| {
             vec![Line::from_value(context, value)]
         }),
-        Tag::ENCODED_BASE16 | Tag::NETWORK_ADDRESS | Tag::UUID => context
+        Tag::ENCODED_BASE16 | Tag::NETWORK_ADDRESS | Tag::UUID | Tag::IPV4 | Tag::IPV6 => context
             .with_encoding(Some(Encoding::Base16), |context| {
                 vec![Line::from_value(context, value)]
             }),

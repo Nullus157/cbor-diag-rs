@@ -1528,12 +1528,12 @@ testcases! {
                     bitwidth: IntegerWidth::Zero,
                 })),
             },
-            indoc!(r#"
+            indoc!("
                 d8 34          # ipv4 address and/or prefix, tag(52)
                    44          #   bytes(4)
-                      c0000201 #     "\xc0\x00\x02\x01"
+                      c0000201 #     h'c0000201'
                                #   IPv4 address(192.0.2.1)
-            "#),
+            "),
         }
 
         ipv4_prefix(hex2value, value2hex) {
@@ -1554,14 +1554,14 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 34           # ipv4 address and/or prefix, tag(52)
                    82           #   array(2)
                       18 18     #     unsigned(24)
                       43        #     bytes(3)
-                         c00002 #       "\xc0\x00\x02"
+                         c00002 #       h'c00002'
                                 #   IPv4 prefix(192.0.2.0/24)
-            "#),
+            "),
         }
 
         ipv4_address_and_prefix(hex2value, value2hex) {
@@ -1582,14 +1582,14 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 34             # ipv4 address and/or prefix, tag(52)
                    82             #   array(2)
                       44          #     bytes(4)
-                         c0000201 #       "\xc0\x00\x02\x01"
+                         c0000201 #       h'c0000201'
                       18 18       #     unsigned(24)
                                   #   IPv4 address-and-prefix(192.0.2.1/24)
-            "#),
+            "),
         }
 
         ipv4_address_and_zone(hex2value, value2hex) {
@@ -1611,15 +1611,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 34             # ipv4 address and/or prefix, tag(52)
                    83             #   array(3)
                       44          #     bytes(4)
-                         c0000201 #       "\xc0\x00\x02\x01"
+                         c0000201 #       h'c0000201'
                       f6          #     null, simple(22)
                       06          #     unsigned(6)
                                   #   IPv4 address-and-zone(192.0.2.1%6)
-            "#),
+            "),
         }
 
         ipv4_address_and_text_zone(hex2value, value2hex) {
@@ -1645,7 +1645,7 @@ testcases! {
                 d8 34             # ipv4 address and/or prefix, tag(52)
                    83             #   array(3)
                       44          #     bytes(4)
-                         c0000201 #       "\xc0\x00\x02\x01"
+                         c0000201 #       h'c0000201'
                       f6          #     null, simple(22)
                       64          #     text(4)
                          65746830 #       "eth0"
@@ -1675,15 +1675,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 34             # ipv4 address and/or prefix, tag(52)
                    83             #   array(3)
                       44          #     bytes(4)
-                         c0000201 #       "\xc0\x00\x02\x01"
+                         c0000201 #       h'c0000201'
                       18 18       #     unsigned(24)
                       06          #     unsigned(6)
                                   #   IPv4 address-and-zone-and-prefix(192.0.2.1%6/24)
-            "#),
+            "),
         }
 
         ipv6_address(hex2value, value2hex) {
@@ -1695,12 +1695,12 @@ testcases! {
                     bitwidth: IntegerWidth::Zero,
                 })),
             },
-            indoc!(r#"
+            indoc!("
                 d8 36                                  # ipv6 address and/or prefix, tag(54)
                    50                                  #   bytes(16)
-                      20010db81234deedbeefcafefacefeed #     " \x01\r\xb8\x124\xde\xed\xbe\xef\xca\xfe\xfa\xce\xfe\xed"
+                      20010db81234deedbeefcafefacefeed #     h'20010db81234deedbeefcafefacefeed'
                                                        #   IPv6 address(2001:db8:1234:deed:beef:cafe:face:feed)
-            "#),
+            "),
         }
 
         ipv6_prefix(hex2value, value2hex) {
@@ -1721,14 +1721,14 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 36                 # ipv6 address and/or prefix, tag(54)
                    82                 #   array(2)
                       18 30           #     unsigned(48)
                       46              #     bytes(6)
-                         20010db81234 #       " \x01\r\xb8\x124"
+                         20010db81234 #       h'20010db81234'
                                       #   IPv6 prefix(2001:db8:1234::/48)
-            "#),
+            "),
         }
 
         ipv6_address_and_prefix(hex2value, value2hex) {
@@ -1749,14 +1749,14 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 36                                     # ipv6 address and/or prefix, tag(54)
                    82                                     #   array(2)
                       50                                  #     bytes(16)
-                         20010db81234deedbeefcafefacefeed #       " \x01\r\xb8\x124\xde\xed\xbe\xef\xca\xfe\xfa\xce\xfe\xed"
+                         20010db81234deedbeefcafefacefeed #       h'20010db81234deedbeefcafefacefeed'
                       18 38                               #     unsigned(56)
                                                           #   IPv6 address-and-prefix(2001:db8:1234:deed:beef:cafe:face:feed/56)
-            "#),
+            "),
         }
 
         ipv6_address_and_zone(hex2value, value2hex) {
@@ -1778,15 +1778,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 36                                     # ipv6 address and/or prefix, tag(54)
                    83                                     #   array(3)
                       50                                  #     bytes(16)
-                         fe8000000000020202fffffffe030303 #       "\xfe\x80\x00\x00\x00\x00\x02\x02\x02\xff\xff\xff\xfe\x03\x03\x03"
+                         fe8000000000020202fffffffe030303 #       h'fe8000000000020202fffffffe030303'
                       f6                                  #     null, simple(22)
                       18 2a                               #     unsigned(42)
                                                           #   IPv6 address-and-zone(fe80::202:2ff:ffff:fe03:303%42)
-            "#),
+            "),
         }
 
         ipv6_address_and_text_zone(hex2value, value2hex) {
@@ -1812,7 +1812,7 @@ testcases! {
                 d8 36                                     # ipv6 address and/or prefix, tag(54)
                    83                                     #   array(3)
                       50                                  #     bytes(16)
-                         fe8000000000020202fffffffe030303 #       "\xfe\x80\x00\x00\x00\x00\x02\x02\x02\xff\xff\xff\xfe\x03\x03\x03"
+                         fe8000000000020202fffffffe030303 #       h'fe8000000000020202fffffffe030303'
                       f6                                  #     null, simple(22)
                       64                                  #     text(4)
                          65746830                         #       "eth0"
@@ -1842,15 +1842,15 @@ testcases! {
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
             },
-            indoc!(r#"
+            indoc!("
                 d8 36                                     # ipv6 address and/or prefix, tag(54)
                    83                                     #   array(3)
                       50                                  #     bytes(16)
-                         fe8000000000020202fffffffe030303 #       "\xfe\x80\x00\x00\x00\x00\x02\x02\x02\xff\xff\xff\xfe\x03\x03\x03"
+                         fe8000000000020202fffffffe030303 #       h'fe8000000000020202fffffffe030303'
                       18 40                               #     unsigned(64)
                       18 2a                               #     unsigned(42)
                                                           #   IPv6 address-and-zone-and-prefix(fe80::202:2ff:ffff:fe03:303%42/64)
-            "#),
+            "),
         }
 
         mod typed_array {
