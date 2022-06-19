@@ -1426,5 +1426,98 @@ testcases! {
                                            #   epoch(3,994)
             "#),
         }
+
+        shared_ref_cyclic(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::SHAREABLE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::Tag {
+                            tag: Tag::SHARED_REF,
+                            bitwidth: IntegerWidth::Eight,
+                            value: Box::new(DataItem::Integer {
+                                value: 0,
+                                bitwidth: IntegerWidth::Zero,
+                            }),
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!("
+               d8 1c       # shareable value, tag(28)
+                  81       #   array(1)
+                     d8 1d #     reference to shared value, tag(29)
+                        00 #       unsigned(0)
+                           #       reference-to(0)
+                           #   reference(0)
+            "),
+        }
+
+        missing_shared_ref(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::SHARED_REF,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Integer {
+                    value: 0,
+                    bitwidth: IntegerWidth::Zero,
+                }),
+            },
+            indoc!("
+               d8 1d # reference to shared value, tag(29)
+                  00 #   unsigned(0)
+                     #   reference-to(0), not previously shared
+            "),
+        }
+
+        encoded_cbor_with_shared_refs(hex2value, value2hex) {
+            DataItem::Array {
+                data: vec![
+                    DataItem::Tag {
+                        tag: Tag::SHAREABLE,
+                        bitwidth: IntegerWidth::Eight,
+                        value: Box::new(DataItem::Integer {
+                            value: 0,
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    },
+                    DataItem::Tag {
+                        tag: Tag::ENCODED_CBOR,
+                        bitwidth: IntegerWidth::Eight,
+                        value: Box::new(DataItem::ByteString(ByteString {
+                            data: hex!("d81c00").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        })),
+                    },
+                    DataItem::Tag {
+                        tag: Tag::SHAREABLE,
+                        bitwidth: IntegerWidth::Eight,
+                        value: Box::new(DataItem::Integer {
+                            value: 0,
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    },
+                ],
+                bitwidth: Some(IntegerWidth::Zero),
+            },
+            indoc!(r#"
+                83              # array(3)
+                   d8 1c        #   shareable value, tag(28)
+                      00        #     unsigned(0)
+                                #     reference(0)
+                   d8 18        #   encoded cbor data item, tag(24)
+                      43        #     bytes(3)
+                         d81c00 #       "\xd8\x1c\x00"
+                                #     encoded cbor data item
+                                #       d8 1c # shareable value, tag(28)
+                                #          00 #   unsigned(0)
+                                #             #   reference(0)
+                   d8 1c        #   shareable value, tag(28)
+                      00        #     unsigned(0)
+                                #     reference(1)
+            "#),
+        }
+
     }
 }

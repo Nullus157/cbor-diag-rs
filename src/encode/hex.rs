@@ -17,6 +17,11 @@ use uuid::Uuid;
 
 use crate::{parse_bytes, ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 
+struct Context {
+    encoding: Option<Encoding>,
+    reference_count: u64,
+}
+
 struct Line {
     hex: String,
     comment: String,
@@ -32,29 +37,29 @@ impl Line {
         }
     }
 
-    fn from_value(encoding: Option<Encoding>, value: &DataItem) -> Line {
+    fn from_value(context: &mut Context, value: &DataItem) -> Line {
         match *value {
             DataItem::Integer { value, bitwidth } => integer_to_hex(value, bitwidth),
             DataItem::Negative { value, bitwidth } => negative_to_hex(value, bitwidth),
             DataItem::ByteString(ref bytestring) => {
-                definite_bytestring_to_hex(encoding, bytestring)
+                definite_bytestring_to_hex(context.encoding, bytestring)
             }
             DataItem::IndefiniteByteString(ref bytestrings) => {
                 indefinite_string_to_hex(0x02, "bytes", bytestrings, |bytestring| {
-                    definite_bytestring_to_hex(encoding, bytestring)
+                    definite_bytestring_to_hex(context.encoding, bytestring)
                 })
             }
             DataItem::TextString(ref textstring) => definite_textstring_to_hex(textstring),
             DataItem::IndefiniteTextString(ref textstrings) => {
                 indefinite_string_to_hex(0x03, "text", textstrings, definite_textstring_to_hex)
             }
-            DataItem::Array { ref data, bitwidth } => array_to_hex(encoding, data, bitwidth),
-            DataItem::Map { ref data, bitwidth } => map_to_hex(encoding, data, bitwidth),
+            DataItem::Array { ref data, bitwidth } => array_to_hex(context, data, bitwidth),
+            DataItem::Map { ref data, bitwidth } => map_to_hex(context, data, bitwidth),
             DataItem::Tag {
                 tag,
                 bitwidth,
                 ref value,
-            } => tagged_to_hex(encoding, tag, bitwidth, value),
+            } => tagged_to_hex(context, tag, bitwidth, value),
             DataItem::Float { value, bitwidth } => float_to_hex(value, bitwidth),
             DataItem::Simple(simple) => simple_to_hex(simple),
         }
@@ -325,15 +330,11 @@ fn indefinite_string_to_hex<T>(
     line
 }
 
-fn array_to_hex(
-    encoding: Option<Encoding>,
-    array: &[DataItem],
-    bitwidth: Option<IntegerWidth>,
-) -> Line {
+fn array_to_hex(context: &mut Context, array: &[DataItem], bitwidth: Option<IntegerWidth>) -> Line {
     let mut line = length_to_hex(Some(array.len()), bitwidth, 4, "array");
 
     line.sublines
-        .extend(array.iter().map(|value| Line::from_value(encoding, value)));
+        .extend(array.iter().map(|value| Line::from_value(context, value)));
 
     if bitwidth.is_none() {
         line.sublines.push(Line::new("ff", "break"));
@@ -343,7 +344,7 @@ fn array_to_hex(
 }
 
 fn map_to_hex(
-    encoding: Option<Encoding>,
+    context: &mut Context,
     values: &[(DataItem, DataItem)],
     bitwidth: Option<IntegerWidth>,
 ) -> Line {
@@ -353,7 +354,7 @@ fn map_to_hex(
         values
             .iter()
             .flat_map(|(v1, v2)| iter::once(v1).chain(iter::once(v2)))
-            .map(|value| Line::from_value(encoding, value)),
+            .map(|value| Line::from_value(context, value)),
     );
 
     if bitwidth.is_none() {
@@ -364,7 +365,7 @@ fn map_to_hex(
 }
 
 fn tagged_to_hex(
-    encoding: Option<Encoding>,
+    context: &mut Context,
     tag: Tag,
     mut bitwidth: IntegerWidth,
     value: &DataItem,
@@ -413,6 +414,8 @@ fn tagged_to_hex(
         Tag::SELF_DESCRIBE_CBOR => Some("self describe cbor"),
         Tag::EPOCH_DATE => Some("epoch date value"),
         Tag::DATE => Some("standard date string"),
+        Tag::SHAREABLE => Some("shareable value"),
+        Tag::SHARED_REF => Some("reference to shared value"),
         _ => None,
     };
 
@@ -431,6 +434,12 @@ fn tagged_to_hex(
         Tag::UUID => Some(uuid(value)),
         Tag::EPOCH_DATE => Some(epoch_date(value)),
         Tag::DATE => Some(date_epoch(value)),
+        Tag::SHAREABLE => {
+            let line = format!("reference({})", context.reference_count.separated_string());
+            context.reference_count += 1;
+            Some(Line::new("", line))
+        }
+        Tag::SHARED_REF => Some(shared_ref(value, context.reference_count)),
         _ => None,
     };
 
@@ -440,7 +449,7 @@ fn tagged_to_hex(
         Tag::ENCODED_BASE16 => Some(Encoding::Base16),
         Tag::NETWORK_ADDRESS => Some(Encoding::Base16),
         Tag::UUID => Some(Encoding::Base16),
-        _ => encoding,
+        _ => context.encoding,
     };
 
     let comment = if let Some(extra) = extra {
@@ -449,12 +458,15 @@ fn tagged_to_hex(
         format!("tag({})", tag.0)
     };
 
+    let encoding = std::mem::replace(&mut context.encoding, encoding);
+    let sublines = iter::once(Line::from_value(context, value))
+        .chain(extra_line)
+        .collect();
+    context.encoding = encoding;
     Line {
         hex,
         comment,
-        sublines: iter::once(Line::from_value(encoding, value))
-            .chain(extra_line)
-            .collect(),
+        sublines,
     }
 }
 
@@ -570,6 +582,25 @@ fn epoch_date(value: &DataItem) -> Line {
         Line::new("", format!("date({})", date.format("%F")))
     } else {
         Line::new("", "offset is too large")
+    }
+}
+
+fn shared_ref(value: &DataItem, known_references: u64) -> Line {
+    match *value {
+        DataItem::Integer { value, .. } => {
+            if value < known_references {
+                Line::new("", format!("reference-to({})", value.separated_string()))
+            } else {
+                Line::new(
+                    "",
+                    format!(
+                        "reference-to({}), not previously shared",
+                        value.separated_string()
+                    ),
+                )
+            }
+        }
+        _ => Line::new("", "invalid type for shared ref"),
     }
 }
 
@@ -865,6 +896,10 @@ fn simple_to_hex(simple: Simple) -> Line {
 
 impl DataItem {
     pub fn to_hex(&self) -> String {
-        Line::from_value(None, self).merge()
+        let mut context = Context {
+            encoding: None,
+            reference_count: 0,
+        };
+        Line::from_value(&mut context, self).merge()
     }
 }

@@ -137,6 +137,18 @@ impl Tag {
     /// [RFC 2.4.4.1]: https://tools.ietf.org/html/rfc7049#section-2.4.4.1
     pub const ENCODED_CBOR: Tag = Tag(24);
 
+    /// Marks this item as being potentially shared and referenced by a later [`Tag::SHARED_REF`][];
+    /// can be applied to any sort of data item.
+    ///
+    /// See <http://cbor.schmorp.de/value-sharing> for more details on what this means.
+    pub const SHAREABLE: Tag = Tag(28);
+
+    /// Marks this item as being a reference to a previous [`Tag::SHAREABLE`][] item;
+    /// can only be applied to an [unsigned integer](DataItem::Integer) date item.
+    ///
+    /// See <http://cbor.schmorp.de/value-sharing> for more details on what this means.
+    pub const SHARED_REF: Tag = Tag(29);
+
     /// Marks this item as being a valid URI; must only be applied
     /// to a [text string](DataItem::TextString) (or the [indefinite
     /// variant](DataItem::IndefiniteTextString) of) data item.
