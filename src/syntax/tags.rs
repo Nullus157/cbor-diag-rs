@@ -258,6 +258,213 @@ impl Tag {
     /// [RFC 9164]: https://tools.ietf.org/html/rfc9164
     pub const IPV6: Tag = Tag(54);
 
+    /// Mark this item as being an encoding of an array of `u8` values; must only be applied
+    /// to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U8: Tag = Tag(64);
+
+    /// Mark this item as being an encoding of an array of `u16` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U16_BIG_ENDIAN: Tag = Tag(65);
+
+    /// Mark this item as being an encoding of an array of `u32` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U32_BIG_ENDIAN: Tag = Tag(66);
+
+    /// Mark this item as being an encoding of an array of `u64` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U64_BIG_ENDIAN: Tag = Tag(67);
+
+    /// Mark this item as being an encoding of an array of `u8` values (with JS specific
+    /// "clamping"); must only be applied to a [bytes string](DataItem::ByteString) (or the
+    /// [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U8_CLAMPED: Tag = Tag(68);
+
+    /// Mark this item as being an encoding of an array of `u16` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U16_LITTLE_ENDIAN: Tag = Tag(69);
+
+    /// Mark this item as being an encoding of an array of `u32` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U32_LITTLE_ENDIAN: Tag = Tag(70);
+
+    /// Mark this item as being an encoding of an array of `u64` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_U64_LITTLE_ENDIAN: Tag = Tag(71);
+
+    /// Mark this item as being an encoding of an array of `i8` values in twos-complement encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I8: Tag = Tag(72);
+
+    /// Mark this item as being an encoding of an array of `i16` values in big endian
+    /// twos-complement encoding; must only be applied to a [bytes string](DataItem::ByteString)
+    /// (or the [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I16_BIG_ENDIAN: Tag = Tag(73);
+
+    /// Mark this item as being an encoding of an array of `i32` values in big endian
+    /// twos-complement encoding; must only be applied to a [bytes string](DataItem::ByteString)
+    /// (or the [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I32_BIG_ENDIAN: Tag = Tag(74);
+
+    /// Mark this item as being an encoding of an array of `i64` values in big endian
+    /// twos-complement encoding; must only be applied to a [bytes string](DataItem::ByteString)
+    /// (or the [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I64_BIG_ENDIAN: Tag = Tag(75);
+
+    /// Mark this item as being an encoding of an array of `i16` values in little endian
+    /// twos-complement encoding; must only be applied to a [bytes string](DataItem::ByteString)
+    /// (or the [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I16_LITTLE_ENDIAN: Tag = Tag(77);
+
+    /// Mark this item as being an encoding of an array of `i32` values in little endian
+    /// twos-complement encoding; must only be applied to a [bytes string](DataItem::ByteString)
+    /// (or the [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I32_LITTLE_ENDIAN: Tag = Tag(78);
+
+    /// Mark this item as being an encoding of an array of `i64` values in little endian
+    /// twos-complement encoding; must only be applied to a [bytes string](DataItem::ByteString)
+    /// (or the [indefinite variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_I64_LITTLE_ENDIAN: Tag = Tag(79);
+
+    /// Mark this item as being an encoding of an array of `f16` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F16_BIG_ENDIAN: Tag = Tag(80);
+
+    /// Mark this item as being an encoding of an array of `f32` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F32_BIG_ENDIAN: Tag = Tag(81);
+
+    /// Mark this item as being an encoding of an array of `f64` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F64_BIG_ENDIAN: Tag = Tag(82);
+
+    /// Mark this item as being an encoding of an array of `f128` values in big endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F128_BIG_ENDIAN: Tag = Tag(83);
+
+    /// Mark this item as being an encoding of an array of `f16` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F16_LITTLE_ENDIAN: Tag = Tag(84);
+
+    /// Mark this item as being an encoding of an array of `f32` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F32_LITTLE_ENDIAN: Tag = Tag(85);
+
+    /// Mark this item as being an encoding of an array of `f64` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F64_LITTLE_ENDIAN: Tag = Tag(86);
+
+    /// Mark this item as being an encoding of an array of `f128` values in little endian encoding;
+    /// must only be applied to a [bytes string](DataItem::ByteString) (or the [indefinite
+    /// variant][DataItem::IndefiniteByteString) of) data item.
+    ///
+    /// Defined in [RFC 8746][].
+    ///
+    /// [RFC 8746]: https://tools.ietf.org/html/rfc8746
+    pub const TYPED_ARRAY_F128_LITTLE_ENDIAN: Tag = Tag(87);
+
     /// Number of days since the epoch date 1970-01-01; must only be applied to an [unsigned
     /// integer](DataItem::Integer) or [negative integer](DataItem::Negative) data item.
     ///

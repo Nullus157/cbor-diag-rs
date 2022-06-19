@@ -1852,5 +1852,152 @@ testcases! {
                                                           #   IPv6 address-and-zone-and-prefix(fe80::202:2ff:ffff:fe03:303%42/64)
             "#),
         }
+
+        mod typed_array {
+            u16_be(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_U16_BIG_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("000200040008000400100100").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 41      # typed array of u16, big endian, tag(65)
+                       4c      #   bytes(12)
+                          0002 #     unsigned(2)
+                          0004 #     unsigned(4)
+                          0008 #     unsigned(8)
+                          0004 #     unsigned(4)
+                          0010 #     unsigned(16)
+                          0100 #     unsigned(256)
+                "),
+            }
+
+            u8_clamped(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_U8_CLAMPED,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("020408041000").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 44    # typed array of u8, clamped, tag(68)
+                       46    #   bytes(6)
+                          02 #     unsigned(2)
+                          04 #     unsigned(4)
+                          08 #     unsigned(8)
+                          04 #     unsigned(4)
+                          10 #     unsigned(16)
+                          00 #     unsigned(0)
+                "),
+            }
+
+            u64_le(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_U64_LITTLE_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("00020004000800040010010000000001").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 47                  # typed array of u64, little endian, tag(71)
+                       50                  #   bytes(16)
+                          0002000400080004 #     unsigned(288239172311843328)
+                          0010010000000001 #     unsigned(72057594037997568)
+                "),
+            }
+
+            i64_le(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_I64_LITTLE_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("00020004000800040010010000000001").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 4f                  # typed array of i64, little endian, twos-complement, tag(79)
+                       50                  #   bytes(16)
+                          0002000400080004 #     signed(288239172311843328)
+                          0010010000000001 #     signed(72057594037997568)
+                "),
+            }
+
+            f16_be(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_F16_BIG_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("0002000400080004").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 50      # typed array of f16, big endian, tag(80)
+                       48      #   bytes(8)
+                          0002 #     float(0.00000011920929)
+                          0004 #     float(0.00000023841858)
+                          0008 #     float(0.00000047683716)
+                          0004 #     float(0.00000023841858)
+                "),
+            }
+
+            f64_le(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("f2fff4fff8fff43f").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 56                  # typed array of f64, little endian, tag(86)
+                       48                  #   bytes(8)
+                          f2fff4fff8fff43f #     float(1.312493324119711)
+                "),
+            }
+
+            f128_le(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_F128_LITTLE_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("3ff2fff4fff8fff43ff2fff4fff8fff4").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!("
+                    d8 57                                  # typed array of f128, little endian, tag(87)
+                       50                                  #   bytes(16)
+                          3ff2fff4fff8fff43ff2fff4fff8fff4 #     float(TODO: f128 unsupported)
+                "),
+            }
+
+            u16_be_invalid_length(hex2value, value2hex) {
+                DataItem::Tag {
+                    tag: Tag::TYPED_ARRAY_U16_BIG_ENDIAN,
+                    bitwidth: IntegerWidth::Eight,
+                    value: Box::new(DataItem::ByteString(ByteString {
+                        data: hex!("000200").into(),
+                        bitwidth: IntegerWidth::Zero,
+                    })),
+                },
+                indoc!(r#"
+                    d8 41        # typed array of u16, big endian, tag(65)
+                       43        #   bytes(3)
+                          000200 #     "\x00\x02\x00"
+                                 #   invalid data length for typed array
+                "#),
+            }
+
+        }
     }
 }

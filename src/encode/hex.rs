@@ -22,6 +22,19 @@ struct Context {
     reference_count: u64,
 }
 
+impl Context {
+    fn with_encoding<T>(
+        &mut self,
+        encoding: Option<Encoding>,
+        f: impl FnOnce(&mut Self) -> T,
+    ) -> T {
+        let encoding = std::mem::replace(&mut self.encoding, encoding);
+        let value = f(self);
+        self.encoding = encoding;
+        value
+    }
+}
+
 struct Line {
     hex: String,
     comment: String,
@@ -418,6 +431,35 @@ fn tagged_to_hex(
         Tag::SHARED_REF => Some("reference to shared value"),
         Tag::IPV4 => Some("ipv4 address and/or prefix"),
         Tag::IPV6 => Some("ipv6 address and/or prefix"),
+        Tag::TYPED_ARRAY_U8 => Some("typed array of u8"),
+        Tag::TYPED_ARRAY_U16_LITTLE_ENDIAN => Some("typed array of u16, little endian"),
+        Tag::TYPED_ARRAY_U32_LITTLE_ENDIAN => Some("typed array of u32, little endian"),
+        Tag::TYPED_ARRAY_U64_LITTLE_ENDIAN => Some("typed array of u64, little endian"),
+        Tag::TYPED_ARRAY_U8_CLAMPED => Some("typed array of u8, clamped"),
+        Tag::TYPED_ARRAY_U16_BIG_ENDIAN => Some("typed array of u16, big endian"),
+        Tag::TYPED_ARRAY_U32_BIG_ENDIAN => Some("typed array of u32, big endian"),
+        Tag::TYPED_ARRAY_U64_BIG_ENDIAN => Some("typed array of u64, big endian"),
+        Tag::TYPED_ARRAY_I8 => Some("typed array of u8"),
+        Tag::TYPED_ARRAY_I16_LITTLE_ENDIAN => {
+            Some("typed array of i16, little endian, twos-complement")
+        }
+        Tag::TYPED_ARRAY_I32_LITTLE_ENDIAN => {
+            Some("typed array of i32, little endian, twos-complement")
+        }
+        Tag::TYPED_ARRAY_I64_LITTLE_ENDIAN => {
+            Some("typed array of i64, little endian, twos-complement")
+        }
+        Tag::TYPED_ARRAY_I16_BIG_ENDIAN => Some("typed array of i16, big endian, twos-complement"),
+        Tag::TYPED_ARRAY_I32_BIG_ENDIAN => Some("typed array of i32, big endian, twos-complement"),
+        Tag::TYPED_ARRAY_I64_BIG_ENDIAN => Some("typed array of i64, big endian, twos-complement"),
+        Tag::TYPED_ARRAY_F16_LITTLE_ENDIAN => Some("typed array of f16, little endian"),
+        Tag::TYPED_ARRAY_F32_LITTLE_ENDIAN => Some("typed array of f32, little endian"),
+        Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN => Some("typed array of f64, little endian"),
+        Tag::TYPED_ARRAY_F128_LITTLE_ENDIAN => Some("typed array of f128, little endian"),
+        Tag::TYPED_ARRAY_F16_BIG_ENDIAN => Some("typed array of f16, big endian"),
+        Tag::TYPED_ARRAY_F32_BIG_ENDIAN => Some("typed array of f32, big endian"),
+        Tag::TYPED_ARRAY_F64_BIG_ENDIAN => Some("typed array of f64, big endian"),
+        Tag::TYPED_ARRAY_F128_BIG_ENDIAN => Some("typed array of f128, big endian"),
         _ => None,
     };
 
@@ -447,14 +489,88 @@ fn tagged_to_hex(
         _ => None,
     };
 
-    let encoding = match tag {
-        Tag::ENCODED_BASE64URL => Some(Encoding::Base64Url),
-        Tag::ENCODED_BASE64 => Some(Encoding::Base64),
-        Tag::ENCODED_BASE16 => Some(Encoding::Base16),
-        Tag::NETWORK_ADDRESS => Some(Encoding::Base16),
-        Tag::UUID => Some(Encoding::Base16),
-        _ => context.encoding,
-    };
+    let sublines = match tag {
+        Tag::ENCODED_BASE64URL => context.with_encoding(Some(Encoding::Base64Url), |context| {
+            vec![Line::from_value(context, value)]
+        }),
+        Tag::ENCODED_BASE64 => context.with_encoding(Some(Encoding::Base64), |context| {
+            vec![Line::from_value(context, value)]
+        }),
+        Tag::ENCODED_BASE16 | Tag::NETWORK_ADDRESS | Tag::UUID => context
+            .with_encoding(Some(Encoding::Base16), |context| {
+                vec![Line::from_value(context, value)]
+            }),
+        Tag::TYPED_ARRAY_U8 | Tag::TYPED_ARRAY_U8_CLAMPED => {
+            typed_array::<_, 1>(context, value, "unsigned", |[byte]| byte)
+        }
+        Tag::TYPED_ARRAY_U16_LITTLE_ENDIAN => {
+            typed_array::<_, 2>(context, value, "unsigned", u16::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_U32_LITTLE_ENDIAN => {
+            typed_array::<_, 4>(context, value, "unsigned", u32::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_U64_LITTLE_ENDIAN => {
+            typed_array::<_, 8>(context, value, "unsigned", u64::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_U16_BIG_ENDIAN => {
+            typed_array::<_, 2>(context, value, "unsigned", u16::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_U32_BIG_ENDIAN => {
+            typed_array::<_, 4>(context, value, "unsigned", u32::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_U64_BIG_ENDIAN => {
+            typed_array::<_, 8>(context, value, "unsigned", u64::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_I8 => typed_array::<_, 1>(context, value, "signed", |[byte]| byte as i8),
+        Tag::TYPED_ARRAY_I16_LITTLE_ENDIAN => {
+            typed_array::<_, 2>(context, value, "signed", i16::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_I32_LITTLE_ENDIAN => {
+            typed_array::<_, 4>(context, value, "signed", i32::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_I64_LITTLE_ENDIAN => {
+            typed_array::<_, 8>(context, value, "signed", i64::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_I16_BIG_ENDIAN => {
+            typed_array::<_, 2>(context, value, "signed", i16::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_I32_BIG_ENDIAN => {
+            typed_array::<_, 4>(context, value, "signed", i32::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_I64_BIG_ENDIAN => {
+            typed_array::<_, 8>(context, value, "signed", i64::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_F16_BIG_ENDIAN => {
+            typed_array::<_, 2>(context, value, "float", f16::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_F32_BIG_ENDIAN => {
+            typed_array::<_, 4>(context, value, "float", f32::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_F64_BIG_ENDIAN => {
+            typed_array::<_, 8>(context, value, "float", f64::from_be_bytes)
+        }
+        Tag::TYPED_ARRAY_F128_BIG_ENDIAN => {
+            typed_array::<_, 16>(context, value, "float", |_| "TODO: f128 unsupported")
+        }
+        Tag::TYPED_ARRAY_F16_LITTLE_ENDIAN => {
+            typed_array::<_, 2>(context, value, "float", f16::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_F32_LITTLE_ENDIAN => {
+            typed_array::<_, 4>(context, value, "float", f32::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN => {
+            typed_array::<_, 8>(context, value, "float", f64::from_le_bytes)
+        }
+        Tag::TYPED_ARRAY_F128_LITTLE_ENDIAN => {
+            typed_array::<_, 16>(context, value, "float", |_| "TODO: f128 unsupported")
+        }
+        _ => {
+            vec![Line::from_value(context, value)]
+        }
+    }
+    .into_iter()
+    .chain(extra_line)
+    .collect();
 
     let comment = if let Some(extra) = extra {
         format!("{}, tag({})", extra, tag.0)
@@ -462,11 +578,6 @@ fn tagged_to_hex(
         format!("tag({})", tag.0)
     };
 
-    let encoding = std::mem::replace(&mut context.encoding, encoding);
-    let sublines = iter::once(Line::from_value(context, value))
-        .chain(extra_line)
-        .collect();
-    context.encoding = encoding;
     Line {
         hex,
         comment,
@@ -992,6 +1103,41 @@ fn ipv6_address_or_prefix(value: &DataItem) -> Line {
             }
         }
         _ => Line::new("", "invalid type for network address"),
+    }
+}
+
+fn typed_array<T: std::fmt::Display, const LEN: usize>(
+    context: &mut Context,
+    value: &DataItem,
+    name: &str,
+    convert: impl Fn([u8; LEN]) -> T,
+) -> Vec<Line> {
+    if let DataItem::ByteString(ByteString { data, bitwidth }) = value {
+        if data.len() % LEN == 0 {
+            let mut line = length_to_hex(Some(data.len()), Some(*bitwidth), 2, "bytes");
+            // TODO: Use slice::array_chunks when stable
+            line.sublines.extend(
+                data.chunks_exact(LEN)
+                    .map(|chunk| <[_; LEN]>::try_from(chunk).unwrap())
+                    .map(|chunk| {
+                        let value = convert(chunk);
+                        let hex = data_encoding::HEXLOWER.encode(&chunk);
+                        // TODO: separator
+                        Line::new(hex, format!("{}({})", name, value))
+                    }),
+            );
+            vec![line]
+        } else {
+            vec![
+                Line::from_value(context, value),
+                Line::new("", "invalid data length for typed array"),
+            ]
+        }
+    } else {
+        vec![
+            Line::from_value(context, value),
+            Line::new("", "invalid type for typed array"),
+        ]
     }
 }
 
