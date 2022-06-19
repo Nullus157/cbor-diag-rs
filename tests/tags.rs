@@ -1908,8 +1908,8 @@ testcases! {
                 indoc!("
                     d8 47                  # typed array of u64, little endian, tag(71)
                        50                  #   bytes(16)
-                          0002000400080004 #     unsigned(288239172311843328)
-                          0010010000000001 #     unsigned(72057594037997568)
+                          0002000400080004 #     unsigned(288,239,172,311,843,328)
+                          0010010000000001 #     unsigned(72,057,594,037,997,568)
                 "),
             }
 
@@ -1925,8 +1925,8 @@ testcases! {
                 indoc!("
                     d8 4f                  # typed array of i64, little endian, twos-complement, tag(79)
                        50                  #   bytes(16)
-                          0002000400080004 #     signed(288239172311843328)
-                          0010010000000001 #     signed(72057594037997568)
+                          0002000400080004 #     signed(288,239,172,311,843,328)
+                          0010010000000001 #     signed(72,057,594,037,997,568)
                 "),
             }
 
@@ -1942,10 +1942,10 @@ testcases! {
                 indoc!("
                     d8 50      # typed array of f16, big endian, tag(80)
                        48      #   bytes(8)
-                          0002 #     float(0.00000011920929)
-                          0004 #     float(0.00000023841858)
-                          0008 #     float(0.00000047683716)
-                          0004 #     float(0.00000023841858)
+                          0002 #     float(0.00000011920928955078125)
+                          0004 #     float(0.0000002384185791015625)
+                          0008 #     float(0.000000476837158203125)
+                          0004 #     float(0.0000002384185791015625)
                 "),
             }
 
@@ -1954,14 +1954,14 @@ testcases! {
                     tag: Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
                     value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("f2fff4fff8fff43f").into(),
+                        data: hex!("f2fff4fff8fff441").into(),
                         bitwidth: IntegerWidth::Zero,
                     })),
                 },
                 indoc!("
                     d8 56                  # typed array of f64, little endian, tag(86)
                        48                  #   bytes(8)
-                          f2fff4fff8fff43f #     float(1.312493324119711)
+                          f2fff4fff8fff441 #     float(5,637,115,903.312487)
                 "),
             }
 

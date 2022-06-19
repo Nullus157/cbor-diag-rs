@@ -501,68 +501,76 @@ fn tagged_to_hex(
                 vec![Line::from_value(context, value)]
             }),
         Tag::TYPED_ARRAY_U8 | Tag::TYPED_ARRAY_U8_CLAMPED => {
-            typed_array::<_, 1>(context, value, "unsigned", |[byte]| byte)
+            typed_array::<1>(context, value, "unsigned", |[byte]| byte.to_string())
         }
         Tag::TYPED_ARRAY_U16_LITTLE_ENDIAN => {
-            typed_array::<_, 2>(context, value, "unsigned", u16::from_le_bytes)
+            typed_array::<2>(context, value, "unsigned", |bytes| {
+                u16::from_le_bytes(bytes).separated_string()
+            })
         }
         Tag::TYPED_ARRAY_U32_LITTLE_ENDIAN => {
-            typed_array::<_, 4>(context, value, "unsigned", u32::from_le_bytes)
+            typed_array::<4>(context, value, "unsigned", |bytes| {
+                u32::from_le_bytes(bytes).separated_string()
+            })
         }
         Tag::TYPED_ARRAY_U64_LITTLE_ENDIAN => {
-            typed_array::<_, 8>(context, value, "unsigned", u64::from_le_bytes)
+            typed_array::<8>(context, value, "unsigned", |bytes| {
+                u64::from_le_bytes(bytes).separated_string()
+            })
         }
-        Tag::TYPED_ARRAY_U16_BIG_ENDIAN => {
-            typed_array::<_, 2>(context, value, "unsigned", u16::from_be_bytes)
+        Tag::TYPED_ARRAY_U16_BIG_ENDIAN => typed_array::<2>(context, value, "unsigned", |bytes| {
+            u16::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_U32_BIG_ENDIAN => typed_array::<4>(context, value, "unsigned", |bytes| {
+            u32::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_U64_BIG_ENDIAN => typed_array::<8>(context, value, "unsigned", |bytes| {
+            u64::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_I8 => {
+            typed_array::<1>(context, value, "signed", |[byte]| (byte as i8).to_string())
         }
-        Tag::TYPED_ARRAY_U32_BIG_ENDIAN => {
-            typed_array::<_, 4>(context, value, "unsigned", u32::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_U64_BIG_ENDIAN => {
-            typed_array::<_, 8>(context, value, "unsigned", u64::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_I8 => typed_array::<_, 1>(context, value, "signed", |[byte]| byte as i8),
-        Tag::TYPED_ARRAY_I16_LITTLE_ENDIAN => {
-            typed_array::<_, 2>(context, value, "signed", i16::from_le_bytes)
-        }
-        Tag::TYPED_ARRAY_I32_LITTLE_ENDIAN => {
-            typed_array::<_, 4>(context, value, "signed", i32::from_le_bytes)
-        }
-        Tag::TYPED_ARRAY_I64_LITTLE_ENDIAN => {
-            typed_array::<_, 8>(context, value, "signed", i64::from_le_bytes)
-        }
-        Tag::TYPED_ARRAY_I16_BIG_ENDIAN => {
-            typed_array::<_, 2>(context, value, "signed", i16::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_I32_BIG_ENDIAN => {
-            typed_array::<_, 4>(context, value, "signed", i32::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_I64_BIG_ENDIAN => {
-            typed_array::<_, 8>(context, value, "signed", i64::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_F16_BIG_ENDIAN => {
-            typed_array::<_, 2>(context, value, "float", f16::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_F32_BIG_ENDIAN => {
-            typed_array::<_, 4>(context, value, "float", f32::from_be_bytes)
-        }
-        Tag::TYPED_ARRAY_F64_BIG_ENDIAN => {
-            typed_array::<_, 8>(context, value, "float", f64::from_be_bytes)
-        }
+        Tag::TYPED_ARRAY_I16_LITTLE_ENDIAN => typed_array::<2>(context, value, "signed", |bytes| {
+            i16::from_le_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_I32_LITTLE_ENDIAN => typed_array::<4>(context, value, "signed", |bytes| {
+            i32::from_le_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_I64_LITTLE_ENDIAN => typed_array::<8>(context, value, "signed", |bytes| {
+            i64::from_le_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_I16_BIG_ENDIAN => typed_array::<2>(context, value, "signed", |bytes| {
+            i16::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_I32_BIG_ENDIAN => typed_array::<4>(context, value, "signed", |bytes| {
+            i32::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_I64_BIG_ENDIAN => typed_array::<8>(context, value, "signed", |bytes| {
+            i64::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_F16_BIG_ENDIAN => typed_array::<2>(context, value, "float", |bytes| {
+            f16::from_be_bytes(bytes).to_f64().separated_string()
+        }),
+        Tag::TYPED_ARRAY_F32_BIG_ENDIAN => typed_array::<4>(context, value, "float", |bytes| {
+            f32::from_be_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_F64_BIG_ENDIAN => typed_array::<8>(context, value, "float", |bytes| {
+            f64::from_be_bytes(bytes).separated_string()
+        }),
         Tag::TYPED_ARRAY_F128_BIG_ENDIAN => {
-            typed_array::<_, 16>(context, value, "float", |_| "TODO: f128 unsupported")
+            typed_array::<16>(context, value, "float", |_| "TODO: f128 unsupported".into())
         }
-        Tag::TYPED_ARRAY_F16_LITTLE_ENDIAN => {
-            typed_array::<_, 2>(context, value, "float", f16::from_le_bytes)
-        }
-        Tag::TYPED_ARRAY_F32_LITTLE_ENDIAN => {
-            typed_array::<_, 4>(context, value, "float", f32::from_le_bytes)
-        }
-        Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN => {
-            typed_array::<_, 8>(context, value, "float", f64::from_le_bytes)
-        }
+        Tag::TYPED_ARRAY_F16_LITTLE_ENDIAN => typed_array::<2>(context, value, "float", |bytes| {
+            f16::from_le_bytes(bytes).to_f64().separated_string()
+        }),
+        Tag::TYPED_ARRAY_F32_LITTLE_ENDIAN => typed_array::<4>(context, value, "float", |bytes| {
+            f32::from_le_bytes(bytes).separated_string()
+        }),
+        Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN => typed_array::<8>(context, value, "float", |bytes| {
+            f64::from_le_bytes(bytes).separated_string()
+        }),
         Tag::TYPED_ARRAY_F128_LITTLE_ENDIAN => {
-            typed_array::<_, 16>(context, value, "float", |_| "TODO: f128 unsupported")
+            typed_array::<16>(context, value, "float", |_| "TODO: f128 unsupported".into())
         }
         _ => {
             vec![Line::from_value(context, value)]
@@ -1106,11 +1114,11 @@ fn ipv6_address_or_prefix(value: &DataItem) -> Line {
     }
 }
 
-fn typed_array<T: std::fmt::Display, const LEN: usize>(
+fn typed_array<const LEN: usize>(
     context: &mut Context,
     value: &DataItem,
     name: &str,
-    convert: impl Fn([u8; LEN]) -> T,
+    convert: impl Fn([u8; LEN]) -> String,
 ) -> Vec<Line> {
     if let DataItem::ByteString(ByteString { data, bitwidth }) = value {
         if data.len() % LEN == 0 {
@@ -1122,7 +1130,6 @@ fn typed_array<T: std::fmt::Display, const LEN: usize>(
                     .map(|chunk| {
                         let value = convert(chunk);
                         let hex = data_encoding::HEXLOWER.encode(&chunk);
-                        // TODO: separator
                         Line::new(hex, format!("{}({})", name, value))
                     }),
             );
