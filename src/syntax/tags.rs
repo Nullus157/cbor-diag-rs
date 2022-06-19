@@ -238,6 +238,26 @@ impl Tag {
     /// [draft-2.1]: https://www.ietf.org/archive/id/draft-bormann-cbor-notable-tags-06.html#name-tags-related-to-those-defin
     pub const ENCODED_CBOR_SEQ: Tag = Tag(63);
 
+    /// Marks this item as being an IPv4 address and/or prefix; must only be applied to a
+    /// four-byte [byte string](DataItem::ByteString) (or the [indefinite
+    /// variant](DataItem::IndefiniteByteString) of) or 2-element
+    /// [array](DataItem::Array) data item.
+    ///
+    /// Defined in [RFC 9164][].
+    ///
+    /// [RFC 9164]: https://tools.ietf.org/html/rfc9164
+    pub const IPV4: Tag = Tag(52);
+
+    /// Marks this item as being an IPv6 address and/or prefix; must only be applied to a
+    /// sixteen-byte [byte string](DataItem::ByteString) (or the [indefinite
+    /// variant](DataItem::IndefiniteByteString) of) or 2/3-element
+    /// [array](DataItem::Array) data item.
+    ///
+    /// Defined in [RFC 9164][].
+    ///
+    /// [RFC 9164]: https://tools.ietf.org/html/rfc9164
+    pub const IPV6: Tag = Tag(54);
+
     /// Number of days since the epoch date 1970-01-01; must only be applied to an [unsigned
     /// integer](DataItem::Integer) or [negative integer](DataItem::Negative) data item.
     ///
@@ -255,7 +275,10 @@ impl Tag {
     ///
     /// Defined in [non-RFC specification][NetworkAddressSpec].
     ///
+    /// [RFC 9164][] recommends usage of [`Tag::IPV4`] or [`Tag::IPV6`] instead where possible.
+    ///
     /// [NetworkAddressSpec]: http://www.employees.org/~ravir/cbor-network.txt
+    /// [RFC 9164]
     pub const NETWORK_ADDRESS: Tag = Tag(260);
 
     /// A "Standard date string"; must only be applied to a [text

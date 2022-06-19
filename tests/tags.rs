@@ -1,4 +1,4 @@
-use cbor_diag::{ByteString, DataItem, FloatWidth, IntegerWidth, Tag, TextString};
+use cbor_diag::{ByteString, DataItem, FloatWidth, IntegerWidth, Simple, Tag, TextString};
 use data_encoding_macro::hexlower as hex;
 use indoc::indoc;
 
@@ -1519,5 +1519,338 @@ testcases! {
             "#),
         }
 
+        ipv4_address(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV4,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex!("c0000201").into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 34          # ipv4 address and/or prefix, tag(52)
+                   44          #   bytes(4)
+                      c0000201 #     "\xc0\x00\x02\x01"
+                               #   IPv4 address(192.0.2.1)
+            "#),
+        }
+
+        ipv4_prefix(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV4,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::Integer {
+                            value: 24,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                        DataItem::ByteString(ByteString {
+                            data: hex!("c00002").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 34           # ipv4 address and/or prefix, tag(52)
+                   82           #   array(2)
+                      18 18     #     unsigned(24)
+                      43        #     bytes(3)
+                         c00002 #       "\xc0\x00\x02"
+                                #   IPv4 prefix(192.0.2.0/24)
+            "#),
+        }
+
+        ipv4_address_and_prefix(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV4,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("c0000201").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Integer {
+                            value: 24,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 34             # ipv4 address and/or prefix, tag(52)
+                   82             #   array(2)
+                      44          #     bytes(4)
+                         c0000201 #       "\xc0\x00\x02\x01"
+                      18 18       #     unsigned(24)
+                                  #   IPv4 address-and-prefix(192.0.2.1/24)
+            "#),
+        }
+
+        ipv4_address_and_zone(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV4,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("c0000201").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Simple(Simple::NULL),
+                        DataItem::Integer {
+                            value: 6,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 34             # ipv4 address and/or prefix, tag(52)
+                   83             #   array(3)
+                      44          #     bytes(4)
+                         c0000201 #       "\xc0\x00\x02\x01"
+                      f6          #     null, simple(22)
+                      06          #     unsigned(6)
+                                  #   IPv4 address-and-zone(192.0.2.1%6)
+            "#),
+        }
+
+        ipv4_address_and_text_zone(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV4,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("c0000201").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Simple(Simple::NULL),
+                        DataItem::TextString(TextString {
+                            data: "eth0".into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 34             # ipv4 address and/or prefix, tag(52)
+                   83             #   array(3)
+                      44          #     bytes(4)
+                         c0000201 #       "\xc0\x00\x02\x01"
+                      f6          #     null, simple(22)
+                      64          #     text(4)
+                         65746830 #       "eth0"
+                                  #   IPv4 address-and-zone(192.0.2.1%eth0)
+            "#),
+        }
+
+        ipv4_address_and_zone_and_prefix(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV4,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("c0000201").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Integer {
+                            value: 24,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                        DataItem::Integer {
+                            value: 6,
+                            bitwidth: IntegerWidth::Zero,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 34             # ipv4 address and/or prefix, tag(52)
+                   83             #   array(3)
+                      44          #     bytes(4)
+                         c0000201 #       "\xc0\x00\x02\x01"
+                      18 18       #     unsigned(24)
+                      06          #     unsigned(6)
+                                  #   IPv4 address-and-zone-and-prefix(192.0.2.1%6/24)
+            "#),
+        }
+
+        ipv6_address(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV6,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex!("20010db81234deedbeefcafefacefeed").into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 36                                  # ipv6 address and/or prefix, tag(54)
+                   50                                  #   bytes(16)
+                      20010db81234deedbeefcafefacefeed #     " \x01\r\xb8\x124\xde\xed\xbe\xef\xca\xfe\xfa\xce\xfe\xed"
+                                                       #   IPv6 address(2001:db8:1234:deed:beef:cafe:face:feed)
+            "#),
+        }
+
+        ipv6_prefix(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV6,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::Integer {
+                            value: 48,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                        DataItem::ByteString(ByteString {
+                            data: hex!("20010db81234").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 36                 # ipv6 address and/or prefix, tag(54)
+                   82                 #   array(2)
+                      18 30           #     unsigned(48)
+                      46              #     bytes(6)
+                         20010db81234 #       " \x01\r\xb8\x124"
+                                      #   IPv6 prefix(2001:db8:1234::/48)
+            "#),
+        }
+
+        ipv6_address_and_prefix(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV6,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("20010db81234deedbeefcafefacefeed").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Integer {
+                            value: 56,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 36                                     # ipv6 address and/or prefix, tag(54)
+                   82                                     #   array(2)
+                      50                                  #     bytes(16)
+                         20010db81234deedbeefcafefacefeed #       " \x01\r\xb8\x124\xde\xed\xbe\xef\xca\xfe\xfa\xce\xfe\xed"
+                      18 38                               #     unsigned(56)
+                                                          #   IPv6 address-and-prefix(2001:db8:1234:deed:beef:cafe:face:feed/56)
+            "#),
+        }
+
+        ipv6_address_and_zone(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV6,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("fe8000000000020202fffffffe030303").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Simple(Simple::NULL),
+                        DataItem::Integer {
+                            value: 42,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 36                                     # ipv6 address and/or prefix, tag(54)
+                   83                                     #   array(3)
+                      50                                  #     bytes(16)
+                         fe8000000000020202fffffffe030303 #       "\xfe\x80\x00\x00\x00\x00\x02\x02\x02\xff\xff\xff\xfe\x03\x03\x03"
+                      f6                                  #     null, simple(22)
+                      18 2a                               #     unsigned(42)
+                                                          #   IPv6 address-and-zone(fe80::202:2ff:ffff:fe03:303%42)
+            "#),
+        }
+
+        ipv6_address_and_text_zone(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV6,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("fe8000000000020202fffffffe030303").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Simple(Simple::NULL),
+                        DataItem::TextString(TextString {
+                            data: "eth0".into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 36                                     # ipv6 address and/or prefix, tag(54)
+                   83                                     #   array(3)
+                      50                                  #     bytes(16)
+                         fe8000000000020202fffffffe030303 #       "\xfe\x80\x00\x00\x00\x00\x02\x02\x02\xff\xff\xff\xfe\x03\x03\x03"
+                      f6                                  #     null, simple(22)
+                      64                                  #     text(4)
+                         65746830                         #       "eth0"
+                                                          #   IPv6 address-and-zone(fe80::202:2ff:ffff:fe03:303%eth0)
+            "#),
+        }
+
+        ipv6_address_and_zone_and_prefix(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::IPV6,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Array {
+                    data: vec![
+                        DataItem::ByteString(ByteString {
+                            data: hex!("fe8000000000020202fffffffe030303").into(),
+                            bitwidth: IntegerWidth::Zero,
+                        }),
+                        DataItem::Integer {
+                            value: 64,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                        DataItem::Integer {
+                            value: 42,
+                            bitwidth: IntegerWidth::Eight,
+                        },
+                    ],
+                    bitwidth: Some(IntegerWidth::Zero),
+                }),
+            },
+            indoc!(r#"
+                d8 36                                     # ipv6 address and/or prefix, tag(54)
+                   83                                     #   array(3)
+                      50                                  #     bytes(16)
+                         fe8000000000020202fffffffe030303 #       "\xfe\x80\x00\x00\x00\x00\x02\x02\x02\xff\xff\xff\xfe\x03\x03\x03"
+                      18 40                               #     unsigned(64)
+                      18 2a                               #     unsigned(42)
+                                                          #   IPv6 address-and-zone-and-prefix(fe80::202:2ff:ffff:fe03:303%42/64)
+            "#),
+        }
     }
 }

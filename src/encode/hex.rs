@@ -416,6 +416,8 @@ fn tagged_to_hex(
         Tag::DATE => Some("standard date string"),
         Tag::SHAREABLE => Some("shareable value"),
         Tag::SHARED_REF => Some("reference to shared value"),
+        Tag::IPV4 => Some("ipv4 address and/or prefix"),
+        Tag::IPV6 => Some("ipv6 address and/or prefix"),
         _ => None,
     };
 
@@ -440,6 +442,8 @@ fn tagged_to_hex(
             Some(Line::new("", line))
         }
         Tag::SHARED_REF => Some(shared_ref(value, context.reference_count)),
+        Tag::IPV4 => Some(ipv4_address_or_prefix(value)),
+        Tag::IPV6 => Some(ipv6_address_or_prefix(value)),
         _ => None,
     };
 
@@ -838,6 +842,156 @@ fn network_address(value: &DataItem) -> Line {
         }
     } else {
         Line::new("", "invalid type for network address")
+    }
+}
+
+fn ipv4_address_or_prefix(value: &DataItem) -> Line {
+    match value {
+        DataItem::ByteString(ByteString { data, .. }) => {
+            if let Ok(bytes) = <[_; 4]>::try_from(data.as_slice()) {
+                Line::new("", format!("IPv4 address({})", Ipv4Addr::from(bytes)))
+            } else {
+                Line::new("", "invalid data length for IPv4 address")
+            }
+        }
+        DataItem::Array { data, .. } => {
+            match data.get(0) {
+                Some(DataItem::Integer { value: length, .. }) => {
+                    if let Some(DataItem::ByteString(ByteString { data: prefix, .. })) = data.get(1)
+                    {
+                        if prefix.ends_with(&[0]) {
+                            return Line::new("", "invalid prefix, ends with zero byte");
+                        }
+                        // TODO: check that the defined prefix has all zero bits after the given length
+                        // https://www.rfc-editor.org/rfc/rfc9164.html#section-4.3
+                        let mut bytes = [0; 4];
+                        bytes[..prefix.len()].copy_from_slice(prefix);
+                        Line::new(
+                            "",
+                            format!("IPv4 prefix({}/{})", Ipv4Addr::from(bytes), length),
+                        )
+                    } else {
+                        Line::new("", "invalid type for network address")
+                    }
+                }
+                Some(DataItem::ByteString(ByteString { data: address, .. })) => {
+                    let address = if let Ok(address) = <[_; 4]>::try_from(address.as_slice()) {
+                        Ipv4Addr::from(address)
+                    } else {
+                        return Line::new("", "invalid data length for IPv4 address");
+                    };
+                    let length = match data.get(1) {
+                        Some(DataItem::Integer { value, .. }) => Some(value),
+                        Some(DataItem::Simple(Simple::NULL)) => None,
+                        _ => {
+                            return Line::new("", "invalid type for network address");
+                        }
+                    };
+                    let zone = match data.get(2) {
+                        Some(DataItem::Integer { value, .. }) => Some(value.to_string()),
+                        Some(DataItem::TextString(TextString { data, .. })) => Some(data.clone()),
+                        None => None,
+                        _ => {
+                            return Line::new("", "invalid type for network address");
+                        }
+                    };
+                    match (length, zone) {
+                        (Some(length), Some(zone)) => Line::new(
+                            "",
+                            format!(
+                                "IPv4 address-and-zone-and-prefix({}%{}/{})",
+                                address, zone, length
+                            ),
+                        ),
+                        (Some(length), None) => Line::new(
+                            "",
+                            format!("IPv4 address-and-prefix({}/{})", address, length),
+                        ),
+                        (None, Some(zone)) => {
+                            Line::new("", format!("IPv4 address-and-zone({}%{})", address, zone))
+                        }
+                        (None, None) => Line::new("", "invalid type for network address"),
+                    }
+                }
+                _ => Line::new("", "invalid type for network address"),
+            }
+        }
+        _ => Line::new("", "invalid type for network address"),
+    }
+}
+
+fn ipv6_address_or_prefix(value: &DataItem) -> Line {
+    match value {
+        DataItem::ByteString(ByteString { data, .. }) => {
+            if let Ok(bytes) = <[_; 16]>::try_from(data.as_slice()) {
+                Line::new("", format!("IPv6 address({})", Ipv6Addr::from(bytes)))
+            } else {
+                Line::new("", "invalid data length for IPv6 address")
+            }
+        }
+        DataItem::Array { data, .. } => {
+            match data.get(0) {
+                Some(DataItem::Integer { value: length, .. }) => {
+                    if let Some(DataItem::ByteString(ByteString { data: prefix, .. })) = data.get(1)
+                    {
+                        if prefix.ends_with(&[0]) {
+                            return Line::new("", "invalid prefix, ends with zero byte");
+                        }
+                        // TODO: check that the defined prefix has all zero bits after the given length
+                        // https://www.rfc-editor.org/rfc/rfc9164.html#section-4.3
+                        let mut bytes = [0; 16];
+                        bytes[..prefix.len()].copy_from_slice(prefix);
+                        Line::new(
+                            "",
+                            format!("IPv6 prefix({}/{})", Ipv6Addr::from(bytes), length),
+                        )
+                    } else {
+                        Line::new("", "invalid type for network address")
+                    }
+                }
+                Some(DataItem::ByteString(ByteString { data: address, .. })) => {
+                    let address = if let Ok(address) = <[_; 16]>::try_from(address.as_slice()) {
+                        Ipv6Addr::from(address)
+                    } else {
+                        return Line::new("", "invalid data length for IPv6 address");
+                    };
+                    let length = match data.get(1) {
+                        Some(DataItem::Integer { value, .. }) => Some(value),
+                        Some(DataItem::Simple(Simple::NULL)) => None,
+                        _ => {
+                            return Line::new("", "invalid type for network address");
+                        }
+                    };
+                    let zone = match data.get(2) {
+                        Some(DataItem::Integer { value, .. }) => Some(value.to_string()),
+                        Some(DataItem::TextString(TextString { data, .. })) => Some(data.clone()),
+                        None => None,
+                        _ => {
+                            return Line::new("", "invalid type for network address");
+                        }
+                    };
+                    match (length, zone) {
+                        (Some(length), Some(zone)) => Line::new(
+                            "",
+                            format!(
+                                "IPv6 address-and-zone-and-prefix({}%{}/{})",
+                                address, zone, length
+                            ),
+                        ),
+                        (Some(length), None) => Line::new(
+                            "",
+                            format!("IPv6 address-and-prefix({}/{})", address, length),
+                        ),
+                        (None, Some(zone)) => {
+                            Line::new("", format!("IPv6 address-and-zone({}%{})", address, zone))
+                        }
+                        (None, None) => Line::new("", "invalid type for network address"),
+                    }
+                }
+                _ => Line::new("", "invalid type for network address"),
+            }
+        }
+        _ => Line::new("", "invalid type for network address"),
     }
 }
 
