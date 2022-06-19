@@ -253,3 +253,16 @@ fn datetime_overflow() {
 fn negative_underflow() {
     assert!(parse_diag("-0").is_err());
 }
+
+#[test]
+fn seconds_underflow() {
+    let item = DataItem::Tag {
+        tag: Tag(100),
+        bitwidth: IntegerWidth::Eight,
+        value: Box::new(DataItem::Negative {
+            value: 106751991167,
+            bitwidth: IntegerWidth::SixtyFour,
+        }),
+    };
+    item.to_hex();
+}

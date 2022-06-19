@@ -65,6 +65,86 @@ testcases! {
                            #   date(1980-12-08)
             "),
         }
+
+        epoch_date_min_repr {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Negative {
+                    value: 96465657,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                }),
+            },
+            {
+                "100_0(-96465658_2)",
+                "100_0(-96465658_2)",
+            },
+            indoc!("
+                d8 64          # epoch date value, tag(100)
+                   3a 05bff2f9 #   negative(-96,465,658)
+                               #   date(-262144-01-01)
+            "),
+        }
+
+        epoch_date_min_repr_minus_one {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Negative {
+                    value: 96465658,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                }),
+            },
+            {
+                "100_0(-96465659_2)",
+                "100_0(-96465659_2)",
+            },
+            indoc!("
+                d8 64          # epoch date value, tag(100)
+                   3a 05bff2fa #   negative(-96,465,659)
+                               #   date offset is too large for this tool
+            "),
+        }
+
+        epoch_date_max_repr {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Integer {
+                    value: 95026601,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                }),
+            },
+            {
+                "100_0(95026601_2)",
+                "100_0(95026601_2)",
+            },
+            indoc!("
+               d8 64          # epoch date value, tag(100)
+                  1a 05a9fda9 #   unsigned(95,026,601)
+                              #   date(+262143-12-31)
+            "),
+        }
+
+        epoch_date_max_repr_plus_one {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Integer {
+                    value: 95026602,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                }),
+            },
+            {
+                "100_0(95026602_2)",
+                "100_0(95026602_2)",
+            },
+            indoc!("
+               d8 64          # epoch date value, tag(100)
+                  1a 05a9fdaa #   unsigned(95,026,602)
+                              #   date offset is too large for this tool
+            "),
+        }
     }
 
     mod diag {
