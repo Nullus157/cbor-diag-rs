@@ -603,6 +603,21 @@ testcases! {
             }
         }
 
+        encoded_cbor_empty(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                r#"24(<<>>)"#,
+                r#"24(<<>>)"#,
+            }
+        }
+
         encoded_cbor_seq(diag2value, value2diag) {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
@@ -630,6 +645,21 @@ testcases! {
             {
                 "63(<<22,23>>h'ff')",
                 "63(<<22, 23>> h'ff')",
+            }
+        }
+
+        encoded_cbor_seq_empty(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                "63(<<>>)",
+                "63(<<>>)",
             }
         }
 
@@ -1211,6 +1241,24 @@ testcases! {
                       ff #     "\xff"
                          #   failed to parse encoded cbor data item
                          #     Todo("Parsing error (Error(([255], TagBits)))")
+            "#),
+        }
+
+        encoded_cbor_empty(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 18 # encoded cbor data item, tag(24)
+                   40 #   bytes(0)
+                      #     ""
+                      #   failed to parse encoded cbor data item
+                      #     Todo("Parsing error (Incomplete(Size(1)))")
             "#),
         }
 

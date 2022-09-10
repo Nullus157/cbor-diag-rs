@@ -327,7 +327,9 @@ impl<'a> Context<'a> {
             }
             Tag::ENCODED_CBOR => {
                 if let DataItem::ByteString(ByteString { data, .. }) = value {
-                    if let Ok(item) = crate::parse_bytes(data) {
+                    if data.is_empty() {
+                        self.output.push_str("<<>>");
+                    } else if let Ok(item) = crate::parse_bytes(data) {
                         self.output.push_str("<<");
                         self.item_to_diag(&item);
                         self.output.push_str(">>");
