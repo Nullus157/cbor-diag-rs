@@ -603,6 +603,21 @@ testcases! {
             }
         }
 
+        encoded_cbor_empty(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                r#"24(<<>>)"#,
+                r#"24(<<>>)"#,
+            }
+        }
+
         encoded_cbor_seq(diag2value, value2diag) {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
@@ -630,6 +645,21 @@ testcases! {
             {
                 "63(<<22,23>>h'ff')",
                 "63(<<22, 23>> h'ff')",
+            }
+        }
+
+        encoded_cbor_seq_empty(diag2value, value2diag) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Unknown,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Unknown,
+                })),
+            },
+            {
+                "63(<<>>)",
+                "63(<<>>)",
             }
         }
 
@@ -1211,6 +1241,88 @@ testcases! {
                       ff #     "\xff"
                          #   failed to parse encoded cbor data item
                          #     Todo("Parsing error (Error(([255], TagBits)))")
+            "#),
+        }
+
+        encoded_cbor_empty(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 18 # encoded cbor data item, tag(24)
+                   40 #   bytes(0)
+                      #     ""
+                      #   failed to parse encoded cbor data item
+                      #     Todo("Parsing error (Incomplete(Size(1)))")
+            "#),
+        }
+
+        encoded_cbor_seq(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex!("9f64f09f87b317ff1615").into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 3f                      # encoded cbor sequence, tag(63)
+                   4a                      #   bytes(10)
+                      9f64f09f87b317ff1615 #     "\x9fd\xf0\x9f\x87\xb3\x17\xff\x16\x15"
+                                           #   encoded cbor data item
+                                           #     9f             # array(*)
+                                           #        64          #   text(4)
+                                           #           f09f87b3 #     "🇳"
+                                           #        17          #   unsigned(23)
+                                           #        ff          #   break
+                                           #   encoded cbor data item
+                                           #     16 # unsigned(22)
+                                           #   encoded cbor data item
+                                           #     15 # unsigned(21)
+            "#),
+        }
+
+        encoded_cbor_seq_invalid(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: hex!("1617ff").into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 3f        # encoded cbor sequence, tag(63)
+                   43        #   bytes(3)
+                      1617ff #     "\x16\x17\xff"
+                             #   encoded cbor data item
+                             #     16 # unsigned(22)
+                             #   encoded cbor data item
+                             #     17 # unsigned(23)
+                             #   failed to parse remaining encoded cbor sequence
+                             #     Todo("Parsing error (Error(([255], TagBits)))")
+            "#),
+        }
+
+        encoded_cbor_seq_empty(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::ENCODED_CBOR_SEQ,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::ByteString(ByteString {
+                    data: vec![],
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d8 3f # encoded cbor sequence, tag(63)
+                   40 #   bytes(0)
+                      #     ""
             "#),
         }
 

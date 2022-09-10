@@ -417,6 +417,7 @@ fn tagged_to_hex(
         Tag::ENCODED_BASE64 => Some("suggested base64 encoding"),
         Tag::ENCODED_BASE16 => Some("suggested base16 encoding"),
         Tag::ENCODED_CBOR => Some("encoded cbor data item"),
+        Tag::ENCODED_CBOR_SEQ => Some("encoded cbor sequence"),
         Tag::URI => Some("uri"),
         Tag::BASE64URL => Some("base64url encoded text"),
         Tag::BASE64 => Some("base64 encoded text"),
@@ -463,30 +464,31 @@ fn tagged_to_hex(
         _ => None,
     };
 
-    let extra_line = match tag {
-        Tag::DATETIME => Some(datetime_epoch(value)),
-        Tag::EPOCH_DATETIME => Some(epoch_datetime(value)),
-        Tag::POSITIVE_BIGNUM => Some(positive_bignum(value)),
-        Tag::NEGATIVE_BIGNUM => Some(negative_bignum(value)),
-        Tag::DECIMAL_FRACTION => Some(decimal_fraction(value)),
-        Tag::BIGFLOAT => Some(bigfloat(value)),
-        Tag::URI => Some(uri(value)),
-        Tag::BASE64URL => Some(base64url(value)),
-        Tag::BASE64 => Some(base64(value)),
-        Tag::ENCODED_CBOR => Some(encoded_cbor(value)),
-        Tag::NETWORK_ADDRESS => Some(network_address(value)),
-        Tag::UUID => Some(uuid(value)),
-        Tag::EPOCH_DATE => Some(epoch_date(value)),
-        Tag::DATE => Some(date_epoch(value)),
+    let extra_lines = match tag {
+        Tag::DATETIME => vec![datetime_epoch(value)],
+        Tag::EPOCH_DATETIME => vec![epoch_datetime(value)],
+        Tag::POSITIVE_BIGNUM => vec![positive_bignum(value)],
+        Tag::NEGATIVE_BIGNUM => vec![negative_bignum(value)],
+        Tag::DECIMAL_FRACTION => vec![decimal_fraction(value)],
+        Tag::BIGFLOAT => vec![bigfloat(value)],
+        Tag::URI => vec![uri(value)],
+        Tag::BASE64URL => vec![base64url(value)],
+        Tag::BASE64 => vec![base64(value)],
+        Tag::ENCODED_CBOR => vec![encoded_cbor(value)],
+        Tag::ENCODED_CBOR_SEQ => encoded_cbor_seq(value),
+        Tag::NETWORK_ADDRESS => vec![network_address(value)],
+        Tag::UUID => vec![uuid(value)],
+        Tag::EPOCH_DATE => vec![epoch_date(value)],
+        Tag::DATE => vec![date_epoch(value)],
         Tag::SHAREABLE => {
             let line = format!("reference({})", context.reference_count.separated_string());
             context.reference_count += 1;
-            Some(Line::new("", line))
+            vec![Line::new("", line)]
         }
-        Tag::SHARED_REF => Some(shared_ref(value, context.reference_count)),
-        Tag::IPV4 => Some(ipv4_address_or_prefix(value)),
-        Tag::IPV6 => Some(ipv6_address_or_prefix(value)),
-        _ => None,
+        Tag::SHARED_REF => vec![shared_ref(value, context.reference_count)],
+        Tag::IPV4 => vec![ipv4_address_or_prefix(value)],
+        Tag::IPV6 => vec![ipv6_address_or_prefix(value)],
+        _ => vec![],
     };
 
     let sublines = match tag {
@@ -577,7 +579,7 @@ fn tagged_to_hex(
         }
     }
     .into_iter()
-    .chain(extra_line)
+    .chain(extra_lines)
     .collect();
 
     let comment = if let Some(extra) = extra {
@@ -898,7 +900,31 @@ fn encoded_cbor(value: &DataItem) -> Line {
             }
         }
     } else {
-        Line::new("", "invalid type for encoded cbor")
+        Line::new("", "invalid type for encoded cbor data item")
+    }
+}
+
+fn encoded_cbor_seq(value: &DataItem) -> Vec<Line> {
+    if let DataItem::ByteString(ByteString { data, .. }) = value {
+        let mut data = data.as_slice();
+        let mut lines = Vec::new();
+        while let Ok(Some((item, len))) = crate::parse_bytes_partial(data) {
+            let (_, rest) = data.split_at(len);
+            data = rest;
+            let mut line = Line::new("", "encoded cbor data item");
+            line.sublines
+                .extend(item.to_hex().lines().map(|line| Line::new("", line)));
+            lines.push(line);
+        }
+        if !data.is_empty() {
+            let err = parse_bytes(data).unwrap_err();
+            let mut line = Line::new("", "failed to parse remaining encoded cbor sequence");
+            line.sublines.push(Line::new("", format!("{:?}", err)));
+            lines.push(line);
+        }
+        lines
+    } else {
+        vec![Line::new("", "invalid type for encoded cbor sequence")]
     }
 }
 
