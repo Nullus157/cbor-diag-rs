@@ -1,5 +1,4 @@
 [package]
-authors = ["Wim Looman <wim@nemo157.com>"]
 name = "cbor-diag"
 version = "0.1.9"
 description = """
@@ -9,8 +8,7 @@ diagnostic notation) then printing it out in either annotated hex form or
 diagnostic notation.
 """
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/Nemo157/cbor-diag-rs"
-readme = "README.md"
+repository = "https://github.com/Nullus157/cbor-diag-rs"
 edition = "2021"
 
 [workspace]

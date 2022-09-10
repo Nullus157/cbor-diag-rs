@@ -1,15 +1,13 @@
 [package]
 name = "cbor-diag-cli"
 version = "0.1.6"
-authors = ["Wim Looman <wim@nemo157.com>"]
 edition = "2021"
 description = """
 A tool for transforming between different diagnostic encodings of [Concise
 Binary Object Representation (CBOR)](https://cbor.io).
 """
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/Nemo157/cbor-diag-rs"
-readme = "README.md"
+repository = "https://github.com/Nullus157/cbor-diag-rs"
 
 [[bin]]
 name = "cbor-diag"
