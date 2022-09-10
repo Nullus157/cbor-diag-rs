@@ -16,7 +16,7 @@ use nom::{
 
 use crate::{ByteString, DataItem, FloatWidth, IntegerWidth, Result, Simple, Tag, TextString};
 
-pub fn take_bits<I, O>(count: usize) -> impl Fn((I, usize)) -> IResult<(I, usize), O>
+pub fn take_bits<I, O>(count: usize) -> impl FnMut((I, usize)) -> IResult<(I, usize), O>
 where
     I: nom::Slice<std::ops::RangeFrom<usize>> + nom::InputIter<Item = u8> + nom::InputLength,
     O: From<u8>
@@ -27,7 +27,7 @@ where
     nom::bits::streaming::take(count)
 }
 
-pub fn tag_bits<I, O>(pattern: O, count: usize) -> impl Fn((I, usize)) -> IResult<(I, usize), O>
+pub fn tag_bits<I, O>(pattern: O, count: usize) -> impl FnMut((I, usize)) -> IResult<(I, usize), O>
 where
     I: nom::Slice<std::ops::RangeFrom<usize>>
         + nom::InputIter<Item = u8>
@@ -210,35 +210,21 @@ fn float(input: &[u8]) -> IResult<&[u8], DataItem> {
             alt((
                 preceded(
                     tag_bits(25, 5),
-                    bytes::<
-                        _,
-                        _,
-                        (&[u8], nom::error::ErrorKind),
-                        ((&[u8], usize), nom::error::ErrorKind),
-                        _,
-                    >(map(be_u16, |u| {
+                    bytes::<_, _, nom::error::Error<&[u8]>, _, _>(map(be_u16, |u| {
                         (f16::from_bits(u).to_f64(), FloatWidth::Sixteen)
                     })),
                 ),
                 preceded(
                     tag_bits(26, 5),
-                    bytes::<
-                        _,
-                        _,
-                        (&[u8], nom::error::ErrorKind),
-                        ((&[u8], usize), nom::error::ErrorKind),
-                        _,
-                    >(map(be_f32, |f| (f64::from(f), FloatWidth::ThirtyTwo))),
+                    bytes::<_, _, nom::error::Error<&[u8]>, _, _>(map(be_f32, |f| {
+                        (f64::from(f), FloatWidth::ThirtyTwo)
+                    })),
                 ),
                 preceded(
                     tag_bits(27, 5),
-                    bytes::<
-                        _,
-                        _,
-                        (&[u8], nom::error::ErrorKind),
-                        ((&[u8], usize), nom::error::ErrorKind),
-                        _,
-                    >(map(be_f64, |f| (f, FloatWidth::SixtyFour))),
+                    bytes::<_, _, nom::error::Error<&[u8]>, _, _>(map(be_f64, |f| {
+                        (f, FloatWidth::SixtyFour)
+                    })),
                 ),
             )),
             |(value, bitwidth)| DataItem::Float { value, bitwidth },
