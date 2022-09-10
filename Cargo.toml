@@ -1,7 +1,6 @@
 [package]
-authors = ["Wim Looman <wim@nemo157.com>"]
 name = "cbor-diag"
-version = "0.1.9"
+version = "0.1.10"
 description = """
 A crate for parsing data encoded in [Concise Binary Object Representation
 (CBOR)](https://cbor.io) (in any of raw binary, hex encoded (with comments) or
@@ -9,9 +8,8 @@ diagnostic notation) then printing it out in either annotated hex form or
 diagnostic notation.
 """
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/Nemo157/cbor-diag-rs"
-readme = "README.md"
-edition = "2018"
+repository = "https://github.com/Nullus157/cbor-diag-rs"
+edition = "2021"
 
 [workspace]
 members = ["cli"]
