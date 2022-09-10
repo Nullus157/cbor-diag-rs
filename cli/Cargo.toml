@@ -19,7 +19,6 @@ path = "src/main.rs"
 cbor-diag = { version = "0.1.9", path = "..", default-features = false }
 hex = { version = "0.4.0", default-features = false, features = ["alloc"] }
 log = { version = "0.4.11", default-features = false }
-paw = { version = "1.0.0", default-features = false }
-structopt = { version = "0.3.15", default-features = false, features = ["paw", "color"] }
 strum = { version = "0.24.1", default-features = false, features = ["derive", "std"] }
 anyhow = { version = "1.0.31", default-features = false, features = ["std", "backtrace"] }
+clap = { version = "3.2.20", default-features = false, features = ["color", "std", "wrap_help", "derive"] }

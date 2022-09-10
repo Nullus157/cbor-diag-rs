@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use clap::Parser;
 use std::io::{self, Read, Write};
 use strum::VariantNames;
 
@@ -22,22 +23,22 @@ enum To {
     Debug,
 }
 
-#[derive(Debug, structopt::StructOpt)]
-#[structopt(name = "cbor-diag", setting = structopt::clap::AppSettings::ColoredHelp)]
+#[derive(Debug, Parser)]
+#[clap(version, setting = clap::AppSettings::ColoredHelp)]
 /// A utility for converting between binary, diagnostic, hex and annotated hex
 /// formats for CBOR.
 struct Args {
     /// What format to attempt to parse the input as
-    #[structopt(long, default_value = "auto", possible_values(From::VARIANTS))]
+    #[clap(long, default_value = "auto", possible_values(From::VARIANTS))]
     from: From,
 
     /// What format to output
-    #[structopt(long, default_value = "diag", possible_values(To::VARIANTS))]
+    #[clap(long, default_value = "diag", possible_values(To::VARIANTS))]
     to: To,
 
     /// Parse a series of undelimited CBOR data items in binary format (a.k.a. the `cbor-seq` data
     /// type).
-    #[structopt(long, conflicts_with("from"))]
+    #[clap(long, conflicts_with("from"))]
     seq: bool,
 }
 
@@ -81,8 +82,9 @@ fn output_item(value: cbor_diag::DataItem, to: To, mut output: impl Write) -> an
     Ok(())
 }
 
-#[paw::main]
-fn main(args: Args) -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+
     let input = std::io::stdin();
     let mut input = input.lock();
 
