@@ -84,13 +84,13 @@ impl LengthEstimate for DataItem {
 
 impl<T: LengthEstimate + ?Sized> LengthEstimate for &T {
     fn estimate(&self, max: usize) -> usize {
-        (&**self).estimate(max)
+        (**self).estimate(max)
     }
 }
 
 impl<T: LengthEstimate + ?Sized> LengthEstimate for Box<T> {
     fn estimate(&self, max: usize) -> usize {
-        (&**self).estimate(max)
+        (**self).estimate(max)
     }
 }
 
