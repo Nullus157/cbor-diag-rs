@@ -149,33 +149,33 @@ fn encoding(input: &str) -> IResult<&str, u64> {
     preceded(tag("_"), verify(map_res(digit1, u64::from_str), |&e| e < 4))(input)
 }
 
-fn hexadecimal(input: &str) -> IResult<&str, u64> {
+fn hexadecimal(input: &str) -> IResult<&str, u128> {
     preceded(
         tag("0x"),
-        map_res(hex_digit1, |s| u64::from_str_radix(s, 16)),
+        map_res(hex_digit1, |s| u128::from_str_radix(s, 16)),
     )(input)
 }
 
-fn octal(input: &str) -> IResult<&str, u64> {
+fn octal(input: &str) -> IResult<&str, u128> {
     preceded(
         tag("0o"),
-        map_res(oct_digit1, |s| u64::from_str_radix(s, 8)),
+        map_res(oct_digit1, |s| u128::from_str_radix(s, 8)),
     )(input)
 }
 
-fn binary(input: &str) -> IResult<&str, u64> {
+fn binary(input: &str) -> IResult<&str, u128> {
     preceded(
         tag("0b"),
-        map_res(bin_digit1, |s| u64::from_str_radix(s, 2)),
+        map_res(bin_digit1, |s| u128::from_str_radix(s, 2)),
     )(input)
 }
 
-fn decimal(input: &str) -> IResult<&str, u64> {
-    map_res(digit1, u64::from_str)(input)
+fn decimal(input: &str) -> IResult<&str, u128> {
+    map_res(digit1, u128::from_str)(input)
 }
 
-fn integer(input: &str) -> IResult<&str, (u64, IntegerWidth)> {
-    let (input, value) = alt((hexadecimal, octal, binary, decimal))(input)?;
+fn number<T: TryFrom<u128>>(input: &str) -> IResult<&str, (T, IntegerWidth)> {
+    let (input, value) = map_res(alt((hexadecimal, octal, binary, decimal)), T::try_from)(input)?;
     let (input, encoding) = opt(encoding)(input)?;
     Ok((
         input,
@@ -193,29 +193,33 @@ fn integer(input: &str) -> IResult<&str, (u64, IntegerWidth)> {
     ))
 }
 
-fn positive(input: &str) -> IResult<&str, DataItem> {
-    map(integer, |(value, bitwidth)| DataItem::Integer {
-        value,
-        bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 23 {
-            IntegerWidth::Zero
-        } else {
-            bitwidth
-        },
+fn integer(input: &str) -> IResult<&str, DataItem> {
+    map_res(number::<u64>, |(value, bitwidth)| {
+        Ok::<_, std::num::TryFromIntError>(DataItem::Integer {
+            value,
+            bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 23 {
+                IntegerWidth::Zero
+            } else {
+                bitwidth
+            },
+        })
     })(input)
 }
 
 fn negative(input: &str) -> IResult<&str, DataItem> {
     preceded(
         tag("-"),
-        map(
-            verify(integer, |&(value, _)| value > 0),
-            |(value, bitwidth)| DataItem::Negative {
-                value: value - 1,
-                bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 24 {
-                    IntegerWidth::Zero
-                } else {
-                    bitwidth
-                },
+        map_res(
+            verify(number::<u128>, |&(value, _)| value > 0),
+            |(value, bitwidth)| {
+                Ok::<_, std::num::TryFromIntError>(DataItem::Negative {
+                    value: u64::try_from(value - 1)?,
+                    bitwidth: if bitwidth == IntegerWidth::Unknown && value <= 24 {
+                        IntegerWidth::Zero
+                    } else {
+                        bitwidth
+                    },
+                })
             },
         ),
     )(input)
@@ -419,7 +423,7 @@ fn data_map(input: &str) -> IResult<&str, DataItem> {
 }
 
 fn tagged(input: &str) -> IResult<&str, DataItem> {
-    let (input, (tag_, bitwidth)) = integer(input)?;
+    let (input, (tag_, bitwidth)) = number::<u64>(input)?;
     let (input, value) = delimited(tag("("), data_item, tag(")"))(input)?;
     Ok((
         input,
@@ -525,7 +529,7 @@ fn data_item(input: &str) -> IResult<&str, DataItem> {
         wrapws(alt((
             context("float", float),
             context("tagged", tagged),
-            context("positive", positive),
+            context("integer", integer),
             context("negative", negative),
             context("bytestring", bytestring),
             context("textstring", textstring),

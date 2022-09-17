@@ -134,11 +134,11 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if value < 24 {
             IntegerWidth::Zero
-        } else if value < u64::from(u8::max_value()) {
+        } else if value <= u64::from(u8::max_value()) {
             IntegerWidth::Eight
-        } else if value < u64::from(u16::max_value()) {
+        } else if value <= u64::from(u16::max_value()) {
             IntegerWidth::Sixteen
-        } else if value < u64::from(u32::max_value()) {
+        } else if value <= u64::from(u32::max_value()) {
             IntegerWidth::ThirtyTwo
         } else {
             IntegerWidth::SixtyFour
@@ -163,11 +163,11 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if value < 24 {
             IntegerWidth::Zero
-        } else if value < u64::from(u8::max_value()) {
+        } else if value <= u64::from(u8::max_value()) {
             IntegerWidth::Eight
-        } else if value < u64::from(u16::max_value()) {
+        } else if value <= u64::from(u16::max_value()) {
             IntegerWidth::Sixteen
-        } else if value < u64::from(u32::max_value()) {
+        } else if value <= u64::from(u32::max_value()) {
             IntegerWidth::ThirtyTwo
         } else {
             IntegerWidth::SixtyFour

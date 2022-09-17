@@ -91,6 +91,20 @@ testcases! {
                 18 18 # unsigned(24)
             ")
         }
+
+        max {
+            DataItem::Integer {
+                value: 255,
+                bitwidth: IntegerWidth::Eight,
+            },
+            {
+                "255_0",
+                "255_0",
+            },
+            indoc!("
+                18 ff # unsigned(255)
+            ")
+        }
     }
 
     mod u16 {
@@ -133,6 +147,20 @@ testcases! {
             },
             indoc!("
                 19 0018 # unsigned(24)
+            ")
+        }
+
+        max {
+            DataItem::Integer {
+                value: 65535,
+                bitwidth: IntegerWidth::Sixteen,
+            },
+            {
+                "65535_1",
+                "65535_1",
+            },
+            indoc!("
+                19 ffff # unsigned(65,535)
             ")
         }
     }
@@ -179,6 +207,20 @@ testcases! {
                 1a 00000018 # unsigned(24)
             ")
         }
+
+        max {
+            DataItem::Integer {
+                value: 4294967295,
+                bitwidth: IntegerWidth::ThirtyTwo,
+            },
+            {
+                "4294967295_2",
+                "4294967295_2",
+            },
+            indoc!("
+                1a ffffffff # unsigned(4,294,967,295)
+            ")
+        }
     }
 
     mod u64 {
@@ -223,155 +265,227 @@ testcases! {
                 1b 0000000000000018 # unsigned(24)
             ")
         }
-    }
 
-    mod negative_utiny {
-        one {
-            DataItem::Negative {
-                value: 0,
-                bitwidth: IntegerWidth::Zero,
-            },
-            {
-                "-1",
-                "-1",
-            },
-            indoc!("
-                20 # negative(-1)
-            ")
-        }
-
-        twenty_four {
-            DataItem::Negative {
-                value: 23,
-                bitwidth: IntegerWidth::Zero,
-            },
-            {
-                "-24",
-                "-24",
-            },
-            indoc!("
-                37 # negative(-24)
-            ")
-        }
-    }
-
-    mod negative_u8 {
-        one {
-            DataItem::Negative {
-                value: 0,
-                bitwidth: IntegerWidth::Eight,
-            },
-            {
-                "-1_0",
-                "-1_0",
-            },
-            indoc!("
-                38 00 # negative(-1)
-            ")
-        }
-
-        twenty_five {
-            DataItem::Negative {
-                value: 24,
-                bitwidth: IntegerWidth::Eight,
-            },
-            {
-                "-25_0",
-                "-25_0",
-            },
-            indoc!("
-                38 18 # negative(-25)
-            ")
-        }
-    }
-
-    mod negative_u16 {
-        one {
-            DataItem::Negative {
-                value: 0,
-                bitwidth: IntegerWidth::Sixteen,
-            },
-            {
-                "-1_1",
-                "-1_1",
-            },
-            indoc!("
-                39 0000 # negative(-1)
-            ")
-        }
-
-        twenty_five {
-            DataItem::Negative {
-                value: 24,
-                bitwidth: IntegerWidth::Sixteen,
-            },
-            {
-                "-25_1",
-                "-25_1",
-            },
-            indoc!("
-                39 0018 # negative(-25)
-            ")
-        }
-    }
-
-    mod negative_u32 {
-        one {
-            DataItem::Negative {
-                value: 0,
-                bitwidth: IntegerWidth::ThirtyTwo,
-            },
-            {
-                "-1_2",
-                "-1_2",
-            },
-            indoc!("
-                3a 00000000 # negative(-1)
-            ")
-        }
-
-        twenty_five {
-            DataItem::Negative {
-                value: 24,
-                bitwidth: IntegerWidth::ThirtyTwo,
-            },
-            {
-                "-25_2",
-                "-25_2",
-            },
-            indoc!("
-                3a 00000018 # negative(-25)
-            ")
-        }
-    }
-
-    mod negative_u64 {
-        one {
-            DataItem::Negative {
-                value: 0,
+        max {
+            DataItem::Integer {
+                value: 18446744073709551615,
                 bitwidth: IntegerWidth::SixtyFour,
             },
             {
-                "-1_3",
-                "-1_3",
+                "18446744073709551615_3",
+                "18446744073709551615_3",
             },
             indoc!("
-                3b 0000000000000000 # negative(-1)
+                1b ffffffffffffffff # unsigned(18,446,744,073,709,551,615)
             ")
         }
+    }
 
-        twenty_five {
-            DataItem::Negative {
-                value: 24,
-                bitwidth: IntegerWidth::SixtyFour,
-            },
-            {
-                "-25_3",
-                "-25_3",
-            },
-            indoc!("
-                3b 0000000000000018 # negative(-25)
-            ")
+    mod negative {
+        mod utiny {
+            one {
+                DataItem::Negative {
+                    value: 0,
+                    bitwidth: IntegerWidth::Zero,
+                },
+                {
+                    "-1",
+                    "-1",
+                },
+                indoc!("
+                    20 # negative(-1)
+                ")
+            }
+
+            twenty_four {
+                DataItem::Negative {
+                    value: 23,
+                    bitwidth: IntegerWidth::Zero,
+                },
+                {
+                    "-24",
+                    "-24",
+                },
+                indoc!("
+                    37 # negative(-24)
+                ")
+            }
+        }
+
+        mod u8 {
+            one {
+                DataItem::Negative {
+                    value: 0,
+                    bitwidth: IntegerWidth::Eight,
+                },
+                {
+                    "-1_0",
+                    "-1_0",
+                },
+                indoc!("
+                    38 00 # negative(-1)
+                ")
+            }
+
+            twenty_five {
+                DataItem::Negative {
+                    value: 24,
+                    bitwidth: IntegerWidth::Eight,
+                },
+                {
+                    "-25_0",
+                    "-25_0",
+                },
+                indoc!("
+                    38 18 # negative(-25)
+                ")
+            }
+
+            max {
+                DataItem::Negative {
+                    value: 255,
+                    bitwidth: IntegerWidth::Eight,
+                },
+                {
+                    "-256_0",
+                    "-256_0",
+                },
+                indoc!("
+                    38 ff # negative(-256)
+                ")
+            }
+        }
+
+        mod u16 {
+            one {
+                DataItem::Negative {
+                    value: 0,
+                    bitwidth: IntegerWidth::Sixteen,
+                },
+                {
+                    "-1_1",
+                    "-1_1",
+                },
+                indoc!("
+                    39 0000 # negative(-1)
+                ")
+            }
+
+            twenty_five {
+                DataItem::Negative {
+                    value: 24,
+                    bitwidth: IntegerWidth::Sixteen,
+                },
+                {
+                    "-25_1",
+                    "-25_1",
+                },
+                indoc!("
+                    39 0018 # negative(-25)
+                ")
+            }
+
+            max {
+                DataItem::Negative {
+                    value: 65535,
+                    bitwidth: IntegerWidth::Sixteen,
+                },
+                {
+                    "-65536_1",
+                    "-65536_1",
+                },
+                indoc!("
+                    39 ffff # negative(-65,536)
+                ")
+            }
+        }
+
+        mod u32 {
+            one {
+                DataItem::Negative {
+                    value: 0,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                },
+                {
+                    "-1_2",
+                    "-1_2",
+                },
+                indoc!("
+                    3a 00000000 # negative(-1)
+                ")
+            }
+
+            twenty_five {
+                DataItem::Negative {
+                    value: 24,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                },
+                {
+                    "-25_2",
+                    "-25_2",
+                },
+                indoc!("
+                    3a 00000018 # negative(-25)
+                ")
+            }
+
+            max {
+                DataItem::Negative {
+                    value: 4294967295,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                },
+                {
+                    "-4294967296_2",
+                    "-4294967296_2",
+                },
+                indoc!("
+                    3a ffffffff # negative(-4,294,967,296)
+                ")
+            }
+        }
+
+        mod u64 {
+            one {
+                DataItem::Negative {
+                    value: 0,
+                    bitwidth: IntegerWidth::SixtyFour,
+                },
+                {
+                    "-1_3",
+                    "-1_3",
+                },
+                indoc!("
+                    3b 0000000000000000 # negative(-1)
+                ")
+            }
+
+            twenty_five {
+                DataItem::Negative {
+                    value: 24,
+                    bitwidth: IntegerWidth::SixtyFour,
+                },
+                {
+                    "-25_3",
+                    "-25_3",
+                },
+                indoc!("
+                    3b 0000000000000018 # negative(-25)
+                ")
+            }
+
+            max {
+                DataItem::Negative {
+                    value: 18446744073709551615,
+                    bitwidth: IntegerWidth::SixtyFour,
+                },
+                {
+                    "-18446744073709551616_3",
+                    "-18446744073709551616_3",
+                },
+                indoc!("
+                    3b ffffffffffffffff # negative(-18,446,744,073,709,551,616)
+                ")
+            }
         }
     }
 

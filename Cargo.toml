@@ -1,6 +1,6 @@
 [package]
 name = "cbor-diag"
-version = "0.1.10"
+version = "0.1.11"
 description = """
 A crate for parsing data encoded in [Concise Binary Object Representation
 (CBOR)](https://cbor.io) (in any of raw binary, hex encoded (with comments) or
