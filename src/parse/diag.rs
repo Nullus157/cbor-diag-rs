@@ -576,9 +576,9 @@ fn data_item(input: &str) -> IResult<&str, DataItem> {
 /// ```
 pub fn parse_diag(text: impl AsRef<str>) -> Result<DataItem> {
     let (remaining, parsed) =
-        data_item(text.as_ref()).map_err(|e| format!("Parsing error ({:?})", e))?;
+        data_item(text.as_ref()).map_err(|e| format!("Parsing error ({e:?})"))?;
     if !remaining.is_empty() {
-        return Err(format!("Remaining text ({:?})", remaining).into());
+        return Err(format!("Remaining text ({remaining:?})").into());
     }
     Ok(parsed)
 }

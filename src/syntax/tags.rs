@@ -1,3 +1,5 @@
+#[allow(unused_imports)] // used in docs, needs to be available always for re-export purposes
+use crate::DataItem;
 use crate::Tag;
 
 impl Tag {

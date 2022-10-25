@@ -30,7 +30,7 @@ impl std::error::Error for Error {}
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Todo(s) => write!(f, "TODO cbor-diag::Error: {}", s),
+            Error::Todo(s) => write!(f, "TODO cbor-diag::Error: {s}"),
         }
     }
 }
