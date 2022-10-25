@@ -303,7 +303,7 @@ fn data_item(input: &[u8]) -> IResult<&[u8], DataItem> {
 /// ```
 pub fn parse_bytes(bytes: impl AsRef<[u8]>) -> Result<DataItem> {
     let (remaining, parsed) =
-        data_item(bytes.as_ref()).map_err(|e| format!("Parsing error ({:?})", e))?;
+        data_item(bytes.as_ref()).map_err(|e| format!("Parsing error ({e:?})"))?;
     if !remaining.is_empty() {
         return Err(format!(
             "Remaining bytes ({})",

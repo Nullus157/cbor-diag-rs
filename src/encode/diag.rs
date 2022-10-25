@@ -172,7 +172,7 @@ impl<'a> Context<'a> {
                 IntegerWidth::SixtyFour => 3,
                 _ => unreachable!(),
             };
-            write!(self.output, "{}_{}", value, encoding).unwrap();
+            write!(self.output, "{value}_{encoding}").unwrap();
         }
     }
 
@@ -188,7 +188,7 @@ impl<'a> Context<'a> {
                 IntegerWidth::SixtyFour => 3,
                 _ => unreachable!(),
             };
-            write!(self.output, "{}_{}", value, encoding).unwrap();
+            write!(self.output, "{value}_{encoding}").unwrap();
         }
     }
 
@@ -301,8 +301,9 @@ impl<'a> Context<'a> {
     }
 
     pub fn tagged_to_diag(&mut self, tag: Tag, bitwidth: IntegerWidth, value: &DataItem) {
+        let tag_value = tag.0;
         if bitwidth == IntegerWidth::Unknown || bitwidth == IntegerWidth::Zero {
-            self.output.push_str(&tag.0.to_string());
+            write!(self.output, "{tag_value}").unwrap();
         } else {
             let encoding = match bitwidth {
                 IntegerWidth::Eight => 0,
@@ -311,7 +312,7 @@ impl<'a> Context<'a> {
                 IntegerWidth::SixtyFour => 3,
                 _ => unreachable!(),
             };
-            write!(self.output, "{}_{}", tag.0, encoding).unwrap();
+            write!(self.output, "{tag_value}_{encoding}").unwrap();
         }
         self.output.push('(');
 
@@ -414,7 +415,7 @@ impl<'a> Context<'a> {
             Simple::TRUE => self.output.push_str("true"),
             Simple::NULL => self.output.push_str("null"),
             Simple::UNDEFINED => self.output.push_str("undefined"),
-            Simple(value) => write!(self.output, "simple({})", value).unwrap(),
+            Simple(value) => write!(self.output, "simple({value})").unwrap(),
         }
     }
 

@@ -147,11 +147,11 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
 
     let hex = match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => format!("{:02x}", value),
-        IntegerWidth::Eight => format!("18 {:02x}", value),
-        IntegerWidth::Sixteen => format!("19 {:04x}", value),
-        IntegerWidth::ThirtyTwo => format!("1a {:08x}", value),
-        IntegerWidth::SixtyFour => format!("1b {:016x}", value),
+        IntegerWidth::Zero => format!("{value:02x}"),
+        IntegerWidth::Eight => format!("18 {value:02x}"),
+        IntegerWidth::Sixteen => format!("19 {value:04x}"),
+        IntegerWidth::ThirtyTwo => format!("1a {value:08x}"),
+        IntegerWidth::SixtyFour => format!("1b {value:016x}"),
     };
 
     let comment = format!("unsigned({})", value.separated_string());
@@ -177,10 +177,10 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     let hex = match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
         IntegerWidth::Zero => format!("{:02x}", value + 0x20),
-        IntegerWidth::Eight => format!("38 {:02x}", value),
-        IntegerWidth::Sixteen => format!("39 {:04x}", value),
-        IntegerWidth::ThirtyTwo => format!("3a {:08x}", value),
-        IntegerWidth::SixtyFour => format!("3b {:016x}", value),
+        IntegerWidth::Eight => format!("38 {value:02x}"),
+        IntegerWidth::Sixteen => format!("39 {value:04x}"),
+        IntegerWidth::ThirtyTwo => format!("3a {value:08x}"),
+        IntegerWidth::SixtyFour => format!("3b {value:016x}"),
     };
 
     let comment = format!("negative({})", (-1 - i128::from(value)).separated_string());
@@ -255,7 +255,7 @@ fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item =
                 comment.push('\'');
                 comment
             }
-            Some(Encoding::Base16) => format!("h'{}'", hex),
+            Some(Encoding::Base16) => format!("h'{hex}'"),
             None => {
                 let text: String = datum
                     .iter()
@@ -263,7 +263,7 @@ fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item =
                     .flat_map(ascii::escape_default)
                     .map(char::from)
                     .collect();
-                format!("\"{}\"", text)
+                format!(r#""{text}""#)
             }
         };
         Line::new(hex, comment)
@@ -383,14 +383,15 @@ fn tagged_to_hex(
     mut bitwidth: IntegerWidth,
     value: &DataItem,
 ) -> Line {
+    let tag_value = tag.0;
     if bitwidth == IntegerWidth::Unknown {
-        bitwidth = if tag.0 < 24 {
+        bitwidth = if tag_value < 24 {
             IntegerWidth::Zero
-        } else if tag.0 < u64::from(u8::max_value()) {
+        } else if tag_value < u64::from(u8::max_value()) {
             IntegerWidth::Eight
-        } else if tag.0 < u64::from(u16::max_value()) {
+        } else if tag_value < u64::from(u16::max_value()) {
             IntegerWidth::Sixteen
-        } else if tag.0 < u64::from(u32::max_value()) {
+        } else if tag_value < u64::from(u32::max_value()) {
             IntegerWidth::ThirtyTwo
         } else {
             IntegerWidth::SixtyFour
@@ -399,11 +400,11 @@ fn tagged_to_hex(
 
     let hex = match bitwidth {
         IntegerWidth::Unknown => unreachable!(),
-        IntegerWidth::Zero => format!("{:02x}", 0xc0 | tag.0),
-        IntegerWidth::Eight => format!("d8 {:02x}", tag.0),
-        IntegerWidth::Sixteen => format!("d9 {:04x}", tag.0),
-        IntegerWidth::ThirtyTwo => format!("da {:08x}", tag.0),
-        IntegerWidth::SixtyFour => format!("db {:016x}", tag.0),
+        IntegerWidth::Zero => format!("{:02x}", 0xc0 | tag_value),
+        IntegerWidth::Eight => format!("d8 {tag_value:02x}"),
+        IntegerWidth::Sixteen => format!("d9 {tag_value:04x}"),
+        IntegerWidth::ThirtyTwo => format!("da {tag_value:08x}"),
+        IntegerWidth::SixtyFour => format!("db {tag_value:016x}"),
     };
 
     let extra = match tag {
@@ -583,9 +584,9 @@ fn tagged_to_hex(
     .collect();
 
     let comment = if let Some(extra) = extra {
-        format!("{}, tag({})", extra, tag.0)
+        format!("{extra}, tag({tag_value})")
     } else {
-        format!("tag({})", tag.0)
+        format!("tag({tag_value})")
     };
 
     Line {
@@ -600,7 +601,7 @@ fn datetime_epoch(value: &DataItem) -> Line {
         match DateTime::parse_from_rfc3339(data) {
             Ok(value) => value,
             Err(err) => {
-                return Line::new("", format!("error parsing datetime: {}", err));
+                return Line::new("", format!("error parsing datetime: {err}"));
             }
         }
     } else {
@@ -667,7 +668,7 @@ fn date_epoch(value: &DataItem) -> Line {
         match NaiveDate::parse_from_str(data, "%Y-%m-%d") {
             Ok(value) => value,
             Err(err) => {
-                return Line::new("", format!("error parsing date: {}", err));
+                return Line::new("", format!("error parsing date: {err}"));
             }
         }
     } else {
@@ -740,7 +741,7 @@ fn extract_positive_bignum(value: &DataItem) -> Option<BigUint> {
 
 fn positive_bignum(value: &DataItem) -> Line {
     extract_positive_bignum(value)
-        .map(|num| Line::new("", format!("bignum({})", num)))
+        .map(|num| Line::new("", format!("bignum({num})")))
         .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
 }
 
@@ -754,7 +755,7 @@ fn extract_negative_bignum(value: &DataItem) -> Option<BigInt> {
 
 fn negative_bignum(value: &DataItem) -> Line {
     extract_negative_bignum(value)
-        .map(|num| Line::new("", format!("bignum({})", num)))
+        .map(|num| Line::new("", format!("bignum({num})")))
         .unwrap_or_else(|| Line::new("", "invalid type for bignum"))
 }
 
@@ -816,15 +817,15 @@ fn extract_fraction(value: &DataItem, base: usize) -> Result<BigRational, &'stat
 fn decimal_fraction(value: &DataItem) -> Line {
     // TODO: https://github.com/rust-num/num-rational/issues/10
     extract_fraction(value, 10)
-        .map(|fraction| Line::new("", format!("decimal fraction({})", fraction)))
-        .unwrap_or_else(|err| Line::new("", format!("{} for decimal fraction", err)))
+        .map(|fraction| Line::new("", format!("decimal fraction({fraction})")))
+        .unwrap_or_else(|err| Line::new("", format!("{err} for decimal fraction")))
 }
 
 fn bigfloat(value: &DataItem) -> Line {
     // TODO: https://github.com/rust-num/num-rational/issues/10
     extract_fraction(value, 2)
-        .map(|fraction| Line::new("", format!("bigfloat({})", fraction)))
-        .unwrap_or_else(|err| Line::new("", format!("{} for bigfloat", err)))
+        .map(|fraction| Line::new("", format!("bigfloat({fraction})")))
+        .unwrap_or_else(|err| Line::new("", format!("{err} for bigfloat")))
 }
 
 fn uri(value: &DataItem) -> Line {
@@ -849,7 +850,7 @@ fn base64_base(
     if let DataItem::TextString(TextString { data, .. }) = value {
         let data = encoding
             .decode(data.as_bytes())
-            .map_err(|err| format!("{}", err))?;
+            .map_err(|err| format!("{err}"))?;
         let mut line = Line::new("", "");
         line.sublines.extend(bytes_to_hex(None, &data));
         let merged = line.merge();
@@ -871,7 +872,7 @@ fn base64url(value: &DataItem) -> Line {
             line.sublines.extend(lines);
             line
         })
-        .unwrap_or_else(|err| Line::new("", format!("{} for base64url", err)))
+        .unwrap_or_else(|err| Line::new("", format!("{err} for base64url")))
 }
 
 fn base64(value: &DataItem) -> Line {
@@ -881,7 +882,7 @@ fn base64(value: &DataItem) -> Line {
             line.sublines.extend(lines);
             line
         })
-        .unwrap_or_else(|err| Line::new("", format!("{} for base64", err)))
+        .unwrap_or_else(|err| Line::new("", format!("{err} for base64")))
 }
 
 fn encoded_cbor(value: &DataItem) -> Line {
@@ -895,7 +896,7 @@ fn encoded_cbor(value: &DataItem) -> Line {
             }
             Err(err) => {
                 let mut line = Line::new("", "failed to parse encoded cbor data item");
-                line.sublines.push(Line::new("", format!("{:?}", err)));
+                line.sublines.push(Line::new("", format!("{err:?}")));
                 line
             }
         }
@@ -919,7 +920,7 @@ fn encoded_cbor_seq(value: &DataItem) -> Vec<Line> {
         if !data.is_empty() {
             let err = parse_bytes(data).unwrap_err();
             let mut line = Line::new("", "failed to parse remaining encoded cbor sequence");
-            line.sublines.push(Line::new("", format!("{:?}", err)));
+            line.sublines.push(Line::new("", format!("{err:?}")));
             lines.push(line);
         }
         lines
@@ -933,26 +934,22 @@ fn uuid(value: &DataItem) -> Line {
         if let Ok(uuid) = Uuid::from_slice(data) {
             let version = uuid
                 .get_version()
-                .map(|v| format!("{:?}", v))
+                .map(|v| format!("{v:?}"))
                 .unwrap_or_else(|| "Unknown".into());
 
             let variant = format!("{:?}", uuid.get_variant());
 
             let uuid_base58 = bs58::encode(uuid.as_bytes()).into_string();
             let uuid_base64 = data_encoding::BASE64_NOPAD.encode(uuid.as_bytes());
+            let version_num = uuid.get_version_num();
             let mut line = Line::new(
                 "",
-                format!(
-                    "uuid(variant({}), version({}, {}))",
-                    variant,
-                    uuid.get_version_num(),
-                    version
-                ),
+                format!("uuid(variant({variant}), version({version_num}, {version}))"),
             );
             line.sublines.extend(vec![
-                Line::new("", format!("base16({})", uuid)),
-                Line::new("", format!("base58({})", uuid_base58)),
-                Line::new("", format!("base64({})", uuid_base64)),
+                Line::new("", format!("base16({uuid})")),
+                Line::new("", format!("base58({uuid_base58})")),
+                Line::new("", format!("base64({uuid_base64})")),
             ]);
             line
         } else {
@@ -968,21 +965,21 @@ fn network_address(value: &DataItem) -> Line {
         match data.len() {
             4 => {
                 let addr = Ipv4Addr::from([data[0], data[1], data[2], data[3]]);
-                Line::new("", format!("IPv4 address({})", addr))
+                Line::new("", format!("IPv4 address({addr})"))
             }
             6 => {
                 let addr = format!(
                     "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
                     data[0], data[1], data[2], data[3], data[4], data[5]
                 );
-                Line::new("", format!("MAC address({})", addr))
+                Line::new("", format!("MAC address({addr})"))
             }
             16 => {
                 let addr = Ipv6Addr::from([
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7],
                     data[8], data[9], data[10], data[11], data[12], data[13], data[14], data[15],
                 ]);
-                Line::new("", format!("IPv6 address({})", addr))
+                Line::new("", format!("IPv6 address({addr})"))
             }
             _ => Line::new("", "invalid data length for network address"),
         }
@@ -1012,10 +1009,8 @@ fn ipv4_address_or_prefix(value: &DataItem) -> Line {
                         // https://www.rfc-editor.org/rfc/rfc9164.html#section-4.3
                         let mut bytes = [0; 4];
                         bytes[..prefix.len()].copy_from_slice(prefix);
-                        Line::new(
-                            "",
-                            format!("IPv4 prefix({}/{})", Ipv4Addr::from(bytes), length),
-                        )
+                        let addr = Ipv4Addr::from(bytes);
+                        Line::new("", format!("IPv4 prefix({addr}/{length})"))
                     } else {
                         Line::new("", "invalid type for network address")
                     }
@@ -1044,17 +1039,13 @@ fn ipv4_address_or_prefix(value: &DataItem) -> Line {
                     match (length, zone) {
                         (Some(length), Some(zone)) => Line::new(
                             "",
-                            format!(
-                                "IPv4 address-and-zone-and-prefix({}%{}/{})",
-                                address, zone, length
-                            ),
+                            format!("IPv4 address-and-zone-and-prefix({address}%{zone}/{length})"),
                         ),
-                        (Some(length), None) => Line::new(
-                            "",
-                            format!("IPv4 address-and-prefix({}/{})", address, length),
-                        ),
+                        (Some(length), None) => {
+                            Line::new("", format!("IPv4 address-and-prefix({address}/{length})"))
+                        }
                         (None, Some(zone)) => {
-                            Line::new("", format!("IPv4 address-and-zone({}%{})", address, zone))
+                            Line::new("", format!("IPv4 address-and-zone({address}%{zone})"))
                         }
                         (None, None) => Line::new("", "invalid type for network address"),
                     }
@@ -1070,7 +1061,8 @@ fn ipv6_address_or_prefix(value: &DataItem) -> Line {
     match value {
         DataItem::ByteString(ByteString { data, .. }) => {
             if let Ok(bytes) = <[_; 16]>::try_from(data.as_slice()) {
-                Line::new("", format!("IPv6 address({})", Ipv6Addr::from(bytes)))
+                let addr = Ipv6Addr::from(bytes);
+                Line::new("", format!("IPv6 address({addr})"))
             } else {
                 Line::new("", "invalid data length for IPv6 address")
             }
@@ -1087,10 +1079,8 @@ fn ipv6_address_or_prefix(value: &DataItem) -> Line {
                         // https://www.rfc-editor.org/rfc/rfc9164.html#section-4.3
                         let mut bytes = [0; 16];
                         bytes[..prefix.len()].copy_from_slice(prefix);
-                        Line::new(
-                            "",
-                            format!("IPv6 prefix({}/{})", Ipv6Addr::from(bytes), length),
-                        )
+                        let addr = Ipv6Addr::from(bytes);
+                        Line::new("", format!("IPv6 prefix({addr}/{length})"))
                     } else {
                         Line::new("", "invalid type for network address")
                     }
@@ -1119,17 +1109,13 @@ fn ipv6_address_or_prefix(value: &DataItem) -> Line {
                     match (length, zone) {
                         (Some(length), Some(zone)) => Line::new(
                             "",
-                            format!(
-                                "IPv6 address-and-zone-and-prefix({}%{}/{})",
-                                address, zone, length
-                            ),
+                            format!("IPv6 address-and-zone-and-prefix({address}%{zone}/{length})"),
                         ),
-                        (Some(length), None) => Line::new(
-                            "",
-                            format!("IPv6 address-and-prefix({}/{})", address, length),
-                        ),
+                        (Some(length), None) => {
+                            Line::new("", format!("IPv6 address-and-prefix({address}/{length})"))
+                        }
                         (None, Some(zone)) => {
-                            Line::new("", format!("IPv6 address-and-zone({}%{})", address, zone))
+                            Line::new("", format!("IPv6 address-and-zone({address}%{zone})"))
                         }
                         (None, None) => Line::new("", "invalid type for network address"),
                     }
@@ -1157,7 +1143,7 @@ fn typed_array<const LEN: usize>(
                     .map(|chunk| {
                         let value = convert(chunk);
                         let hex = data_encoding::HEXLOWER.encode(&chunk);
-                        Line::new(hex, format!("{}({})", name, value))
+                        Line::new(hex, format!("{name}({value})"))
                     }),
             );
             vec![line]
@@ -1211,7 +1197,7 @@ fn simple_to_hex(simple: Simple) -> Line {
     let hex = if value < 24 {
         format!("{:02x}", 0b1110_0000 | value)
     } else {
-        format!("f8 {:02x}", value)
+        format!("f8 {value:02x}")
     };
 
     let extra = match simple {
@@ -1223,7 +1209,7 @@ fn simple_to_hex(simple: Simple) -> Line {
         _ => "unassigned, ",
     };
 
-    let comment = format!("{}simple({})", extra, value);
+    let comment = format!("{extra}simple({value})");
 
     Line::new(hex, comment)
 }

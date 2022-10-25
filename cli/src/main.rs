@@ -74,7 +74,7 @@ fn output_item(value: cbor_diag::DataItem, to: To, mut output: impl Write) -> an
             output.write_all(b"\n")?;
         }
         To::Debug => {
-            write!(output, "{:#?}", value)?;
+            write!(output, "{value:#?}")?;
             output.write_all(b"\n")?;
         }
     };
