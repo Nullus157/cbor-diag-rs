@@ -1240,7 +1240,7 @@ testcases! {
                    41    #   bytes(1)
                       ff #     "\xff"
                          #   failed to parse encoded cbor data item
-                         #     Todo("Parsing error (Error(([255], TagBits)))")
+                         #     Todo("Parsing error (Error(Error { input: [255], code: TagBits }))")
             "#),
         }
 
@@ -1306,7 +1306,7 @@ testcases! {
                              #   encoded cbor data item
                              #     17 # unsigned(23)
                              #   failed to parse remaining encoded cbor sequence
-                             #     Todo("Parsing error (Error(([255], TagBits)))")
+                             #     Todo("Parsing error (Error(Error { input: [255], code: TagBits }))")
             "#),
         }
 

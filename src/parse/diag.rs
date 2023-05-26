@@ -9,7 +9,7 @@ use nom::{
     character::complete::{char, digit1, hex_digit1, none_of, oct_digit1},
     combinator::{map, map_res, opt, recognize, value, verify},
     error::context,
-    multi::{many0, many0_count, many1, separated_list},
+    multi::{many0, many0_count, many1, separated_list0},
     sequence::{delimited, pair, preceded, separated_pair, tuple},
     IResult,
 };
@@ -31,22 +31,21 @@ fn ws_or_comment<O: Default>(input: &str) -> IResult<&str, O> {
 }
 
 fn wrapws<'a, T>(
-    parser: impl Fn(&'a str) -> IResult<&'a str, T>,
-) -> impl Fn(&'a str) -> IResult<&'a str, T> {
+    parser: impl FnMut(&'a str) -> IResult<&'a str, T>,
+) -> impl FnMut(&'a str) -> IResult<&'a str, T> {
     delimited(ws_or_comment::<()>, parser, ws_or_comment::<()>)
 }
 
 fn wrapws_strings<'a>(
-    parser: impl Fn(&'a str) -> IResult<&'a str, &'a str>,
-) -> impl Fn(&'a str) -> IResult<&'a str, String> {
+    parser: impl FnMut(&'a str) -> IResult<&'a str, &'a str>,
+) -> impl FnMut(&'a str) -> IResult<&'a str, String> {
     map(
         many0(delimited(ws_or_comment::<()>, parser, ws_or_comment::<()>)),
         |strings| strings.into_iter().flat_map(|s| s.chars()).collect(),
     )
 }
 
-#[allow(clippy::needless_lifetimes)]
-fn opt_comma_tag<'a>(t: &'a str) -> impl Fn(&'a str) -> IResult<&'a str, &'a str> {
+fn opt_comma_tag<'a>(t: &'a str) -> impl FnMut(&'a str) -> IResult<&'a str, &'a str> {
     alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
 }
 
@@ -261,7 +260,7 @@ fn definite_bytestring(input: &str) -> IResult<&str, Vec<u8>> {
             |s| data_encoding::BASE64.decode(s.as_bytes()),
         ),
         map(
-            delimited(tag("<<"), separated_list(tag(","), data_item), tag(">>")),
+            delimited(tag("<<"), separated_list0(tag(","), data_item), tag(">>")),
             |items| items.into_iter().flat_map(|item| item.to_bytes()).collect(),
         ),
         map(
@@ -290,7 +289,7 @@ fn indefinite_bytestring(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             tag("(_"),
-            separated_list(tag(","), concatenated_definite_bytestring),
+            separated_list0(tag(","), concatenated_definite_bytestring),
             opt_comma_tag(")"),
         ),
         DataItem::IndefiniteByteString,
@@ -342,7 +341,7 @@ fn indefinite_textstring(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             tag("(_"),
-            separated_list(tag(","), concatenated_definite_textstring),
+            separated_list0(tag(","), concatenated_definite_textstring),
             opt_comma_tag(")"),
         ),
         DataItem::IndefiniteTextString,
@@ -360,7 +359,7 @@ fn definite_array(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             wrapws(tag("[")),
-            separated_list(tag(","), data_item),
+            separated_list0(tag(","), data_item),
             opt_comma_tag("]"),
         ),
         |data| DataItem::Array {
@@ -374,7 +373,7 @@ fn indefinite_array(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             wrapws(tag("[_")),
-            separated_list(tag(","), data_item),
+            separated_list0(tag(","), data_item),
             opt_comma_tag("]"),
         ),
         |data| DataItem::Array {
@@ -392,7 +391,7 @@ fn definite_map(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             wrapws(tag("{")),
-            separated_list(tag(","), separated_pair(data_item, tag(":"), data_item)),
+            separated_list0(tag(","), separated_pair(data_item, tag(":"), data_item)),
             opt_comma_tag("}"),
         ),
         |data| DataItem::Map {
@@ -406,7 +405,7 @@ fn indefinite_map(input: &str) -> IResult<&str, DataItem> {
     map(
         delimited(
             wrapws(tag("{_")),
-            separated_list(tag(","), separated_pair(data_item, tag(":"), data_item)),
+            separated_list0(tag(","), separated_pair(data_item, tag(":"), data_item)),
             opt_comma_tag("}"),
         ),
         |data| DataItem::Map {
