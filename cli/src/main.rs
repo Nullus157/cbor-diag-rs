@@ -1,44 +1,56 @@
 use anyhow::anyhow;
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use std::io::{self, Read, Write};
-use strum::VariantNames;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, strum::EnumString, strum::EnumVariantNames)]
-#[strum(serialize_all = "snake_case")]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
 enum From {
+    /// Whichever succeeds first of bytes, hex then diag
     Auto,
+    /// Hex-encoded bytes, ignores whitespace and comments from `#` to the end of line
     Hex,
+    /// Raw encoded bytes
     Bytes,
+    /// Diagnostic notation
     Diag,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, strum::EnumString, strum::EnumVariantNames)]
-#[strum(serialize_all = "snake_case")]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, ValueEnum)]
 enum To {
+    /// Nicely formatted hex with end-of-line annotations describing it
     Annotated,
+
+    /// A simple hex string of the encoded bytes
     Hex,
+
+    /// The raw encoded bytes
     Bytes,
+
+    /// Diagnostic notation with nice whitespace
     Diag,
+
+    /// Diagnostic notation with no additional whitespace
     Compact,
+
+    /// Dump the internal AST representation
     Debug,
 }
 
 #[derive(Debug, Parser)]
-#[clap(version, setting = clap::AppSettings::ColoredHelp)]
+#[command(version)]
 /// A utility for converting between binary, diagnostic, hex and annotated hex
 /// formats for CBOR.
 struct Args {
     /// What format to attempt to parse the input as
-    #[clap(long, default_value = "auto", possible_values(From::VARIANTS))]
+    #[arg(long, default_value_t = From::Auto, value_enum)]
     from: From,
 
     /// What format to output
-    #[clap(long, default_value = "diag", possible_values(To::VARIANTS))]
+    #[arg(long, default_value_t = To::Diag, value_enum)]
     to: To,
 
     /// Parse a series of undelimited CBOR data items in binary format (a.k.a. the `cbor-seq` data
     /// type).
-    #[clap(long, conflicts_with("from"))]
+    #[arg(long, conflicts_with("from"))]
     seq: bool,
 }
 
