@@ -58,7 +58,10 @@ where
 {
     use nom::AsChar;
     input.split_at_position1_complete(
-        |item| !(item.as_char() == '0' || item.as_char() == '1'),
+        |item| {
+            let c = item.as_char();
+            c != '0' && c != '1'
+        },
         nom::error::ErrorKind::Digit,
     )
 }
@@ -71,11 +74,7 @@ where
 {
     use nom::AsChar;
     input.split_at_position1_complete(
-        |item| {
-            !(('0'..='9').contains(&item.as_char())
-                || ('A'..='F').contains(&item.as_char())
-                || ('a'..='f').contains(&item.as_char()))
-        },
+        |item| !item.as_char().is_ascii_hexdigit(),
         nom::error::ErrorKind::Digit,
     )
 }
@@ -89,9 +88,8 @@ where
     use nom::AsChar;
     input.split_at_position1_complete(
         |item| {
-            !(('A'..='Z').contains(&item.as_char())
-                || ('2'..='7').contains(&item.as_char())
-                || item.as_char() == '=')
+            let c = item.as_char();
+            !c.is_ascii_uppercase() && !matches!(c, '2'..='7') && c != '='
         },
         nom::error::ErrorKind::Digit,
     )
@@ -106,9 +104,8 @@ where
     use nom::AsChar;
     input.split_at_position1_complete(
         |item| {
-            !(('0'..='9').contains(&item.as_char())
-                || ('A'..='V').contains(&item.as_char())
-                || item.as_char() == '=')
+            let c = item.as_char();
+            !c.is_ascii_digit() && !matches!(c, 'A'..='V') && c != '='
         },
         nom::error::ErrorKind::Digit,
     )
@@ -122,7 +119,10 @@ where
 {
     use nom::AsChar;
     input.split_at_position1_complete(
-        |item| !(item.is_alphanum() || item.as_char() == '-' || item.as_char() == '_'),
+        |item| {
+            let c = item.as_char();
+            !c.is_ascii_alphanumeric() && c != '-' && c != '_'
+        },
         nom::error::ErrorKind::Digit,
     )
 }
@@ -136,10 +136,8 @@ where
     use nom::AsChar;
     input.split_at_position1_complete(
         |item| {
-            !(item.is_alphanum()
-                || item.as_char() == '+'
-                || item.as_char() == '/'
-                || item.as_char() == '=')
+            let c = item.as_char();
+            !c.is_ascii_alphanumeric() && c != '+' && c != '/' && c != '='
         },
         nom::error::ErrorKind::Digit,
     )
