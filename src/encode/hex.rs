@@ -679,7 +679,7 @@ fn date_epoch(value: &DataItem) -> Line {
         "",
         format!(
             "epoch({})",
-            date.signed_duration_since(NaiveDate::from_ymd(1970, 1, 1))
+            date.signed_duration_since(NaiveDate::from_ymd_opt(1970, 1, 1).unwrap())
                 .num_days()
                 .separated_string()
         ),
@@ -703,7 +703,11 @@ fn epoch_date(value: &DataItem) -> Line {
         .and_then(|days| days.checked_mul(24 * 60 * 60 * 1000))
         // This is the only non-panicking constructor for `chrono::Duration`
         .map(chrono::Duration::milliseconds)
-        .and_then(|duration| NaiveDate::from_ymd(1970, 1, 1).checked_add_signed(duration));
+        .and_then(|duration| {
+            NaiveDate::from_ymd_opt(1970, 1, 1)
+                .unwrap()
+                .checked_add_signed(duration)
+        });
 
     if let Some(date) = date {
         Line::new("", format!("date({})", date.format("%F")))
