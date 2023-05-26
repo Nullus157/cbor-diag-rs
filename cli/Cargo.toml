@@ -1,6 +1,6 @@
 [package]
 name = "cbor-diag-cli"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 description = """
 A tool for transforming between different diagnostic encodings of [Concise
