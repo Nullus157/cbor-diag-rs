@@ -65,9 +65,27 @@ pub struct Simple(pub u8);
 /// [RFC 2.1]: https://tools.ietf.org/html/rfc7049#section-2.1
 pub struct ByteString {
     /// The raw binary data in this byte string
-    pub data: Vec<u8>,
+    pub(crate) data: Vec<u8>,
     /// The bitwidth used for encoding the length
-    pub bitwidth: IntegerWidth,
+    pub(crate) bitwidth: IntegerWidth,
+}
+
+impl ByteString {
+    /// Create a new ByteString
+    ///
+    /// The bitwidth of the encoding is initially unknown
+    pub fn new(data: impl Into<Vec<u8>>) -> Self {
+        let data = data.into();
+        Self {
+            data,
+            bitwidth: IntegerWidth::Unknown,
+        }
+    }
+
+    /// Builder for ByteStrings with a fixed bit width
+    pub fn with_bitwidth(self, bitwidth: IntegerWidth) -> Self {
+        Self { bitwidth, ..self }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
