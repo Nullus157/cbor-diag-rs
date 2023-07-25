@@ -14,10 +14,7 @@ testcases! {
                         bitwidth: IntegerWidth::Zero,
                     },
                     DataItem::ByteString(
-                        ByteString {
-                            data: hex!("0128bf0000002c").into(),
-                            bitwidth: IntegerWidth::Unknown,
-                        },
+                        ByteString::new(hex!("0128bf0000002c"))
                     ),
                 ),
                 (
