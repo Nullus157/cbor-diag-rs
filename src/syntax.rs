@@ -56,6 +56,9 @@ pub struct Tag(pub u64);
 pub struct Simple(pub u8);
 
 #[derive(Debug, Eq, PartialEq, Clone)]
+// FIXME: Deriving PartialEq here means different diag notations do differ; we'll have to make a
+// choice at some point whether Eq means Eq in all representations and choices (probably that's
+// indeed the right one).
 /// A string of raw bytes with no direct attached meaning.
 ///
 /// May be assigned a meaning by being enclosed in a [semantic tag](Tag).
@@ -68,6 +71,8 @@ pub struct ByteString {
     pub(crate) data: Vec<u8>,
     /// The bitwidth used for encoding the length
     pub(crate) bitwidth: IntegerWidth,
+    /// Encoding used for diagnostic notation
+    pub(crate) diag_encoding: Option<crate::encode::Encoding>,
 }
 
 impl ByteString {
@@ -79,6 +84,7 @@ impl ByteString {
         Self {
             data,
             bitwidth: IntegerWidth::Unknown,
+            diag_encoding: None,
         }
     }
 

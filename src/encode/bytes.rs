@@ -78,7 +78,7 @@ fn negative_to_bytes(bytes: &mut Vec<u8>, value: u64, bitwidth: IntegerWidth) {
     integer_to_bytes(bytes, value, bitwidth, 1);
 }
 
-fn definite_bytestring_to_bytes(bytes: &mut Vec<u8>, ByteString { data, bitwidth }: &ByteString) {
+fn definite_bytestring_to_bytes(bytes: &mut Vec<u8>, ByteString { data, bitwidth, .. }: &ByteString) {
     integer_to_bytes(bytes, data.len() as u64, *bitwidth, 2);
     bytes.extend_from_slice(data);
 }

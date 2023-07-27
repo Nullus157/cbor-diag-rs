@@ -193,7 +193,7 @@ impl<'a> Context<'a> {
     }
 
     fn definite_bytestring_to_diag(&mut self, bytestring: &ByteString) {
-        match self.encoding {
+        match self.encoding.override_with(bytestring.diag_encoding) {
             Encoding::Base64Url => {
                 self.output.push_str("b64'");
                 data_encoding::BASE64URL_NOPAD.encode_append(&bytestring.data, self.output);
@@ -342,7 +342,7 @@ impl<'a> Context<'a> {
                 }
             }
             Tag::ENCODED_CBOR_SEQ => {
-                if let DataItem::ByteString(ByteString { data, bitwidth }) = value {
+                if let DataItem::ByteString(ByteString { data, bitwidth, .. }) = value {
                     let mut data = data.as_slice();
                     let mut items = Vec::new();
                     while let Ok(Some((item, len))) = crate::parse_bytes_partial(data) {
@@ -368,6 +368,8 @@ impl<'a> Context<'a> {
                         self.item_to_diag(&DataItem::ByteString(ByteString {
                             data: data.into(),
                             bitwidth: *bitwidth,
+                            // For broken CBOR, hex is a practical choice
+                            diag_encoding: Some(Encoding::Base16),
                         }));
                     }
                 } else {
