@@ -236,25 +236,22 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::POSITIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("000001ffffffffffffffffffffff0000000000000000000000").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                }))
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("000001ffffffffffffffffffffff0000000000000000000000"))
+                ))
             },
             {
                 "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
                 "2(h'000001ffffffffffffffffffffff0000000000000000000000')",
             }
         }
-
         negative_bignum(diag2value, value2diag) {
             DataItem::Tag {
                 tag: Tag::NEGATIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba987654321").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                }))
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba987654321"))
+                ))
             },
             {
                 "3(h'123456789abcdeffedcba987654321')",
@@ -323,10 +320,9 @@ testcases! {
                         DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(DataItem::ByteString(ByteString {
-                                data: hex!("000001ffffffffffffffffffffff0000000000000000000000").into(),
-                                bitwidth: IntegerWidth::Unknown,
-                            })),
+                            value: Box::new(DataItem::ByteString(ByteString::new(
+                                hex!("000001ffffffffffffffffffffff0000000000000000000000"))
+                            )),
                         },
                     ],
                     bitwidth: Some(IntegerWidth::Unknown),
@@ -356,10 +352,9 @@ testcases! {
                         DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(DataItem::ByteString(ByteString {
-                                data: hex!("000001ffffffffffffffffffffff0000000000000000000000").into(),
-                                bitwidth: IntegerWidth::Unknown,
-                            })),
+                            value: Box::new(DataItem::ByteString(ByteString::new(
+                                hex!("000001ffffffffffffffffffffff0000000000000000000000"))
+                            )),
                         },
                     ],
                     bitwidth: Some(IntegerWidth::Unknown),
@@ -380,10 +375,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba9876543").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba9876543"))
+                )),
             },
             {
                 "21(b64'EjRWeJq83v_ty6mHZUM')",
@@ -395,10 +389,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("12").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("12"))
+                )),
             },
             {
                 "21(b64'Eg')",
@@ -412,10 +405,9 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Unknown,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        ),
                     ],
                     bitwidth: None,
                 })
@@ -430,10 +422,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba9876543").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba9876543"))
+                )),
             },
             {
                 "22(b64'EjRWeJq83v/ty6mHZUM=')",
@@ -445,10 +436,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("12").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("12"))
+                )),
             },
             {
                 "22(b64'Eg==')",
@@ -462,10 +452,9 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Unknown,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        ),
                     ],
                     bitwidth: None,
                 })
@@ -480,10 +469,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE16,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba9876543").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba9876543"))
+                )),
             },
             {
                 "23(h'123456789abcdeffedcba9876543')",
@@ -497,10 +485,9 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Unknown,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        ),
                     ],
                     bitwidth: None,
                 })
@@ -517,19 +504,17 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Unknown,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        ),
                         DataItem::Tag {
                             tag: Tag::ENCODED_BASE64,
                             bitwidth: IntegerWidth::Zero,
                             value: Box::new(DataItem::Array {
                                 data: vec![
-                                    DataItem::ByteString(ByteString {
-                                        data: hex!("123456789abcdeffedcba9876543").into(),
-                                        bitwidth: IntegerWidth::Unknown,
-                                    })
+                                    DataItem::ByteString(ByteString::new(
+                                        hex!("123456789abcdeffedcba9876543"))
+                                    )
                                 ],
                                 bitwidth: None,
                             })
@@ -537,10 +522,9 @@ testcases! {
                         DataItem::Tag {
                             tag: Tag::ENCODED_BASE16,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(DataItem::ByteString(ByteString {
-                                data: hex!("123456789abcdeffedcba9876543").into(),
-                                bitwidth: IntegerWidth::Unknown,
-                            })),
+                            value: Box::new(DataItem::ByteString(ByteString::new(
+                                hex!("123456789abcdeffedcba9876543"))
+                            )),
                         },
                     ],
                     bitwidth: None,
@@ -562,10 +546,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("9f64f09f87b317ff").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("9f64f09f87b317ff"))
+                )),
             },
             {
                 r#"24(<<[_"🇳",23]>>)"#,
@@ -577,10 +560,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("ff").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("ff"))
+                )),
             },
             {
                 "24(h'ff')",
@@ -592,10 +574,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("d818489f64f09f87b317ff").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("d818489f64f09f87b317ff"))
+                )),
             },
             {
                 r#"24(<<24_0(<<[_"🇳",23]>>)>>)"#,
@@ -607,10 +588,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: vec![],
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                            vec![]
+                   )
+                )),
             },
             {
                 r#"24(<<>>)"#,
@@ -622,10 +603,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("9f64f09f87b317ff1615").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("9f64f09f87b317ff1615"))
+                )),
             },
             {
                 r#"63(<<[_"🇳",23],22,21>>)"#,
@@ -637,10 +617,9 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("1617ff").into(),
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("1617ff"))
+                )),
             },
             {
                 "63(<<22,23>>h'ff')",
@@ -652,10 +631,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
                 bitwidth: IntegerWidth::Unknown,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: vec![],
-                    bitwidth: IntegerWidth::Unknown,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                            vec![]
+                   )
+                )),
             },
             {
                 "63(<<>>)",
@@ -880,10 +859,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::POSITIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("000001ffffffffffffffffffffff0000000000000000000000").into(),
-                    bitwidth: IntegerWidth::Eight,
-                }))
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("000001ffffffffffffffffffffff0000000000000000000000"))
+                    .with_bitwidth(IntegerWidth::Eight)
+                ))
             },
             indoc!(r#"
                 c2                                     # positive bignum, tag(2)
@@ -898,10 +877,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::NEGATIVE_BIGNUM,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba987654321").into(),
-                    bitwidth: IntegerWidth::Eight,
-                }))
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba987654321"))
+                    .with_bitwidth(IntegerWidth::Eight)
+                ))
             },
             indoc!(r#"
                 c3                                   # negative bignum, tag(3)
@@ -978,10 +957,10 @@ testcases! {
                         DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(DataItem::ByteString(ByteString {
-                                data: hex!("000001ffffffffffffffffffffff0000000000000000000000").into(),
-                                bitwidth: IntegerWidth::Eight,
-                            }))
+                            value: Box::new(DataItem::ByteString(ByteString::new(
+                                hex!("000001ffffffffffffffffffffff0000000000000000000000"))
+                                .with_bitwidth(IntegerWidth::Eight)
+                            ))
                         },
                     ],
                     bitwidth: Some(IntegerWidth::Zero),
@@ -1013,10 +992,10 @@ testcases! {
                         DataItem::Tag {
                             tag: Tag::POSITIVE_BIGNUM,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(DataItem::ByteString(ByteString {
-                                data: hex!("000001ffffffffffffffffffffff0000000000000000000000").into(),
-                                bitwidth: IntegerWidth::Eight,
-                            }))
+                            value: Box::new(DataItem::ByteString(ByteString::new(
+                                hex!("000001ffffffffffffffffffffff0000000000000000000000"))
+                                .with_bitwidth(IntegerWidth::Eight)
+                            ))
                         },
                     ],
                     bitwidth: Some(IntegerWidth::Zero),
@@ -1039,10 +1018,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64URL,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba9876543").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba9876543"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d5                                 # suggested base64url encoding, tag(21)
@@ -1057,10 +1036,10 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                     ],
                     bitwidth: None,
                 })
@@ -1078,10 +1057,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE64,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba9876543").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba9876543"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d6                                 # suggested base64 encoding, tag(22)
@@ -1096,10 +1075,10 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                     ],
                     bitwidth: None,
                 })
@@ -1117,10 +1096,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_BASE16,
                 bitwidth: IntegerWidth::Zero,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("123456789abcdeffedcba9876543").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("123456789abcdeffedcba9876543"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d7                                 # suggested base16 encoding, tag(23)
@@ -1135,10 +1114,10 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                     ],
                     bitwidth: None,
                 })
@@ -1158,19 +1137,19 @@ testcases! {
                 bitwidth: IntegerWidth::Zero,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("123456789abcdeffedcba9876543").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("123456789abcdeffedcba9876543"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Tag {
                             tag: Tag::ENCODED_BASE64,
                             bitwidth: IntegerWidth::Zero,
                             value: Box::new(DataItem::Array {
                                 data: vec![
-                                    DataItem::ByteString(ByteString {
-                                        data: hex!("123456789abcdeffedcba9876543").into(),
-                                        bitwidth: IntegerWidth::Zero,
-                                    })
+                                    DataItem::ByteString(ByteString::new(
+                                        hex!("123456789abcdeffedcba9876543"))
+                                    .with_bitwidth(IntegerWidth::Zero)
+                                    )
                                 ],
                                 bitwidth: None,
                             })
@@ -1178,10 +1157,10 @@ testcases! {
                         DataItem::Tag {
                             tag: Tag::ENCODED_BASE16,
                             bitwidth: IntegerWidth::Zero,
-                            value: Box::new(DataItem::ByteString(ByteString {
-                                data: hex!("123456789abcdeffedcba9876543").into(),
-                                bitwidth: IntegerWidth::Zero,
-                            })),
+                            value: Box::new(DataItem::ByteString(ByteString::new(
+                                hex!("123456789abcdeffedcba9876543"))
+                                .with_bitwidth(IntegerWidth::Zero)
+                            )),
                         },
                     ],
                     bitwidth: None,
@@ -1208,10 +1187,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("9f64f09f87b317ff").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("9f64f09f87b317ff"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!("
                 d8 18                  # encoded cbor data item, tag(24)
@@ -1230,10 +1209,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("ff").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("ff"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 18    # encoded cbor data item, tag(24)
@@ -1248,10 +1227,11 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: vec![],
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                            vec![]
+                   )
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 18 # encoded cbor data item, tag(24)
@@ -1266,10 +1246,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("9f64f09f87b317ff1615").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("9f64f09f87b317ff1615"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 3f                      # encoded cbor sequence, tag(63)
@@ -1292,10 +1272,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("1617ff").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("1617ff"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 3f        # encoded cbor sequence, tag(63)
@@ -1314,10 +1294,11 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR_SEQ,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: vec![],
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                            vec![]
+                   )
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 3f # encoded cbor sequence, tag(63)
@@ -1424,10 +1405,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::ENCODED_CBOR,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("d818489f64f09f87b317ff").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("d818489f64f09f87b317ff"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!("
                 d8 18                        # encoded cbor data item, tag(24)
@@ -1450,10 +1431,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::UUID,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("8c8a8d48c00f42209cf8b75a882bf586").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("8c8a8d48c00f42209cf8b75a882bf586"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 25                                  # uuid, tag(37)
@@ -1470,10 +1451,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::UUID,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("0123456789").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("0123456789"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d8 25            # uuid, tag(37)
@@ -1504,10 +1485,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::NETWORK_ADDRESS,
                 bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("c00a0a01").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("c00a0a01"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d9 0104        # network address, tag(260)
@@ -1521,10 +1502,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::NETWORK_ADDRESS,
                 bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("0123456789ab").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("0123456789ab"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d9 0104            # network address, tag(260)
@@ -1538,10 +1519,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::NETWORK_ADDRESS,
                 bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("20010db885a3000000008a2e03707334").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("20010db885a3000000008a2e03707334"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d9 0104                                # network address, tag(260)
@@ -1555,10 +1536,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::NETWORK_ADDRESS,
                 bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("0123456789").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("0123456789"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!(r#"
                 d9 0104          # network address, tag(260)
@@ -1745,10 +1726,10 @@ testcases! {
                     DataItem::Tag {
                         tag: Tag::ENCODED_CBOR,
                         bitwidth: IntegerWidth::Eight,
-                        value: Box::new(DataItem::ByteString(ByteString {
-                            data: hex!("d81c00").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        })),
+                        value: Box::new(DataItem::ByteString(ByteString::new(
+                            hex!("d81c00"))
+                            .with_bitwidth(IntegerWidth::Zero)
+                        )),
                     },
                     DataItem::Tag {
                         tag: Tag::SHAREABLE,
@@ -1783,10 +1764,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::IPV4,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("c0000201").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("c0000201"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!("
                 d8 34          # ipv4 address and/or prefix, tag(52)
@@ -1806,10 +1787,10 @@ testcases! {
                             value: 24,
                             bitwidth: IntegerWidth::Eight,
                         },
-                        DataItem::ByteString(ByteString {
-                            data: hex!("c00002").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("c00002"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                     ],
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
@@ -1830,10 +1811,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("c0000201").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("c0000201"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Integer {
                             value: 24,
                             bitwidth: IntegerWidth::Eight,
@@ -1858,10 +1839,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("c0000201").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("c0000201"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Simple(Simple::NULL),
                         DataItem::Integer {
                             value: 6,
@@ -1888,10 +1869,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("c0000201").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("c0000201"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Simple(Simple::NULL),
                         DataItem::TextString(TextString {
                             data: "eth0".into(),
@@ -1919,10 +1900,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("c0000201").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("c0000201"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Integer {
                             value: 24,
                             bitwidth: IntegerWidth::Eight,
@@ -1950,10 +1931,10 @@ testcases! {
             DataItem::Tag {
                 tag: Tag::IPV6,
                 bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::ByteString(ByteString {
-                    data: hex!("20010db81234deedbeefcafefacefeed").into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
+                value: Box::new(DataItem::ByteString(ByteString::new(
+                    hex!("20010db81234deedbeefcafefacefeed"))
+                    .with_bitwidth(IntegerWidth::Zero)
+                )),
             },
             indoc!("
                 d8 36                                  # ipv6 address and/or prefix, tag(54)
@@ -1973,10 +1954,10 @@ testcases! {
                             value: 48,
                             bitwidth: IntegerWidth::Eight,
                         },
-                        DataItem::ByteString(ByteString {
-                            data: hex!("20010db81234").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("20010db81234"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                     ],
                     bitwidth: Some(IntegerWidth::Zero),
                 }),
@@ -1997,10 +1978,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("20010db81234deedbeefcafefacefeed").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("20010db81234deedbeefcafefacefeed"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Integer {
                             value: 56,
                             bitwidth: IntegerWidth::Eight,
@@ -2025,10 +2006,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("fe8000000000020202fffffffe030303").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("fe8000000000020202fffffffe030303"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Simple(Simple::NULL),
                         DataItem::Integer {
                             value: 42,
@@ -2055,10 +2036,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("fe8000000000020202fffffffe030303").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("fe8000000000020202fffffffe030303"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Simple(Simple::NULL),
                         DataItem::TextString(TextString {
                             data: "eth0".into(),
@@ -2086,10 +2067,10 @@ testcases! {
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Array {
                     data: vec![
-                        DataItem::ByteString(ByteString {
-                            data: hex!("fe8000000000020202fffffffe030303").into(),
-                            bitwidth: IntegerWidth::Zero,
-                        }),
+                        DataItem::ByteString(ByteString::new(
+                            hex!("fe8000000000020202fffffffe030303"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                        ),
                         DataItem::Integer {
                             value: 64,
                             bitwidth: IntegerWidth::Eight,
@@ -2118,10 +2099,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_U16_BIG_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("000200040008000400100100").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("000200040008000400100100"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 41      # typed array of u16, big endian, tag(65)
@@ -2139,10 +2120,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_U8_CLAMPED,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("020408041000").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("020408041000"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 44    # typed array of u8, clamped, tag(68)
@@ -2160,10 +2141,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_U64_LITTLE_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("00020004000800040010010000000001").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("00020004000800040010010000000001"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 47                  # typed array of u64, little endian, tag(71)
@@ -2177,10 +2158,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_I64_LITTLE_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("00020004000800040010010000000001").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("00020004000800040010010000000001"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 4f                  # typed array of i64, little endian, twos-complement, tag(79)
@@ -2194,10 +2175,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_F16_BIG_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("0002000400080004").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("0002000400080004"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 50      # typed array of f16, big endian, tag(80)
@@ -2213,10 +2194,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_F64_LITTLE_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("f2fff4fff8fff441").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("f2fff4fff8fff441"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 56                  # typed array of f64, little endian, tag(86)
@@ -2229,10 +2210,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_F128_LITTLE_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("3ff2fff4fff8fff43ff2fff4fff8fff4").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("3ff2fff4fff8fff43ff2fff4fff8fff4"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!("
                     d8 57                                  # typed array of f128, little endian, tag(87)
@@ -2245,10 +2226,10 @@ testcases! {
                 DataItem::Tag {
                     tag: Tag::TYPED_ARRAY_U16_BIG_ENDIAN,
                     bitwidth: IntegerWidth::Eight,
-                    value: Box::new(DataItem::ByteString(ByteString {
-                        data: hex!("000200").into(),
-                        bitwidth: IntegerWidth::Zero,
-                    })),
+                    value: Box::new(DataItem::ByteString(ByteString::new(
+                        hex!("000200"))
+                        .with_bitwidth(IntegerWidth::Zero)
+                    )),
                 },
                 indoc!(r#"
                     d8 41        # typed array of u16, big endian, tag(65)

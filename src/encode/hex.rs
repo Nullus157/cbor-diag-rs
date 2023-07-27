@@ -271,7 +271,7 @@ fn bytes_to_hex(encoding: Option<Encoding>, data: &[u8]) -> impl Iterator<Item =
 }
 
 fn definite_bytestring_to_hex(encoding: Option<Encoding>, bytestring: &ByteString) -> Line {
-    let ByteString { ref data, bitwidth } = *bytestring;
+    let ByteString { ref data, bitwidth, .. } = *bytestring;
 
     let mut line = length_to_hex(Some(data.len()), Some(bitwidth), 2, "bytes");
 
@@ -1137,7 +1137,7 @@ fn typed_array<const LEN: usize>(
     name: &str,
     convert: impl Fn([u8; LEN]) -> String,
 ) -> Vec<Line> {
-    if let DataItem::ByteString(ByteString { data, bitwidth }) = value {
+    if let DataItem::ByteString(ByteString { data, bitwidth, .. }) = value {
         if data.len() % LEN == 0 {
             let mut line = length_to_hex(Some(data.len()), Some(*bitwidth), 2, "bytes");
             // TODO: Use slice::array_chunks when stable

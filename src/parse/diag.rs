@@ -3,6 +3,8 @@
 use std::f64;
 use std::str::FromStr;
 
+use crate::encode::Encoding;
+
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, tag},
@@ -222,46 +224,51 @@ fn negative(input: &str) -> IResult<&str, DataItem> {
     )(input)
 }
 
-fn definite_bytestring(input: &str) -> IResult<&str, Vec<u8>> {
+fn definite_bytestring(input: &str) -> IResult<&str, (Vec<u8>, Option<Encoding>)> {
     wrapws(alt((
         map_res(
             preceded(
                 tag("h"),
                 delimited(tag("'"), wrapws_strings(base16_digit0), tag("'")),
             ),
-            |s| data_encoding::HEXLOWER_PERMISSIVE.decode(s.as_bytes()),
+            |s| data_encoding::HEXLOWER_PERMISSIVE.decode(s.as_bytes())
+                .map(|o| (o, Some(Encoding::Base16))),
         ),
         map_res(
             preceded(
                 tag("b32"),
                 delimited(tag("'"), wrapws_strings(base32_digit0), tag("'")),
             ),
-            |s| data_encoding::BASE32.decode(s.as_bytes()),
+            |s| data_encoding::BASE32.decode(s.as_bytes())
+                .map(|o| (o, None)), // FIXME: Could add as encoding
         ),
         map_res(
             preceded(
                 tag("h32"),
                 delimited(tag("'"), wrapws_strings(base32hex_digit0), tag("'")),
             ),
-            |s| data_encoding::BASE32HEX.decode(s.as_bytes()),
+            |s| data_encoding::BASE32HEX.decode(s.as_bytes())
+                .map(|o| (o, None)), // FIXME: Could add as encoding
         ),
         map_res(
             preceded(
                 tag("b64"),
                 delimited(tag("'"), wrapws_strings(base64url_digit0), tag("'")),
             ),
-            |s| data_encoding::BASE64URL_NOPAD.decode(s.as_bytes()),
+            |s| data_encoding::BASE64URL_NOPAD.decode(s.as_bytes())
+                .map(|o| (o, Some(Encoding::Base64))),
         ),
         map_res(
             preceded(
                 tag("b64"),
                 delimited(tag("'"), wrapws_strings(base64_digit0), tag("'")),
             ),
-            |s| data_encoding::BASE64.decode(s.as_bytes()),
+            |s| data_encoding::BASE64.decode(s.as_bytes())
+                .map(|o| (o, Some(Encoding::Base64))),
         ),
         map(
             delimited(tag("<<"), separated_list0(tag(","), data_item), tag(">>")),
-            |items| items.into_iter().flat_map(|item| item.to_bytes()).collect(),
+            |items| (items.into_iter().flat_map(|item| item.to_bytes()).collect(), None),
         ),
         map(
             delimited(
@@ -273,14 +280,15 @@ fn definite_bytestring(input: &str) -> IResult<&str, Vec<u8>> {
                 )),
                 tag("'"),
             ),
-            |s| s.unwrap_or_default().into_bytes(),
+            |s| (s.unwrap_or_default().into_bytes(), None), // FIXME be explicit in Encoding?
         ),
     )))(input)
 }
 
 fn concatenated_definite_bytestring(input: &str) -> IResult<&str, ByteString> {
     map(many1(definite_bytestring), |data| ByteString {
-        data: data.into_iter().flatten().collect(),
+        diag_encoding: data.get(0).and_then(|(_d, e)| e.as_ref()).copied(),
+        data: data.into_iter().map(|(d, _e)| d).flatten().collect(),
         bitwidth: IntegerWidth::Unknown,
     })(input)
 }
@@ -324,7 +332,7 @@ fn concatenated_definite_textstring(input: &str) -> IResult<&str, TextString> {
             definite_textstring,
             map_res(
                 many0(alt((
-                    definite_bytestring,
+                    map(definite_bytestring, |(d, _e)| d),
                     map(definite_textstring, |s| s.into_bytes()),
                 ))),
                 |rest| String::from_utf8(rest.into_iter().flatten().collect()),

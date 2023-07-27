@@ -88,7 +88,7 @@ fn definite_bytestring(input: &[u8]) -> IResult<&[u8], ByteString> {
         .map_err(|_| Err::Error(make_error(input, ErrorKind::LengthValue)))?;
     let (input, data) = take_bytes(length)(input)?;
     let data = data.to_owned();
-    Ok((input, ByteString { data, bitwidth }))
+    Ok((input, ByteString::new(data).with_bitwidth(bitwidth)))
 }
 
 fn indefinite_bytestring(input: &[u8]) -> IResult<&[u8], DataItem> {
