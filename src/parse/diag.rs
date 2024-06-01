@@ -46,7 +46,7 @@ fn wrapws_strings<'a>(
 }
 
 fn opt_comma_tag<'a>(t: &'a str) -> impl FnMut(&'a str) -> IResult<&'a str, &'a str> {
-    alt((tag(t), map(tuple((tag(","), ws, tag(t))), |(_, (), f)| f)))
+    alt((tag(t), map(tuple((tag(","), many0_count(ws::<()>), tag(t))), |(_, _, f)| f)))
 }
 
 /// Recognizes one or more binary numerical characters: 0, 1
