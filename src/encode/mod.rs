@@ -1,4 +1,5 @@
 mod bytes;
+mod calendar;
 mod diag;
 mod hex;
 
