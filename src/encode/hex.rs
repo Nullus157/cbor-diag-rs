@@ -5,13 +5,13 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 
-use super::Encoding;
-use chrono::{DateTime, NaiveDate, NaiveDateTime};
+use super::{calendar, Encoding};
 use half::f16;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_rational::{BigRational, Ratio};
 use num_traits::pow::pow;
 use separator::Separatable;
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use url::Url;
 use uuid::Uuid;
 
@@ -598,7 +598,7 @@ fn tagged_to_hex(
 
 fn datetime_epoch(value: &DataItem) -> Line {
     let date = if let DataItem::TextString(TextString { data, .. }) = value {
-        match DateTime::parse_from_rfc3339(data) {
+        match OffsetDateTime::parse(data, &Rfc3339) {
             Ok(value) => value,
             Err(err) => {
                 return Line::new("", format!("error parsing datetime: {err}"));
@@ -608,7 +608,14 @@ fn datetime_epoch(value: &DataItem) -> Line {
         return Line::new("", "invalid type for datetime");
     };
 
-    Line::new("", format!("epoch({})", date.format("%s%.f")))
+    Line::new(
+        "",
+        format!(
+            "epoch({}{})",
+            date.unix_timestamp(),
+            calendar::fraction(date.nanosecond())
+        ),
+    )
 }
 
 fn epoch_datetime(value: &DataItem) -> Line {
@@ -617,7 +624,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value >= (i64::max_value() as u64) {
                 None
             } else {
-                NaiveDateTime::from_timestamp_opt(value as i64, 0)
+                Some((value as i64, 0))
             }
         }
 
@@ -625,7 +632,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value >= (i64::max_value() as u64) {
                 None
             } else if let Some(value) = (-1i64).checked_sub(value as i64) {
-                NaiveDateTime::from_timestamp_opt(value, 0)
+                Some((value, 0))
             } else {
                 None
             }
@@ -640,7 +647,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
                 } else {
                     (value, value.fract() * 1_000_000_000.0)
                 };
-                NaiveDateTime::from_timestamp_opt(value as i64, fract as u32)
+                Some((value as i64, fract as u32))
             }
         }
 
@@ -656,8 +663,10 @@ fn epoch_datetime(value: &DataItem) -> Line {
         }
     };
 
-    if let Some(date) = date {
-        Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+    if let Some(date) =
+        date.and_then(|(seconds, nanoseconds)| calendar::format_datetime(seconds, nanoseconds))
+    {
+        Line::new("", format!("datetime({date})"))
     } else {
         Line::new("", "offset is too large")
     }
@@ -665,7 +674,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
 
 fn date_epoch(value: &DataItem) -> Line {
     let date = if let DataItem::TextString(TextString { data, .. }) = value {
-        match NaiveDate::parse_from_str(data, "%Y-%m-%d") {
+        match calendar::parse_days_since_epoch(data) {
             Ok(value) => value,
             Err(err) => {
                 return Line::new("", format!("error parsing date: {err}"));
@@ -675,15 +684,7 @@ fn date_epoch(value: &DataItem) -> Line {
         return Line::new("", "invalid type for date");
     };
 
-    Line::new(
-        "",
-        format!(
-            "epoch({})",
-            date.signed_duration_since(NaiveDate::from_ymd_opt(1970, 1, 1).unwrap())
-                .num_days()
-                .separated_string()
-        ),
-    )
+    Line::new("", format!("epoch({})", date.separated_string()))
 }
 
 fn epoch_date(value: &DataItem) -> Line {
@@ -699,18 +700,10 @@ fn epoch_date(value: &DataItem) -> Line {
         }
     };
 
-    let date = days
-        .and_then(|days| days.checked_mul(24 * 60 * 60 * 1000))
-        // This is the only non-panicking constructor for `chrono::Duration`
-        .map(chrono::Duration::milliseconds)
-        .and_then(|duration| {
-            NaiveDate::from_ymd_opt(1970, 1, 1)
-                .unwrap()
-                .checked_add_signed(duration)
-        });
+    let date = days.and_then(calendar::format_date);
 
     if let Some(date) = date {
-        Line::new("", format!("date({})", date.format("%F")))
+        Line::new("", format!("date({date})"))
     } else {
         Line::new("", "date offset is too large for this tool")
     }
