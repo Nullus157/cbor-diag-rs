@@ -3,11 +3,12 @@ use std::{
     convert::TryFrom,
     iter,
     net::{Ipv4Addr, Ipv6Addr},
+    str::FromStr,
 };
 
 use super::Encoding;
-use chrono::{DateTime, NaiveDate, NaiveDateTime};
 use half::f16;
+use jiff::{civil::Date, Span, Timestamp};
 use num_bigint::{BigInt, BigUint, Sign};
 use num_rational::{BigRational, Ratio};
 use num_traits::pow::pow;
@@ -598,7 +599,7 @@ fn tagged_to_hex(
 
 fn datetime_epoch(value: &DataItem) -> Line {
     let date = if let DataItem::TextString(TextString { data, .. }) = value {
-        match DateTime::parse_from_rfc3339(data) {
+        match Timestamp::from_str(data) {
             Ok(value) => value,
             Err(err) => {
                 return Line::new("", format!("error parsing datetime: {err}"));
@@ -608,7 +609,7 @@ fn datetime_epoch(value: &DataItem) -> Line {
         return Line::new("", "invalid type for datetime");
     };
 
-    Line::new("", format!("epoch({})", date.format("%s%.f")))
+    Line::new("", format!("epoch({})", date.strftime("%s%.f")))
 }
 
 fn epoch_datetime(value: &DataItem) -> Line {
@@ -617,8 +618,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value >= (i64::MAX as u64) {
                 None
             } else {
-                #[allow(deprecated)]
-                NaiveDateTime::from_timestamp_opt(value as i64, 0)
+                Timestamp::from_second(value as i64).ok()
             }
         }
 
@@ -626,8 +626,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value >= (i64::MAX as u64) {
                 None
             } else if let Some(value) = (-1i64).checked_sub(value as i64) {
-                #[allow(deprecated)]
-                NaiveDateTime::from_timestamp_opt(value, 0)
+                Timestamp::from_second(value).ok()
             } else {
                 None
             }
@@ -637,13 +636,12 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value - 1.0 <= (i64::MIN as f64) || value >= (i64::MAX as f64) {
                 None
             } else {
-                let (value, fract) = if value < 0.0 {
+                let (seconds, nanoseconds) = if value < 0.0 {
                     (value - 1.0, (1.0 + value.fract()) * 1_000_000_000.0)
                 } else {
                     (value, value.fract() * 1_000_000_000.0)
                 };
-                #[allow(deprecated)]
-                NaiveDateTime::from_timestamp_opt(value as i64, fract as u32)
+                Timestamp::new(seconds as i64, nanoseconds as i32).ok()
             }
         }
 
@@ -660,17 +658,32 @@ fn epoch_datetime(value: &DataItem) -> Line {
     };
 
     if let Some(date) = date {
-        Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+        Line::new("", format!("datetime({})", date.strftime("%FT%T%.fZ")))
     } else {
         Line::new("", "offset is too large")
     }
 }
 
+const DATE_UNIX_EPOCH: Date = Date::constant(1970, 1, 1);
+
 fn date_epoch(value: &DataItem) -> Line {
     let date = if let DataItem::TextString(TextString { data, .. }) = value {
-        match NaiveDate::parse_from_str(data, "%Y-%m-%d") {
+        match Date::strptime("%F", data) {
             Ok(value) => value,
             Err(err) => {
+                if let Some((year, _)) = data
+                    .strip_prefix(['-', '+'])
+                    .unwrap_or(data.as_ref())
+                    .split_once('-')
+                {
+                    if let Ok(year) = u64::from_str(year) {
+                        if year > 9999 {
+                            // jiff fails during parsing a 5 digit integer rather than returning
+                            // its out of range error
+                            return Line::new("", "error parsing date: parameter 'year' is not in the required range of -9999..=9999");
+                        }
+                    }
+                }
                 return Line::new("", format!("error parsing date: {err}"));
             }
         }
@@ -682,8 +695,9 @@ fn date_epoch(value: &DataItem) -> Line {
         "",
         format!(
             "epoch({})",
-            date.signed_duration_since(NaiveDate::from_ymd_opt(1970, 1, 1).unwrap())
-                .num_days()
+            date.since(DATE_UNIX_EPOCH)
+                .unwrap()
+                .get_days()
                 .separated_string()
         ),
     )
@@ -703,17 +717,11 @@ fn epoch_date(value: &DataItem) -> Line {
     };
 
     let date = days
-        .and_then(|days| days.checked_mul(24 * 60 * 60 * 1000))
-        // This is the only non-panicking constructor for `chrono::Duration`
-        .map(chrono::Duration::milliseconds)
-        .and_then(|duration| {
-            NaiveDate::from_ymd_opt(1970, 1, 1)
-                .unwrap()
-                .checked_add_signed(duration)
-        });
+        .and_then(|days| Span::new().try_days(days).ok())
+        .and_then(|days| DATE_UNIX_EPOCH.checked_add(days).ok());
 
     if let Some(date) = date {
-        Line::new("", format!("date({})", date.format("%F")))
+        Line::new("", format!("date({})", date.strftime("%F")))
     } else {
         Line::new("", "date offset is too large for this tool")
     }

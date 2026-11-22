@@ -66,82 +66,82 @@ testcases! {
             "),
         }
 
-        // epoch_date_min_repr {
-        //     DataItem::Tag {
-        //         tag: Tag::EPOCH_DATE,
-        //         bitwidth: IntegerWidth::Eight,
-        //         value: Box::new(DataItem::Negative {
-        //             value: 96465657,
-        //             bitwidth: IntegerWidth::ThirtyTwo,
-        //         }),
-        //     },
-        //     {
-        //         "100_0(-96465658_2)",
-        //         "100_0(-96465658_2)",
-        //     },
-        //     indoc!("
-        //         d8 64          # epoch date value, tag(100)
-        //            3a 05bff2f9 #   negative(-96,465,658)
-        //                        #   date(-262144-01-01)
-        //     "),
-        // }
+        epoch_date_min_repr {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Negative {
+                    value: 4371586,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                }),
+            },
+            {
+                "100_0(-4371587_2)",
+                "100_0(-4371587_2)",
+            },
+            indoc!("
+                d8 64          # epoch date value, tag(100)
+                   3a 0042b482 #   negative(-4,371,587)
+                               #   date(-9999-01-01)
+            "),
+        }
 
         epoch_date_min_repr_minus_one {
             DataItem::Tag {
                 tag: Tag::EPOCH_DATE,
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Negative {
-                    value: 96465658,
+                    value: 4371587,
                     bitwidth: IntegerWidth::ThirtyTwo,
                 }),
             },
             {
-                "100_0(-96465659_2)",
-                "100_0(-96465659_2)",
+                "100_0(-4371588_2)",
+                "100_0(-4371588_2)",
             },
             indoc!("
                 d8 64          # epoch date value, tag(100)
-                   3a 05bff2fa #   negative(-96,465,659)
+                   3a 0042b483 #   negative(-4,371,588)
                                #   date offset is too large for this tool
             "),
         }
 
-        // epoch_date_max_repr {
-        //     DataItem::Tag {
-        //         tag: Tag::EPOCH_DATE,
-        //         bitwidth: IntegerWidth::Eight,
-        //         value: Box::new(DataItem::Integer {
-        //             value: 95026601,
-        //             bitwidth: IntegerWidth::ThirtyTwo,
-        //         }),
-        //     },
-        //     {
-        //         "100_0(95026601_2)",
-        //         "100_0(95026601_2)",
-        //     },
-        //     indoc!("
-        //        d8 64          # epoch date value, tag(100)
-        //           1a 05a9fda9 #   unsigned(95,026,601)
-        //                       #   date(+262143-12-31)
-        //     "),
-        // }
+        epoch_date_max_repr {
+            DataItem::Tag {
+                tag: Tag::EPOCH_DATE,
+                bitwidth: IntegerWidth::Eight,
+                value: Box::new(DataItem::Integer {
+                    value: 2932896,
+                    bitwidth: IntegerWidth::ThirtyTwo,
+                }),
+            },
+            {
+                "100_0(2932896_2)",
+                "100_0(2932896_2)",
+            },
+            indoc!("
+               d8 64          # epoch date value, tag(100)
+                  1a 002cc0a0 #   unsigned(2,932,896)
+                              #   date(9999-12-31)
+            "),
+        }
 
         epoch_date_max_repr_plus_one {
             DataItem::Tag {
                 tag: Tag::EPOCH_DATE,
                 bitwidth: IntegerWidth::Eight,
                 value: Box::new(DataItem::Integer {
-                    value: 95026602,
+                    value: 2932897,
                     bitwidth: IntegerWidth::ThirtyTwo,
                 }),
             },
             {
-                "100_0(95026602_2)",
-                "100_0(95026602_2)",
+                "100_0(2932897_2)",
+                "100_0(2932897_2)",
             },
             indoc!("
                d8 64          # epoch date value, tag(100)
-                  1a 05a9fdaa #   unsigned(95,026,602)
+                  1a 002cc0a1 #   unsigned(2,932,897)
                               #   date offset is too large for this tool
             "),
         }
@@ -1619,71 +1619,73 @@ testcases! {
             "#),
         }
 
-        // date_min_repr(hex2value, value2hex) {
-        //     DataItem::Tag {
-        //         tag: Tag::DATE,
-        //         bitwidth: IntegerWidth::Sixteen,
-        //         value: Box::new(DataItem::TextString(TextString {
-        //             data: "-262144-01-01".into(),
-        //             bitwidth: IntegerWidth::Zero,
-        //         })),
-        //     },
-        //     indoc!(r#"
-        //        d9 03ec                          # standard date string, tag(1004)
-        //           6d                            #   text(13)
-        //              2d3236323134342d30312d3031 #     "-262144-01-01"
-        //                                         #   epoch(-96,465,658)
-        //     "#),
-        // }
+        // These tests are just to pin down the overflow behavior,
+        // the exact supported ranges are not fixed.
+        date_min_repr(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "-9999-01-01".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 03ec                      # standard date string, tag(1004)
+                   6b                        #   text(11)
+                      2d393939392d30312d3031 #     "-9999-01-01"
+                                             #   epoch(-4,371,587)
+            "#),
+        }
 
         date_min_repr_minus_one(hex2value, value2hex) {
             DataItem::Tag {
                 tag: Tag::DATE,
                 bitwidth: IntegerWidth::Sixteen,
                 value: Box::new(DataItem::TextString(TextString {
-                    data: "-262145-12-31".into(),
+                    data: "-10000-12-31".into(),
                     bitwidth: IntegerWidth::Zero,
                 })),
             },
             indoc!(r#"
-               d9 03ec                          # standard date string, tag(1004)
-                  6d                            #   text(13)
-                     2d3236323134352d31322d3331 #     "-262145-12-31"
-                                                #   error parsing date: input is out of range
+                d9 03ec                        # standard date string, tag(1004)
+                   6c                          #   text(12)
+                      2d31303030302d31322d3331 #     "-10000-12-31"
+                                               #   error parsing date: parameter 'year' is not in the required range of -9999..=9999
             "#),
         }
 
-        // date_max_repr(hex2value, value2hex) {
-        //     DataItem::Tag {
-        //         tag: Tag::DATE,
-        //         bitwidth: IntegerWidth::Sixteen,
-        //         value: Box::new(DataItem::TextString(TextString {
-        //             data: "+262143-12-31".into(),
-        //             bitwidth: IntegerWidth::Zero,
-        //         })),
-        //     },
-        //     indoc!(r#"
-        //        d9 03ec                          # standard date string, tag(1004)
-        //           6d                            #   text(13)
-        //              2b3236323134332d31322d3331 #     "+262143-12-31"
-        //                                         #   epoch(95,026,601)
-        //     "#),
-        // }
+        date_max_repr(hex2value, value2hex) {
+            DataItem::Tag {
+                tag: Tag::DATE,
+                bitwidth: IntegerWidth::Sixteen,
+                value: Box::new(DataItem::TextString(TextString {
+                    data: "9999-12-31".into(),
+                    bitwidth: IntegerWidth::Zero,
+                })),
+            },
+            indoc!(r#"
+                d9 03ec                    # standard date string, tag(1004)
+                   6a                      #   text(10)
+                      393939392d31322d3331 #     "9999-12-31"
+                                           #   epoch(2,932,896)
+            "#),
+        }
 
         date_max_repr_plus_one(hex2value, value2hex) {
             DataItem::Tag {
                 tag: Tag::DATE,
                 bitwidth: IntegerWidth::Sixteen,
                 value: Box::new(DataItem::TextString(TextString {
-                    data: "+262144-01-01".into(),
+                    data: "+10000-01-01".into(),
                     bitwidth: IntegerWidth::Zero,
                 })),
             },
             indoc!(r#"
-               d9 03ec                          # standard date string, tag(1004)
-                  6d                            #   text(13)
-                     2b3236323134342d30312d3031 #     "+262144-01-01"
-                                                #   error parsing date: input is out of range
+                d9 03ec                        # standard date string, tag(1004)
+                   6c                          #   text(12)
+                      2b31303030302d30312d3031 #     "+10000-01-01"
+                                               #   error parsing date: parameter 'year' is not in the required range of -9999..=9999
             "#),
         }
 
