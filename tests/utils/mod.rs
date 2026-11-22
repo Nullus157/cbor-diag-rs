@@ -1,6 +1,8 @@
+#[allow(unused_imports)] // used via macros in various test binaries
 pub use cbor_diag::{parse_diag, parse_hex};
 
 #[derive(Eq)]
+#[allow(dead_code)]
 #[doc(hidden)]
 pub struct DisplayDebug<T>(pub T);
 

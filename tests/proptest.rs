@@ -16,10 +16,10 @@ use std::cmp;
 
 fn bitwidth_max(width: IntegerWidth) -> u64 {
     match width {
-        IntegerWidth::SixtyFour => u64::max_value(),
-        IntegerWidth::ThirtyTwo => u32::max_value().into(),
-        IntegerWidth::Sixteen => u16::max_value().into(),
-        IntegerWidth::Eight => u8::max_value().into(),
+        IntegerWidth::SixtyFour => u64::MAX,
+        IntegerWidth::ThirtyTwo => u32::MAX.into(),
+        IntegerWidth::Sixteen => u16::MAX.into(),
+        IntegerWidth::Eight => u8::MAX.into(),
         IntegerWidth::Zero => 23,
         IntegerWidth::Unknown => unreachable!(),
     }
