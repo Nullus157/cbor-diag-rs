@@ -39,6 +39,28 @@ testcases! {
             }
         }
 
+        hello_world_trailingcomma(diag2value) {
+            DataItem::Map {
+                data: vec![
+                    (
+                        DataItem::TextString(TextString {
+                            data: "hello".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                        DataItem::TextString(TextString {
+                            data: "world".into(),
+                            bitwidth: IntegerWidth::Unknown,
+                        }),
+                    ),
+                ],
+                bitwidth: Some(IntegerWidth::Unknown),
+            },
+            {
+                r#"{"hello":"world",}"#,
+                r#"{"hello": "world",}"#,
+            }
+        }
+
         non_alpha(diag2value, value2diag) {
             DataItem::Map {
                 data: vec![

@@ -39,6 +39,22 @@ testcases! {
             }
         }
 
+        hello_trailingcomma(diag2value) {
+            DataItem::Array {
+                data: vec![
+                    DataItem::TextString(TextString {
+                        data: "hello".into(),
+                        bitwidth: IntegerWidth::Unknown,
+                    }),
+                ],
+                bitwidth: Some(IntegerWidth::Unknown),
+            },
+            {
+                r#"["hello",]"#,
+                r#"["hello",]"#,
+            }
+        }
+
         hello_world(diag2value, value2diag) {
             DataItem::Array {
                 data: vec![
