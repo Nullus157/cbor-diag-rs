@@ -63,7 +63,7 @@ fn arb_bytestring() -> impl Strategy<Value = ByteString> {
             any::<u8>(),
             0..=cmp::min(bitwidth_max(bitwidth) as usize, 300),
         )
-        .prop_map(move |data| ByteString { data, bitwidth })
+        .prop_map(move |data| ByteString::new(data).with_bitwidth(bitwidth))
     })
 }
 

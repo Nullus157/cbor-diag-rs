@@ -103,10 +103,9 @@ testcases! {
                                         ],
                                         bitwidth: Some(IntegerWidth::Unknown),
                                     },
-                                    DataItem::ByteString(ByteString {
-                                        data: "\u{1f1f3}".into(),
-                                        bitwidth: IntegerWidth::Unknown,
-                                    }),
+                                    DataItem::ByteString(ByteString::new(
+                                            "\u{1f1f3}")
+                                    ),
                                 )
                             ],
                             bitwidth: Some(IntegerWidth::Unknown),
@@ -266,10 +265,9 @@ testcases! {
                                         ],
                                         bitwidth: Some(IntegerWidth::Zero),
                                     },
-                                    DataItem::ByteString(ByteString {
-                                        data: "\u{1f1f3}".into(),
-                                        bitwidth: IntegerWidth::Zero,
-                                    }),
+                                    DataItem::ByteString(ByteString::new(
+                                        "\u{1f1f3}").with_bitwidth(IntegerWidth::Zero)
+                                    ),
                                 )
                             ],
                             bitwidth: Some(IntegerWidth::Eight),
@@ -434,10 +432,9 @@ testcases! {
                                             ],
                                             bitwidth: Some(IntegerWidth::Unknown),
                                         },
-                                        DataItem::ByteString(ByteString {
-                                            data: "\u{1f1f3}".into(),
-                                            bitwidth: IntegerWidth::Unknown,
-                                        }),
+                                        DataItem::ByteString(ByteString::new(
+                                            "\u{1f1f3}")
+                                        ),
                                     )
                                 ],
                                 bitwidth: Some(IntegerWidth::Unknown),
@@ -601,10 +598,9 @@ testcases! {
                                             ],
                                             bitwidth: Some(IntegerWidth::Zero),
                                         },
-                                        DataItem::ByteString(ByteString {
-                                            data: "\u{1f1f3}".into(),
-                                            bitwidth: IntegerWidth::Zero,
-                                        }),
+                                        DataItem::ByteString(ByteString::new(
+                                            "\u{1f1f3}").with_bitwidth(IntegerWidth::Zero)
+                                        ),
                                     )
                                 ],
                                 bitwidth: Some(IntegerWidth::Eight),

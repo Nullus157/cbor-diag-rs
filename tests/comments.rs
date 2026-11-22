@@ -53,10 +53,9 @@ testcases! {
     }
 
     rfc_bytestring(diag2value) {
-        DataItem::ByteString(ByteString {
-            data: hex!("68656c6c6f20776f726c64").into(),
-            bitwidth: IntegerWidth::Unknown,
-        }),
+        DataItem::ByteString(ByteString::new(
+            hex!("68656c6c6f20776f726c64"))
+        ),
         {
             "
                 h'68 65 6c /doubled l!/ 6c 6f /hello/
@@ -67,10 +66,9 @@ testcases! {
     }
 
     not_unprefixed_bytestrings(diag2value) {
-        DataItem::ByteString(ByteString {
-            data: b"hello /world/"[..].into(),
-            bitwidth: IntegerWidth::Unknown,
-        }),
+        DataItem::ByteString(ByteString::new(
+            *b"hello /world/")
+        ),
         {
             "
                 'hello /world/'
