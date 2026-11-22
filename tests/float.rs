@@ -1,6 +1,5 @@
 use cbor_diag::{DataItem, FloatWidth};
 use indoc::indoc;
-use std::f64::{INFINITY, NAN, NEG_INFINITY};
 
 #[macro_use]
 mod utils;
@@ -42,7 +41,7 @@ testcases! {
 
         infinity(diag2value, value2diag) {
             DataItem::Float {
-                value: INFINITY,
+                value: f64::INFINITY,
                 bitwidth: FloatWidth::Unknown,
             },
             {
@@ -53,7 +52,7 @@ testcases! {
 
         neg_infinity(diag2value, value2diag) {
             DataItem::Float {
-                value: NEG_INFINITY,
+                value: f64::NEG_INFINITY,
                 bitwidth: FloatWidth::Unknown,
             },
             {
@@ -64,7 +63,7 @@ testcases! {
 
         nan(value2diag) {
             DataItem::Float {
-                value: NAN,
+                value: f64::NAN,
                 bitwidth: FloatWidth::Unknown,
             },
             {
@@ -119,7 +118,7 @@ testcases! {
 
         infinity {
             DataItem::Float {
-                value: INFINITY,
+                value: f64::INFINITY,
                 bitwidth: FloatWidth::Sixteen,
             },
             {
@@ -133,7 +132,7 @@ testcases! {
 
         neg_infinity {
             DataItem::Float {
-                value: NEG_INFINITY,
+                value: f64::NEG_INFINITY,
                 bitwidth: FloatWidth::Sixteen,
             },
             {
@@ -147,7 +146,7 @@ testcases! {
 
         nan(value2diag, value2hex) {
             DataItem::Float {
-                value: NAN,
+                value: f64::NAN,
                 bitwidth: FloatWidth::Sixteen,
             },
             {
@@ -205,7 +204,7 @@ testcases! {
 
         infinity {
             DataItem::Float {
-                value: INFINITY,
+                value: f64::INFINITY,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
             {
@@ -219,7 +218,7 @@ testcases! {
 
         neg_infinity {
             DataItem::Float {
-                value: NEG_INFINITY,
+                value: f64::NEG_INFINITY,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
             {
@@ -233,7 +232,7 @@ testcases! {
 
         nan(value2diag, value2hex) {
             DataItem::Float {
-                value: NAN,
+                value: f64::NAN,
                 bitwidth: FloatWidth::ThirtyTwo,
             },
             {

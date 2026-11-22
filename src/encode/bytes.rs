@@ -27,10 +27,10 @@ fn item_to_bytes(bytes: &mut Vec<u8>, value: &DataItem) {
 }
 
 fn integer_to_bytes(bytes: &mut Vec<u8>, value: u64, bitwidth: IntegerWidth, major: u8) {
-    const U8_MAX: u64 = u8::max_value() as u64;
-    const U16_MAX: u64 = u16::max_value() as u64;
-    const U32_MAX: u64 = u32::max_value() as u64;
-    const U64_MAX: u64 = u64::max_value();
+    const U8_MAX: u64 = u8::MAX as u64;
+    const U16_MAX: u64 = u16::MAX as u64;
+    const U32_MAX: u64 = u32::MAX as u64;
+    const U64_MAX: u64 = u64::MAX;
 
     match bitwidth {
         IntegerWidth::Unknown => {

@@ -1,13 +1,14 @@
 use std::{
     ascii, cmp,
     convert::TryFrom,
-    i64, iter,
+    iter,
     net::{Ipv4Addr, Ipv6Addr},
+    str::FromStr,
 };
 
 use super::Encoding;
-use chrono::{DateTime, NaiveDate, NaiveDateTime};
 use half::f16;
+use jiff::{civil::Date, Span, Timestamp};
 use num_bigint::{BigInt, BigUint, Sign};
 use num_rational::{BigRational, Ratio};
 use num_traits::pow::pow;
@@ -134,11 +135,11 @@ fn integer_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if value < 24 {
             IntegerWidth::Zero
-        } else if value <= u64::from(u8::max_value()) {
+        } else if value <= u64::from(u8::MAX) {
             IntegerWidth::Eight
-        } else if value <= u64::from(u16::max_value()) {
+        } else if value <= u64::from(u16::MAX) {
             IntegerWidth::Sixteen
-        } else if value <= u64::from(u32::max_value()) {
+        } else if value <= u64::from(u32::MAX) {
             IntegerWidth::ThirtyTwo
         } else {
             IntegerWidth::SixtyFour
@@ -163,11 +164,11 @@ fn negative_to_hex(value: u64, mut bitwidth: IntegerWidth) -> Line {
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if value < 24 {
             IntegerWidth::Zero
-        } else if value <= u64::from(u8::max_value()) {
+        } else if value <= u64::from(u8::MAX) {
             IntegerWidth::Eight
-        } else if value <= u64::from(u16::max_value()) {
+        } else if value <= u64::from(u16::MAX) {
             IntegerWidth::Sixteen
-        } else if value <= u64::from(u32::max_value()) {
+        } else if value <= u64::from(u32::MAX) {
             IntegerWidth::ThirtyTwo
         } else {
             IntegerWidth::SixtyFour
@@ -199,11 +200,11 @@ fn length_to_hex(
     if bitwidth == Some(IntegerWidth::Unknown) {
         bitwidth = if length.unwrap() < 24 {
             Some(IntegerWidth::Zero)
-        } else if length.unwrap() < usize::from(u8::max_value()) {
+        } else if length.unwrap() < usize::from(u8::MAX) {
             Some(IntegerWidth::Eight)
-        } else if length.unwrap() < usize::from(u16::max_value()) {
+        } else if length.unwrap() < usize::from(u16::MAX) {
             Some(IntegerWidth::Sixteen)
-        } else if length.unwrap() < u32::max_value() as usize {
+        } else if length.unwrap() < u32::MAX as usize {
             Some(IntegerWidth::ThirtyTwo)
         } else {
             Some(IntegerWidth::SixtyFour)
@@ -387,11 +388,11 @@ fn tagged_to_hex(
     if bitwidth == IntegerWidth::Unknown {
         bitwidth = if tag_value < 24 {
             IntegerWidth::Zero
-        } else if tag_value < u64::from(u8::max_value()) {
+        } else if tag_value < u64::from(u8::MAX) {
             IntegerWidth::Eight
-        } else if tag_value < u64::from(u16::max_value()) {
+        } else if tag_value < u64::from(u16::MAX) {
             IntegerWidth::Sixteen
-        } else if tag_value < u64::from(u32::max_value()) {
+        } else if tag_value < u64::from(u32::MAX) {
             IntegerWidth::ThirtyTwo
         } else {
             IntegerWidth::SixtyFour
@@ -598,7 +599,7 @@ fn tagged_to_hex(
 
 fn datetime_epoch(value: &DataItem) -> Line {
     let date = if let DataItem::TextString(TextString { data, .. }) = value {
-        match DateTime::parse_from_rfc3339(data) {
+        match Timestamp::from_str(data) {
             Ok(value) => value,
             Err(err) => {
                 return Line::new("", format!("error parsing datetime: {err}"));
@@ -608,39 +609,39 @@ fn datetime_epoch(value: &DataItem) -> Line {
         return Line::new("", "invalid type for datetime");
     };
 
-    Line::new("", format!("epoch({})", date.format("%s%.f")))
+    Line::new("", format!("epoch({})", date.strftime("%s%.f")))
 }
 
 fn epoch_datetime(value: &DataItem) -> Line {
     let date = match *value {
         DataItem::Integer { value, .. } => {
-            if value >= (i64::max_value() as u64) {
+            if value >= (i64::MAX as u64) {
                 None
             } else {
-                NaiveDateTime::from_timestamp_opt(value as i64, 0)
+                Timestamp::from_second(value as i64).ok()
             }
         }
 
         DataItem::Negative { value, .. } => {
-            if value >= (i64::max_value() as u64) {
+            if value >= (i64::MAX as u64) {
                 None
             } else if let Some(value) = (-1i64).checked_sub(value as i64) {
-                NaiveDateTime::from_timestamp_opt(value, 0)
+                Timestamp::from_second(value).ok()
             } else {
                 None
             }
         }
 
         DataItem::Float { value, .. } => {
-            if value - 1.0 <= (i64::min_value() as f64) || value >= (i64::max_value() as f64) {
+            if value - 1.0 <= (i64::MIN as f64) || value >= (i64::MAX as f64) {
                 None
             } else {
-                let (value, fract) = if value < 0.0 {
+                let (seconds, nanoseconds) = if value < 0.0 {
                     (value - 1.0, (1.0 + value.fract()) * 1_000_000_000.0)
                 } else {
                     (value, value.fract() * 1_000_000_000.0)
                 };
-                NaiveDateTime::from_timestamp_opt(value as i64, fract as u32)
+                Timestamp::new(seconds as i64, nanoseconds as i32).ok()
             }
         }
 
@@ -657,17 +658,32 @@ fn epoch_datetime(value: &DataItem) -> Line {
     };
 
     if let Some(date) = date {
-        Line::new("", format!("datetime({})", date.format("%FT%T%.fZ")))
+        Line::new("", format!("datetime({})", date.strftime("%FT%T%.fZ")))
     } else {
         Line::new("", "offset is too large")
     }
 }
 
+const DATE_UNIX_EPOCH: Date = Date::constant(1970, 1, 1);
+
 fn date_epoch(value: &DataItem) -> Line {
     let date = if let DataItem::TextString(TextString { data, .. }) = value {
-        match NaiveDate::parse_from_str(data, "%Y-%m-%d") {
+        match Date::strptime("%F", data) {
             Ok(value) => value,
             Err(err) => {
+                if let Some((year, _)) = data
+                    .strip_prefix(['-', '+'])
+                    .unwrap_or(data.as_ref())
+                    .split_once('-')
+                {
+                    if let Ok(year) = u64::from_str(year) {
+                        if year > 9999 {
+                            // jiff fails during parsing a 5 digit integer rather than returning
+                            // its out of range error
+                            return Line::new("", "error parsing date: parameter 'year' is not in the required range of -9999..=9999");
+                        }
+                    }
+                }
                 return Line::new("", format!("error parsing date: {err}"));
             }
         }
@@ -679,8 +695,9 @@ fn date_epoch(value: &DataItem) -> Line {
         "",
         format!(
             "epoch({})",
-            date.signed_duration_since(NaiveDate::from_ymd_opt(1970, 1, 1).unwrap())
-                .num_days()
+            date.since(DATE_UNIX_EPOCH)
+                .unwrap()
+                .get_days()
                 .separated_string()
         ),
     )
@@ -700,17 +717,11 @@ fn epoch_date(value: &DataItem) -> Line {
     };
 
     let date = days
-        .and_then(|days| days.checked_mul(24 * 60 * 60 * 1000))
-        // This is the only non-panicking constructor for `chrono::Duration`
-        .map(chrono::Duration::milliseconds)
-        .and_then(|duration| {
-            NaiveDate::from_ymd_opt(1970, 1, 1)
-                .unwrap()
-                .checked_add_signed(duration)
-        });
+        .and_then(|days| Span::new().try_days(days).ok())
+        .and_then(|days| DATE_UNIX_EPOCH.checked_add(days).ok());
 
     if let Some(date) = date {
-        Line::new("", format!("date({})", date.format("%F")))
+        Line::new("", format!("date({})", date.strftime("%F")))
     } else {
         Line::new("", "date offset is too large for this tool")
     }
@@ -771,14 +782,14 @@ fn extract_fraction(value: &DataItem, base: usize) -> Result<BigRational, &'stat
             }
             let (exponent, positive_exponent) = match data[0] {
                 DataItem::Integer { value, .. } => {
-                    if value <= usize::max_value() as u64 {
+                    if value <= usize::MAX as u64 {
                         (value as usize, true)
                     } else {
                         return Err("exponent is too large");
                     }
                 }
                 DataItem::Negative { value, .. } => {
-                    if value < usize::max_value() as u64 {
+                    if value < usize::MAX as u64 {
                         (value as usize + 1, false)
                     } else {
                         return Err("exponent is too large");
@@ -1002,7 +1013,7 @@ fn ipv4_address_or_prefix(value: &DataItem) -> Line {
             }
         }
         DataItem::Array { data, .. } => {
-            match data.get(0) {
+            match data.first() {
                 Some(DataItem::Integer { value: length, .. }) => {
                     if let Some(DataItem::ByteString(ByteString { data: prefix, .. })) = data.get(1)
                     {
@@ -1072,7 +1083,7 @@ fn ipv6_address_or_prefix(value: &DataItem) -> Line {
             }
         }
         DataItem::Array { data, .. } => {
-            match data.get(0) {
+            match data.first() {
                 Some(DataItem::Integer { value: length, .. }) => {
                     if let Some(DataItem::ByteString(ByteString { data: prefix, .. })) = data.get(1)
                     {
@@ -1138,18 +1149,14 @@ fn typed_array<const LEN: usize>(
     convert: impl Fn([u8; LEN]) -> String,
 ) -> Vec<Line> {
     if let DataItem::ByteString(ByteString { data, bitwidth }) = value {
-        if data.len() % LEN == 0 {
+        let (chunks, leftover) = data.as_chunks::<LEN>();
+        if leftover.is_empty() {
             let mut line = length_to_hex(Some(data.len()), Some(*bitwidth), 2, "bytes");
-            // TODO: Use slice::array_chunks when stable
-            line.sublines.extend(
-                data.chunks_exact(LEN)
-                    .map(|chunk| <[_; LEN]>::try_from(chunk).unwrap())
-                    .map(|chunk| {
-                        let value = convert(chunk);
-                        let hex = data_encoding::HEXLOWER.encode(&chunk);
-                        Line::new(hex, format!("{name}({value})"))
-                    }),
-            );
+            line.sublines.extend(chunks.iter().map(|chunk| {
+                let value = convert(*chunk);
+                let hex = data_encoding::HEXLOWER.encode(chunk);
+                Line::new(hex, format!("{name}({value})"))
+            }));
             vec![line]
         } else {
             vec![
