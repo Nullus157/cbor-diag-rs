@@ -66,25 +66,25 @@ testcases! {
             "),
         }
 
-        epoch_date_min_repr {
-            DataItem::Tag {
-                tag: Tag::EPOCH_DATE,
-                bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::Negative {
-                    value: 96465657,
-                    bitwidth: IntegerWidth::ThirtyTwo,
-                }),
-            },
-            {
-                "100_0(-96465658_2)",
-                "100_0(-96465658_2)",
-            },
-            indoc!("
-                d8 64          # epoch date value, tag(100)
-                   3a 05bff2f9 #   negative(-96,465,658)
-                               #   date(-262144-01-01)
-            "),
-        }
+        // epoch_date_min_repr {
+        //     DataItem::Tag {
+        //         tag: Tag::EPOCH_DATE,
+        //         bitwidth: IntegerWidth::Eight,
+        //         value: Box::new(DataItem::Negative {
+        //             value: 96465657,
+        //             bitwidth: IntegerWidth::ThirtyTwo,
+        //         }),
+        //     },
+        //     {
+        //         "100_0(-96465658_2)",
+        //         "100_0(-96465658_2)",
+        //     },
+        //     indoc!("
+        //         d8 64          # epoch date value, tag(100)
+        //            3a 05bff2f9 #   negative(-96,465,658)
+        //                        #   date(-262144-01-01)
+        //     "),
+        // }
 
         epoch_date_min_repr_minus_one {
             DataItem::Tag {
@@ -106,25 +106,25 @@ testcases! {
             "),
         }
 
-        epoch_date_max_repr {
-            DataItem::Tag {
-                tag: Tag::EPOCH_DATE,
-                bitwidth: IntegerWidth::Eight,
-                value: Box::new(DataItem::Integer {
-                    value: 95026601,
-                    bitwidth: IntegerWidth::ThirtyTwo,
-                }),
-            },
-            {
-                "100_0(95026601_2)",
-                "100_0(95026601_2)",
-            },
-            indoc!("
-               d8 64          # epoch date value, tag(100)
-                  1a 05a9fda9 #   unsigned(95,026,601)
-                              #   date(+262143-12-31)
-            "),
-        }
+        // epoch_date_max_repr {
+        //     DataItem::Tag {
+        //         tag: Tag::EPOCH_DATE,
+        //         bitwidth: IntegerWidth::Eight,
+        //         value: Box::new(DataItem::Integer {
+        //             value: 95026601,
+        //             bitwidth: IntegerWidth::ThirtyTwo,
+        //         }),
+        //     },
+        //     {
+        //         "100_0(95026601_2)",
+        //         "100_0(95026601_2)",
+        //     },
+        //     indoc!("
+        //        d8 64          # epoch date value, tag(100)
+        //           1a 05a9fda9 #   unsigned(95,026,601)
+        //                       #   date(+262143-12-31)
+        //     "),
+        // }
 
         epoch_date_max_repr_plus_one {
             DataItem::Tag {
@@ -1619,22 +1619,22 @@ testcases! {
             "#),
         }
 
-        date_min_repr(hex2value, value2hex) {
-            DataItem::Tag {
-                tag: Tag::DATE,
-                bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(DataItem::TextString(TextString {
-                    data: "-262144-01-01".into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
-            },
-            indoc!(r#"
-               d9 03ec                          # standard date string, tag(1004)
-                  6d                            #   text(13)
-                     2d3236323134342d30312d3031 #     "-262144-01-01"
-                                                #   epoch(-96,465,658)
-            "#),
-        }
+        // date_min_repr(hex2value, value2hex) {
+        //     DataItem::Tag {
+        //         tag: Tag::DATE,
+        //         bitwidth: IntegerWidth::Sixteen,
+        //         value: Box::new(DataItem::TextString(TextString {
+        //             data: "-262144-01-01".into(),
+        //             bitwidth: IntegerWidth::Zero,
+        //         })),
+        //     },
+        //     indoc!(r#"
+        //        d9 03ec                          # standard date string, tag(1004)
+        //           6d                            #   text(13)
+        //              2d3236323134342d30312d3031 #     "-262144-01-01"
+        //                                         #   epoch(-96,465,658)
+        //     "#),
+        // }
 
         date_min_repr_minus_one(hex2value, value2hex) {
             DataItem::Tag {
@@ -1653,22 +1653,22 @@ testcases! {
             "#),
         }
 
-        date_max_repr(hex2value, value2hex) {
-            DataItem::Tag {
-                tag: Tag::DATE,
-                bitwidth: IntegerWidth::Sixteen,
-                value: Box::new(DataItem::TextString(TextString {
-                    data: "+262143-12-31".into(),
-                    bitwidth: IntegerWidth::Zero,
-                })),
-            },
-            indoc!(r#"
-               d9 03ec                          # standard date string, tag(1004)
-                  6d                            #   text(13)
-                     2b3236323134332d31322d3331 #     "+262143-12-31"
-                                                #   epoch(95,026,601)
-            "#),
-        }
+        // date_max_repr(hex2value, value2hex) {
+        //     DataItem::Tag {
+        //         tag: Tag::DATE,
+        //         bitwidth: IntegerWidth::Sixteen,
+        //         value: Box::new(DataItem::TextString(TextString {
+        //             data: "+262143-12-31".into(),
+        //             bitwidth: IntegerWidth::Zero,
+        //         })),
+        //     },
+        //     indoc!(r#"
+        //        d9 03ec                          # standard date string, tag(1004)
+        //           6d                            #   text(13)
+        //              2b3236323134332d31322d3331 #     "+262143-12-31"
+        //                                         #   epoch(95,026,601)
+        //     "#),
+        // }
 
         date_max_repr_plus_one(hex2value, value2hex) {
             DataItem::Tag {

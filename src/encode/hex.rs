@@ -617,6 +617,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value >= (i64::MAX as u64) {
                 None
             } else {
+                #[allow(deprecated)]
                 NaiveDateTime::from_timestamp_opt(value as i64, 0)
             }
         }
@@ -625,6 +626,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
             if value >= (i64::MAX as u64) {
                 None
             } else if let Some(value) = (-1i64).checked_sub(value as i64) {
+                #[allow(deprecated)]
                 NaiveDateTime::from_timestamp_opt(value, 0)
             } else {
                 None
@@ -640,6 +642,7 @@ fn epoch_datetime(value: &DataItem) -> Line {
                 } else {
                     (value, value.fract() * 1_000_000_000.0)
                 };
+                #[allow(deprecated)]
                 NaiveDateTime::from_timestamp_opt(value as i64, fract as u32)
             }
         }
