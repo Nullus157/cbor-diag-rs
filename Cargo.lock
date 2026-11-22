@@ -81,7 +81,7 @@ dependencies = [
 
 [[package]]
 name = "cbor-diag"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "bs58",
  "data-encoding",
@@ -102,7 +102,7 @@ dependencies = [
 
 [[package]]
 name = "cbor-diag-cli"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "cbor-diag",
